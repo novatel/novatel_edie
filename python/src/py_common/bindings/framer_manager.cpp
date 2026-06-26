@@ -16,7 +16,7 @@ nb::tuple PyFramerManager::PyGetFrame(uint32_t buffer_size)
 {
     std::vector<char> buffer(buffer_size);
     thread_local MetaDataBase* metadata; // maintain metadata until frame is returned
-    STATUS status = GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
+    STATUS status = GetFrame(reinterpret_cast<unsigned char*>(buffer.data()), buffer_size, metadata);
     switch (status)
     {
     case STATUS::UNKNOWN: // fall-through
@@ -61,7 +61,7 @@ void py_common::init_common_framer_manager(nb::module_& m)
         .def(
             "write",
             [](PyFramerManager& framer_manager, const nb::bytes& data) {
-                return framer_manager.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size());
+                return framer_manager.Write(reinterpret_cast<const unsigned char*>(data.c_str()), data.size());
             },
             R"doc(
             Writes data to the Framer's buffer.
@@ -73,7 +73,7 @@ void py_common::init_common_framer_manager(nb::module_& m)
              [](PyFramerManager& self) {
                  char buffer[MESSAGE_SIZE_MAX];
                  uint32_t buf_size = MESSAGE_SIZE_MAX;
-                 uint32_t flushed = self.Flush(reinterpret_cast<uint8_t*>(buffer), buf_size);
+                 uint32_t flushed = self.Flush(reinterpret_cast<unsigned char*>(buffer), buf_size);
                  return nb::bytes(buffer, flushed);
              })
         .def("get_frame", &PyFramerManager::PyGetFrame, "buffer_size"_a = MESSAGE_SIZE_MAX,

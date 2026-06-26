@@ -136,7 +136,9 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     {
     case HEADER_FORMAT::ABB_ASCII: {
         // Fix embedded header indentation
-        ConsumeAbbrevFormatting(reinterpret_cast<const char**>(&pucTempMessagePointer));
+        const auto* pcTempBuffer = reinterpret_cast<const char*>(pucTempMessagePointer);
+        ConsumeAbbrevFormatting(&pcTempBuffer);
+        pucTempMessagePointer = reinterpret_cast<const unsigned char*>(pcTempBuffer);
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC), CopyAndMove(pclFieldDef));
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - (pucTempMessagePointer - pucMessage_);
         break;
@@ -161,7 +163,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     stEmbeddedMessageData.reserve(uiCopyableEmbeddedMsgBytes);
     for (uint32_t i = 0; i < uiCopyableEmbeddedMsgBytes; ++i)
     {
-        stEmbeddedMessageData.emplace_back(*(reinterpret_cast<const uint8_t*>(pucTempMessagePointer)), CopyAndMove(pclFieldDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(*pucTempMessagePointer), CopyAndMove(pclFieldDef));
         pucTempMessagePointer++;
     }
 
@@ -173,16 +175,13 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
         const uint32_t uiCRC = strtoul(reinterpret_cast<const char*>(pucTempMessagePointer), nullptr, 16) ^ 0xFFFFFFFF;
         char pucCRC[OEM4_ASCII_CRC_LENGTH];
         std::to_chars(pucCRC, pucCRC + OEM4_ASCII_CRC_LENGTH, uiCRC, 16);
-        for (uint32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; ++i)
-        {
-            stEmbeddedMessageData.emplace_back(*(reinterpret_cast<uint8_t*>(pucCRC) + i), CopyAndMove(pclFieldDef));
-        }
+        for (auto c : pucCRC) { stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(c), CopyAndMove(pclFieldDef)); }
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'), CopyAndMove(pclFieldDef));
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'), CopyAndMove(pclFieldDef));
         break;
     }
     case HEADER_FORMAT::BINARY: {
-        uint32_t uiCRC = *reinterpret_cast<const uint32_t*>(pucTempMessagePointer) ^ 0xFFFFFFFF;
+        auto uiCRC = LoadValueFromBuffer<uint32_t>(pucTempMessagePointer) ^ 0xFFFFFFFF;
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24), CopyAndMove(pclFieldDef));
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16), CopyAndMove(pclFieldDef));
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 8), CopyAndMove(pclFieldDef));
@@ -195,7 +194,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     return STATUS::SUCCESS;
 }
 
-STATUS RxConfigHandler::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const
 {
     MessageDataStruct stEmbeddedMessageData;
@@ -203,7 +202,7 @@ STATUS RxConfigHandler::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSiz
     return Encode(ppucBuffer_, uiBufferSize_, stHeader_, stMessage_, stMessageData_, stEmbeddedMessageData, stEmbeddedMetaData, eFormat_);
 }
 
-STATUS RxConfigHandler::EncodeJSON(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+STATUS RxConfigHandler::EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                    MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
                                    IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const
 {
@@ -238,7 +237,7 @@ STATUS RxConfigHandler::EncodeJSON(unsigned char** ppucBuffer_, uint32_t uiBuffe
     return STATUS::SUCCESS;
 }
 
-STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                           MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                           MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
                                           std::vector<FieldContainer>& stEmbeddedMessage_) const
@@ -275,7 +274,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t 
     pucTempEncodeBuffer -= 2;
     uiBufferSize_ += 2;
     // add in a space
-    if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, " \r\n")) { return STATUS::BUFFER_FULL; }
+    if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, " \r\n")) { return STATUS::BUFFER_FULL; }
     // adjust header pointer for prefix
     stEmbeddedMessageData_.pucMessageHeader -= (szAbbrevAsciiEmbeddedHeaderPrefix.length() - 1);
     // adjust header length for prefix and additoinal ending space
@@ -295,7 +294,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t 
     return STATUS::SUCCESS;
 }
 
-STATUS RxConfigHandler::EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+STATUS RxConfigHandler::EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                     MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
                                     IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const
 {
@@ -329,17 +328,14 @@ STATUS RxConfigHandler::EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBuff
         CalculateBlockCrc32(stEmbeddedMessageData_.pucMessageHeader + 1, (pucTempEncodeBuffer - stEmbeddedMessageData_.pucMessageHeader) - 2) ^
         0xFFFFFFFF;
     // Write embedded CRC
-    if (!CopyAllToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, HexValue<uint32_t>{uiCrc, 8})) { return STATUS::BUFFER_FULL; }
+    if (!CopyAllToBuffer(&pucTempEncodeBuffer, uiBufferSize_, HexValue<uint32_t>{uiCrc, 8})) { return STATUS::BUFFER_FULL; }
     // Fix embedded message length
     stEmbeddedMessageData_.uiMessageBodyLength = pucTempEncodeBuffer - stEmbeddedMessageData_.pucMessageBody;
 
     // Encode regular CRC
     unsigned char* pucStartPoint = *ppucBuffer_ + 1; // Skip the first byte, which is the sync byte
     uiCrc = CalculateBlockCrc32(pucStartPoint, pucTempEncodeBuffer - pucStartPoint);
-    if (!CopyAllToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n"))
-    {
-        return STATUS::BUFFER_FULL;
-    }
+    if (!CopyAllToBuffer(&pucTempEncodeBuffer, uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n")) { return STATUS::BUFFER_FULL; }
 
     // -- Resolve Message Lengths --
     stMessageData_.uiMessageBodyLength = pucTempEncodeBuffer - stMessageData_.pucMessageBody;
@@ -349,7 +345,7 @@ STATUS RxConfigHandler::EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBuff
     return STATUS::SUCCESS;
 }
 
-STATUS RxConfigHandler::EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+STATUS RxConfigHandler::EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                      MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                      MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
                                      std::vector<FieldContainer>& stEmbeddedMessage_) const
@@ -378,17 +374,23 @@ STATUS RxConfigHandler::EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBuf
     uiBufferSize_ += OEM4_BINARY_CRC_LENGTH;
     // Fill in Embedded Binary Header length
     uint32_t uiEmbeddedBodyLength = pucTempEncodeBuffer - stEmbeddedMessageData_.pucMessageBody;
-    reinterpret_cast<Oem4BinaryHeader*>(stEmbeddedMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(uiEmbeddedBodyLength);
+    auto stEmbeddedHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stEmbeddedMessageData_.pucMessageHeader);
+    stEmbeddedHeader.usLength = static_cast<uint16_t>(uiEmbeddedBodyLength);
+    std::memcpy(stEmbeddedMessageData_.pucMessageHeader, &stEmbeddedHeader, sizeof(Oem4BinaryHeader));
+
     // Fill in Regular Binary Header length
     uint32_t uiRxLength = pucTempEncodeBuffer - stMessageData_.pucMessageBody + OEM4_BINARY_CRC_LENGTH;
-    reinterpret_cast<Oem4BinaryHeader*>(stMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(uiRxLength);
+    auto stRxHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData_.pucMessageHeader);
+    stRxHeader.usLength = static_cast<uint16_t>(uiRxLength);
+    std::memcpy(stMessageData_.pucMessageHeader, &stRxHeader, sizeof(Oem4BinaryHeader));
+
     // Overwrite Embedded CRC
     uint32_t uiCrc =
         CalculateBlockCrc32(stEmbeddedMessageData_.pucMessageHeader, pucTempEncodeBuffer - stEmbeddedMessageData_.pucMessageHeader) ^ 0xFFFFFFFF;
-    if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, uiCrc)) { return STATUS::BUFFER_FULL; }
+    if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, uiCrc)) { return STATUS::BUFFER_FULL; }
     // Add Regular CRC
     uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader, pucTempEncodeBuffer - stMessageData_.pucMessageHeader);
-    if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, uiCrc)) { return STATUS::BUFFER_FULL; }
+    if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, uiCrc)) { return STATUS::BUFFER_FULL; }
 
     // -- Resolve Message Lengths --
     stMessageData_.uiMessageBodyLength = pucTempEncodeBuffer - stMessageData_.pucMessageBody;
@@ -398,7 +400,7 @@ STATUS RxConfigHandler::EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBuf
     return STATUS::SUCCESS;
 }
 
-STATUS RxConfigHandler::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
                                MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const
 {

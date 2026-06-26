@@ -54,9 +54,9 @@ class Encoder : public EncoderBase<Encoder>
     static constexpr uint32_t indentLengthAbbAscii = OEM4_ABBREV_ASCII_INDENTATION_LENGTH;
 
     // Encode binary
-    [[nodiscard]] static bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] static bool EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] static bool EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] static bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] static bool EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] static bool EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_);
 
     // Encode ascii
     [[nodiscard]] bool EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
@@ -105,7 +105,7 @@ class Encoder : public EncoderBase<Encoder>
     //!   UNSUPPORTED: eFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] STATUS Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
                                 ENCODE_FORMAT eFormat_) const;
 
@@ -136,7 +136,7 @@ class Encoder : public EncoderBase<Encoder>
     //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] STATUS EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                       MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_,
                                       bool bIsEmbeddedHeader_ = false) const;
 
@@ -165,7 +165,7 @@ class Encoder : public EncoderBase<Encoder>
     //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
+    [[nodiscard]] STATUS EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
                                     MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const;
 
     friend class EncoderBase<Encoder>;

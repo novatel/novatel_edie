@@ -118,8 +118,8 @@ template <typename T, uint32_t BitfieldBits> T ExtractBitfield(unsigned char** p
         const int32_t extraBits = uiBitOffset_ + BitfieldBits - 64;
         if (extraBits > 0)
         {
-            uint64_t nextBytes = (*reinterpret_cast<uint64_t*>(*ppucData_ + 8)) & ((1ULL << extraBits) - 1);
-            result |= nextBytes << (64 - uiBitOffset_);
+            uint8_t nextByte = *(*ppucData_ + sizeof(uint64_t)) & static_cast<uint8_t>((1U << extraBits) - 1);
+            result |= static_cast<uint64_t>(nextByte) << (64 - uiBitOffset_);
         }
     }
     const uint32_t uiBitTotal = uiBitOffset_ + BitfieldBits;
@@ -148,8 +148,8 @@ template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiB
     const int32_t extraBits = uiBitOffset_ + uiBitsInBitfield_ - 64;
     if (extraBits > 0)
     {
-        uint64_t nextBytes = (*reinterpret_cast<uint64_t*>(*ppucData_ + 8)) & ((1ULL << extraBits) - 1);
-        result |= nextBytes << (64 - uiBitOffset_);
+        uint8_t nextByte = *(*ppucData_ + sizeof(uint64_t)) & static_cast<uint8_t>((1U << extraBits) - 1);
+        result |= static_cast<uint64_t>(nextByte) << (64 - uiBitOffset_);
     }
     const uint32_t uiBitTotal = uiBitOffset_ + uiBitsInBitfield_;
     const uint32_t uiBytesConsumed = uiBitTotal / 8;
