@@ -602,15 +602,13 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
         // TODO: this block of code below is what's blocking us from moving this function to common (can solve this with dynamic casting or CRTP?)
         if (!IsShortHeaderFormat(eHeaderFormat_))
         {
-            auto stHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData_.pucMessageHeader);
-            stHeader.usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
-            std::memcpy(stMessageData_.pucMessageHeader, &stHeader, sizeof(Oem4BinaryHeader));
+            auto usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
+            std::memcpy(stMessageData_.pucMessageHeader + offsetof(Oem4BinaryHeader, usLength), &usLength, sizeof(usLength));
         }
         else
         {
-            auto stShortHeader = LoadValueFromBuffer<Oem4BinaryShortHeader>(stMessageData_.pucMessageHeader);
-            stShortHeader.ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
-            std::memcpy(stMessageData_.pucMessageHeader, &stShortHeader, sizeof(Oem4BinaryShortHeader));
+            auto ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
+            std::memcpy(stMessageData_.pucMessageHeader + offsetof(Oem4BinaryShortHeader, ucLength), &ucLength, sizeof(ucLength));
         }
         if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_,
                           CalculateBlockCrc32(stMessageData_.pucMessageHeader, pucTempBuffer - stMessageData_.pucMessageHeader)))
