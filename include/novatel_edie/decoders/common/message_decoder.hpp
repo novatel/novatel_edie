@@ -114,8 +114,6 @@ class MessageDecoderBase
 
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("message_decoder")};
 
-    MessageDatabase::Ptr pclMyMsgDb{nullptr};
-
     EnumDefinition::ConstPtr vMyResponseDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
@@ -131,6 +129,8 @@ class MessageDecoderBase
     void CreateResponseMsgDefinitions();
 
   protected:
+    MessageDatabase::Ptr pclMyMsgDb{nullptr};
+
     std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr&&, const char**, [[maybe_unused]] size_t,
                                                     [[maybe_unused]] MessageDatabase&)>>
         asciiFieldMap;
