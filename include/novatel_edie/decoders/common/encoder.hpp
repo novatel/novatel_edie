@@ -402,6 +402,9 @@ template <typename Derived> class EncoderBase
                 case FIELD_TYPE::ENUM:
                     switch (field.fieldDef->dataType.length)
                     {
+                    case 1:
+                        if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<int8_t>(field.fieldValue))) { return false; }
+                        break;
                     case 2:
                         if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<int16_t>(field.fieldValue))) { return false; }
                         break;
@@ -562,7 +565,15 @@ template <typename Derived> class EncoderBase
                     break;
                 case FIELD_TYPE::ENUM: {
                     const auto* enumField = dynamic_cast<const EnumField*>(field.fieldDef.get());
-                    if (enumField->dataType.length == 2)
+                    if (enumField->dataType.length == 1)
+                    {
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, std::get<int8_t>(field.fieldValue))) ||
+                            !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
+                        {
+                            return false;
+                        }
+                    }
+                    else if (enumField->dataType.length == 2)
                     {
                         if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, std::get<int16_t>(field.fieldValue))) ||
                             !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))

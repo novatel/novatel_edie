@@ -72,7 +72,11 @@ bool FieldContainer::Validate() const
         break;
     }
     case FIELD_TYPE::ENUM: {
-        if (!(std::holds_alternative<int32_t>(fieldValue) || std::holds_alternative<int16_t>(fieldValue))) { return false; }
+        if (!(std::holds_alternative<int32_t>(fieldValue) || std::holds_alternative<int16_t>(fieldValue) ||
+              std::holds_alternative<int8_t>(fieldValue)))
+        {
+            return false;
+        }
         break;
     }
     case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
@@ -463,6 +467,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
         case FIELD_TYPE::ENUM:
             switch (field->dataType.length)
             {
+            case 1: vIntermediateFormat_.emplace_back(*reinterpret_cast<const std::int8_t*>(*ppucLogBuf_), field); break;
             case 2: vIntermediateFormat_.emplace_back(*reinterpret_cast<const std::int16_t*>(*ppucLogBuf_), field); break;
             case 4: vIntermediateFormat_.emplace_back(*reinterpret_cast<const std::int32_t*>(*ppucLogBuf_), field); break;
             default:
