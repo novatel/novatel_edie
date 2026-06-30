@@ -35,6 +35,8 @@
 #include <type_traits>
 
 #include "novatel_edie/common/crc.hpp"
+//!< Recommended frame buffer size. Should work for most formats and message sizes. If the buffer is too small, the framer will return BUFFER_FULL.
+constexpr uint32_t RECOMMENDED_FRAME_BUFFER_SIZE = 256 * 1024; // 256Kb
 
 //============================================================================
 //! \class FixedBuffer
@@ -44,14 +46,16 @@
 //! of logical capacity N uses an underlying array of size 2*N to mitigate the
 //! worst-case impact of shifting.
 //! \tparam T The type of elements stored in the buffer. Must be trivially copyable.
-//! \tparam N The fixed logical capacity.
 //============================================================================
-template <typename T, size_t N> class FixedBuffer
+template <typename T> class FixedBuffer
 {
-    static_assert(N > 0, "FixedBuffer capacity N must be positive");
     static_assert(std::is_trivially_copyable_v<T>, "FixedBuffer requires a trivially copyable type T for memcpy usage");
 
   public:
+    FixedBuffer(size_t capacity = RECOMMENDED_FRAME_BUFFER_SIZE) // Default capacity of 256KB
+        : N(capacity), buffer(std::make_unique<T[]>(2 * capacity)), head(0), sz(0)
+    {
+    }
     //! \brief A special value indicating "not found" in search operations.
     static constexpr size_t npos = static_cast<size_t>(-1);
 
@@ -188,12 +192,13 @@ template <typename T, size_t N> class FixedBuffer
     [[nodiscard]] constexpr bool full() const noexcept { return sz == N; }
 
   private:
-    std::unique_ptr<T[]> buffer{std::make_unique<T[]>(2 * N)};
+    size_t N;
+    std::unique_ptr<T[]> buffer;
     size_t head = 0;
     size_t sz = 0;
 };
 
 namespace novatel::edie {
 //! \brief FixedBuffer specialization for unsigned char with 256KB capacity.
-using UCharFixedBuffer = FixedBuffer<unsigned char, (1 << 18)>;
+using UCharFixedBuffer = FixedBuffer<unsigned char>;
 } // namespace novatel::edie

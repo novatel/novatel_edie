@@ -181,10 +181,11 @@ class FramerBase
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
     //----------------------------------------------------------------------------
-    FramerBase(const std::string& strLoggerName_) : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_))
+    FramerBase(const std::string& strLoggerName_, const size_t bufferSize_ = RECOMMENDED_FRAME_BUFFER_SIZE)
+        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_))
     {
         pclMyLogger->debug("FramerBase initializing...");
-        if (pclMyBuffer == nullptr) { pclMyBuffer = std::make_shared<UCharFixedBuffer>(); }
+        if (pclMyBuffer == nullptr) { pclMyBuffer = std::make_shared<UCharFixedBuffer>(bufferSize_); }
         pclMyLogger->debug("FramerBase initialized");
     }
 
