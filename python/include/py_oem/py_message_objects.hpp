@@ -32,6 +32,18 @@ struct PyGpsTime
 };
 
 //============================================================================
+//! \enum RECEIVER_STATUS_VERSION
+//! \brief The 2-bit version field embedded in the receiver-status word.
+//============================================================================
+enum class RECEIVER_STATUS_VERSION : uint8_t
+{
+    USE_OEM6_ERROR_BITS = 0,
+    USE_OEM7_ERROR_BITS = 1,
+    RESERVED_1 = 2,
+    RESERVED_2 = 3
+};
+
+//============================================================================
 //! \class PyRecieverStatus
 //! \brief The field in a message header which gives type information.
 //============================================================================
@@ -39,7 +51,108 @@ struct PyRecieverStatus
 {
     uint32_t value;
 
-    PyRecieverStatus(uint32_t value_) : value(value_) {}
+    PyRecieverStatus(uint32_t value_ = 0) : value(value_) {}
+
+    bool GetBit(uint32_t mask) const { return (value & mask) != 0; }
+    void SetBit(uint32_t mask, bool set)
+    {
+        if (set) { value |= mask; }
+        else { value &= ~mask; }
+    }
+
+    bool GetRecieverError() const { return GetBit(0x00000001); }
+    void SetRecieverError(bool v) { SetBit(0x00000001, v); }
+
+    bool GetTemperatureWarning() const { return GetBit(0x00000002); }
+    void SetTemperatureWarning(bool v) { SetBit(0x00000002, v); }
+
+    bool GetVoltageWarning() const { return GetBit(0x00000004); }
+    void SetVoltageWarning(bool v) { SetBit(0x00000004, v); }
+
+    bool GetAntennaPowered() const { return GetBit(0x00000008); }
+    void SetAntennaPowered(bool v) { SetBit(0x00000008, v); }
+
+    bool GetLnaFailure() const { return GetBit(0x00000010); }
+    void SetLnaFailure(bool v) { SetBit(0x00000010, v); }
+
+    bool GetAntennaOpenCircuit() const { return GetBit(0x00000020); }
+    void SetAntennaOpenCircuit(bool v) { SetBit(0x00000020, v); }
+
+    bool GetAntennaShortCircuit() const { return GetBit(0x00000040); }
+    void SetAntennaShortCircuit(bool v) { SetBit(0x00000040, v); }
+
+    bool GetCpuOverload() const { return GetBit(0x00000080); }
+    void SetCpuOverload(bool v) { SetBit(0x00000080, v); }
+
+    bool GetComBufferOverrun() const { return GetBit(0x00000100); }
+    void SetComBufferOverrun(bool v) { SetBit(0x00000100, v); }
+
+    bool GetSpoofingDetected() const { return GetBit(0x00000200); }
+    void SetSpoofingDetected(bool v) { SetBit(0x00000200, v); }
+
+    bool GetReserved() const { return GetBit(0x00000400); }
+    void SetReserved(bool v) { SetBit(0x00000400, v); }
+
+    bool GetLinkOverrun() const { return GetBit(0x00000800); }
+    void SetLinkOverrun(bool v) { SetBit(0x00000800, v); }
+
+    bool GetInputOverrun() const { return GetBit(0x00001000); }
+    void SetInputOverrun(bool v) { SetBit(0x00001000, v); }
+
+    bool GetAuxTransmitOverrun() const { return GetBit(0x00002000); }
+    void SetAuxTransmitOverrun(bool v) { SetBit(0x00002000, v); }
+
+    bool GetAntennaGainOutOfRange() const { return GetBit(0x00004000); }
+    void SetAntennaGainOutOfRange(bool v) { SetBit(0x00004000, v); }
+
+    bool GetJammerDetected() const { return GetBit(0x00008000); }
+    void SetJammerDetected(bool v) { SetBit(0x00008000, v); }
+
+    bool GetInsReset() const { return GetBit(0x00010000); }
+    void SetInsReset(bool v) { SetBit(0x00010000, v); }
+
+    bool GetImuCommunicationFailure() const { return GetBit(0x00020000); }
+    void SetImuCommunicationFailure(bool v) { SetBit(0x00020000, v); }
+
+    bool GetGpsAlmanacInvalid() const { return GetBit(0x00040000); }
+    void SetGpsAlmanacInvalid(bool v) { SetBit(0x00040000, v); }
+
+    bool GetPositionSolutionInvalid() const { return GetBit(0x00080000); }
+    void SetPositionSolutionInvalid(bool v) { SetBit(0x00080000, v); }
+
+    bool GetPositionFixed() const { return GetBit(0x00100000); }
+    void SetPositionFixed(bool v) { SetBit(0x00100000, v); }
+
+    bool GetClockSteeringDisabled() const { return GetBit(0x00200000); }
+    void SetClockSteeringDisabled(bool v) { SetBit(0x00200000, v); }
+
+    bool GetClockModelInvalid() const { return GetBit(0x00400000); }
+    void SetClockModelInvalid(bool v) { SetBit(0x00400000, v); }
+
+    bool GetExternalOscillatorLocked() const { return GetBit(0x00800000); }
+    void SetExternalOscillatorLocked(bool v) { SetBit(0x00800000, v); }
+
+    bool GetSoftwareResourceWarning() const { return GetBit(0x01000000); }
+    void SetSoftwareResourceWarning(bool v) { SetBit(0x01000000, v); }
+
+    bool GetTrackingModeHdr() const { return GetBit(0x08000000); }
+    void SetTrackingModeHdr(bool v) { SetBit(0x08000000, v); }
+
+    bool GetDigitalFilteringEnabled() const { return GetBit(0x10000000); }
+    void SetDigitalFilteringEnabled(bool v) { SetBit(0x10000000, v); }
+
+    bool GetAuxiliary3Event() const { return GetBit(0x20000000); }
+    void SetAuxiliary3Event(bool v) { SetBit(0x20000000, v); }
+
+    bool GetAuxiliary2Event() const { return GetBit(0x40000000); }
+    void SetAuxiliary2Event(bool v) { SetBit(0x40000000, v); }
+
+    bool GetAuxiliary1Event() const { return GetBit(0x80000000); }
+    void SetAuxiliary1Event(bool v) { SetBit(0x80000000, v); }
+
+    // 2-bit version field at bits 25-26 (mask 0x06000000).
+    RECEIVER_STATUS_VERSION GetVersionBits() const { return static_cast<RECEIVER_STATUS_VERSION>((value & 0x06000000) >> 25); }
+    void SetVersionBits(RECEIVER_STATUS_VERSION v) { value = (value & ~0x06000000u) | ((static_cast<uint32_t>(v) & 0x3) << 25); }
 };
 
 //============================================================================
@@ -77,7 +190,7 @@ struct PyMessageTypeField
 //============================================================================
 struct PyHeader : public oem::IntermediateHeader
 {
-    HEADER_FORMAT format;
+    HEADER_FORMAT format{HEADER_FORMAT::UNKNOWN};
 
     PyMessageTypeField GetPyMessageType() { return PyMessageTypeField(ucMessageType); }
     PyRecieverStatus GetRecieverStatus() { return PyRecieverStatus(uiReceiverStatus); }
@@ -128,6 +241,12 @@ struct PyEncodableField : public py_common::PyField
         : PyField(std::move(fields_), messageDef_, messageCrc_, std::move(database_)), header(std::move(header_)), messageDef(messageDef_),
           messageCrc(messageCrc_) {};
 
+    // Default-construct an encodable field from a (db, def, crc) tuple.
+    // Used by Message.__new__ — populates the field vector with type-appropriate
+    // defaults via PyField::BuildDefaultFields and default-constructs the header.
+    explicit PyEncodableField(py_common::PyMessageDatabase::ConstPtr database_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyField(messageDef_, messageCrc_, std::move(database_)), messageDef(messageDef_), messageCrc(messageCrc_) {};
+
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
     py_common::PyMessageData to_ascii();
     py_common::PyMessageData to_abbrev_ascii();
@@ -145,6 +264,10 @@ struct PyMessage : public PyEncodableField
     explicit PyMessage(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
                        const MessageDefinition* messageDef_, uint32_t messageCrc_)
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_) {};
+
+    // Default-construct a message — used by Message(...) __new__ binding.
+    explicit PyMessage(py_common::PyMessageDatabase::ConstPtr parent_db_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyEncodableField(std::move(parent_db_), messageDef_, messageCrc_) {};
 };
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header);
@@ -167,10 +290,10 @@ struct PyResponse : public PyEncodableField
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_), complete(complete_) {};
 
     // Retrieve response ID from first field of response
-    int32_t GetResponseId() { return std::get<int>(fields[0].fieldValue); }
+    int32_t GetResponseId() { return std::get<int>(fieldsPtr[0].fieldValue); }
 
     // Retrieve response string from second field of response
-    std::string GetResponseString() const { return std::get<std::string>(fields[1].fieldValue); }
+    std::string GetResponseString() const { return std::get<std::string>(fieldsPtr[1].fieldValue); }
 
     nb::object GetEnumValue()
     {

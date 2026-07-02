@@ -254,7 +254,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AddFieldType(std::vector<std:
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
             nb::object field_type = type_constructor(field_name);
             field_types[field.get()] = field_type;
-            field_type_lookup_[field_type] = field.get();
+            field_type_lookup_[field_type] = field;
             field_name_maps_[field.get()] = BuildFieldNameMapFromDefs(field_array_field->fields);
             AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor);
         }

@@ -589,7 +589,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         if (stMessageData_.pucMessageHeader == nullptr) { return STATUS::FAILURE; }
         // Go back and set the length field in the header.
         // TODO: this block of code below is what's blocking us from moving this function to common (can solve this with dynamic casting or CRTP?)
-        if (eHeaderFormat_ == HEADER_FORMAT::ASCII || eHeaderFormat_ == HEADER_FORMAT::BINARY || eHeaderFormat_ == HEADER_FORMAT::ABB_ASCII)
+        if (!IsShortHeaderFormat(eHeaderFormat_))
         {
             reinterpret_cast<Oem4BinaryHeader*>(stMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
         }

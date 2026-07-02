@@ -276,7 +276,7 @@ class TestDatabaseActions:
         """
         def test_lock(self, json_db: MessageDatabase):
             # Arrange
-            db = MessageDatabase()
+            db = MessageDatabase(message_family="OEM")
             # Act
             db.lock()
 
@@ -300,8 +300,8 @@ class TestDatabaseActions:
 
         def test_merge_locking(self):
             # Arrange
-            old_db = MessageDatabase()
-            new_db = MessageDatabase()
+            old_db = MessageDatabase(message_family="OEM")
+            new_db = MessageDatabase(message_family="OEM")
             # Act
             new_db.merge(old_db)
             # Assert
@@ -345,7 +345,7 @@ class TestDatabaseActions:
 
     def test_append_messages(self, json_db: MessageDatabase):
         # Arrange
-        new_db = MessageDatabase()
+        new_db = MessageDatabase(message_family="OEM")
         bestpos_id = 42
         bestpos_def = json_db.get_msg_def(bestpos_id)
         bestpos_type = json_db.get_msg_type("BESTPOS")
@@ -371,7 +371,7 @@ class TestDatabaseActions:
 
     def test_remove_message(self, json_db: MessageDatabase):
         # Arrange
-        new_db = MessageDatabase()
+        new_db = MessageDatabase(message_family="OEM")
         bestpos_id = 42
         bestpos_def = json_db.get_msg_def(bestpos_id)
         bestpos_type = json_db.get_msg_type("BESTPOS")
@@ -395,7 +395,7 @@ class TestDatabaseActions:
         """Tests that one databases messages can be merged into another."""
         # Arrange
         oem_minus_bestpos_db = json_db.fork()
-        new_db_with_bestpos = MessageDatabase()
+        new_db_with_bestpos = MessageDatabase(message_family="OEM")
         bestpos_name = "BESTPOS"
         bestpos_msg_def = oem_minus_bestpos_db.get_msg_def(bestpos_name)
         new_db_with_bestpos.append_messages([bestpos_msg_def])
