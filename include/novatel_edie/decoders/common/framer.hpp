@@ -69,7 +69,7 @@ class FramerBase
     constexpr static size_t MAX_LOOKAHEAD_BYTES = 256;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    std::shared_ptr<UCharFixedBuffer> pclMyBuffer{std::make_shared<UCharFixedBuffer>()};
+    std::shared_ptr<UCharFixedBuffer> pclMyBuffer;
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -182,10 +182,8 @@ class FramerBase
     //! \param[in] strLoggerName_ String to name the internal logger.
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_, const size_t bufferSize_ = RECOMMENDED_FRAME_BUFFER_SIZE)
-        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_))
+        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(std::make_shared<UCharFixedBuffer>(bufferSize_))
     {
-        pclMyLogger->debug("FramerBase initializing...");
-        if (pclMyBuffer == nullptr) { pclMyBuffer = std::make_shared<UCharFixedBuffer>(bufferSize_); }
         pclMyLogger->debug("FramerBase initialized");
     }
 
@@ -195,8 +193,8 @@ class FramerBase
     //! \param[in] strLoggerName_ String to name the internal logger.
     //! \param[in] buffer pointer to an already created sharable fixed buffer.
     //----------------------------------------------------------------------------
-    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<UCharFixedBuffer> buffer_)
-        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(buffer_)
+    FramerBase(const std::string& strLoggerName_, std::shared_ptr<UCharFixedBuffer> buffer_)
+        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(std::move(buffer_))
     {
         pclMyLogger->debug("FramerBase initialized");
     }
