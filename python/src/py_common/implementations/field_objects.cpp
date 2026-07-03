@@ -381,7 +381,8 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
     PyField* candidate = nb::inst_ptr<PyField>(nb::handle(*values.begin()));
     fieldDef = candidate->fieldDef;
     parentDb = candidate->parentDb;
-    const auto* arrayDef = static_cast<const ArrayField*>(fieldDef.get());
+    const auto* arrayDef = dynamic_cast<const ArrayField*>(fieldDef.get());
+    if (arrayDef == nullptr) { throw nb::type_error("Only regular fields can appear within a FieldArray!"); }
     if (values.size() > arrayDef->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
     cache.resize(values.size());
     std::vector<FieldContainer> owned;

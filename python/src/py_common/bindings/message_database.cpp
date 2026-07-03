@@ -285,12 +285,13 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(nb::new_([](std::optional<std::filesystem::path> file_path, std::optional<std::string> message_family) {
                  nb::object wrapper = file_path.has_value() ? py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(*file_path)))
                                                             : py_common::PyMessageDatabase::Create();
-                 if (message_family.has_value()) { nb::cast<py_common::PyMessageDatabase*>(wrapper)->SetMessageFamily(*message_family); }
-                 else if (!file_path.has_value())
+                 auto* database = nb::inst_ptr<PyMessageDatabase>(wrapper);
+                 if (message_family.has_value()) { database->SetMessageFamily(*message_family); }
+                 else if (database->GetMessageFamily().empty())
                  {
                      static const std::shared_ptr<spdlog::logger> logger = GetBaseLoggerManager()->RegisterLogger("message_database");
                      SPDLOG_LOGGER_WARN(logger, "MessageDatabase constructed without a message_family; "
-                                                "pass message_family= or assign db.message_family to silence this warning.");
+                                                "pass message_family={family} to silence this warning.");
                  }
                  return wrapper;
              }),
