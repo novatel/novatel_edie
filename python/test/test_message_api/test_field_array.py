@@ -281,3 +281,8 @@ class TestFieldArray:
     def test_field_array_too_many_points_rejected_direct(self, point_type: type):
         with pytest.raises(ValueError, match='maximum array size'):
             FieldArray([point_type(x=i, y=i) for i in range(5)])
+
+    def test_field_array_non_array_field_rejected(self, point_message_type: type, point_type: type):
+        message = point_message_type(points=[point_type(x=0, y=0)])
+        with pytest.raises(TypeError):
+            FieldArray([message])
