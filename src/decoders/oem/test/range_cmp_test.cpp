@@ -172,7 +172,7 @@ TEST_F(RangeCmpTest, BITFIELD_5)
 {
     // Edge case where bitfield occupies 9 bytes
     std::array<uint64_t, 2> arr = {0x2, 0x1};
-    auto* pucBytesPointer = reinterpret_cast<uint8_t*>(arr.data());
+    auto* pucBytesPointer = reinterpret_cast<unsigned char*>(arr.data());
     uint32_t uiBytesLeft = sizeof(arr);
     uint32_t uiBitOffset = 1;
     ASSERT_EQ(1ULL << 0 | 1ULL << 63, (ExtractBitfield<uint64_t, 64>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));

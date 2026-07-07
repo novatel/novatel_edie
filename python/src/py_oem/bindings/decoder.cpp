@@ -21,9 +21,9 @@ nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::Py
 
     if (rx_config_handler.IsRxConfigTypeMsg(header.usMessageId))
     {
-        status = rx_config_handler.Decode(reinterpret_cast<const uint8_t*>(raw_body.c_str()), fields, metadata);
+        status = rx_config_handler.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata);
     }
-    else { status = message_decoder.Decode(reinterpret_cast<const uint8_t*>(raw_body.c_str()), fields, metadata); }
+    else { status = message_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata); }
 
     switch (status)
     {
@@ -60,7 +60,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                     oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
                     metadata = &default_metadata;
                 }
-                STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const uint8_t*>(raw_header.c_str()), header, *metadata);
+                STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_header.c_str()), header, *metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 header.format = metadata->eFormat;
                 return header;
@@ -118,7 +118,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 metadata.uiLength = static_cast<uint32_t>(raw_message.size());
                 std::vector<FieldContainer> fields;
                 py_oem::PyHeader header;
-                const unsigned char* message_pointer = reinterpret_cast<const uint8_t*>(raw_message.c_str());
+                const unsigned char* message_pointer = reinterpret_cast<const unsigned char*>(raw_message.c_str());
                 STATUS status = decoder.header_decoder.Decode(message_pointer, header, metadata);
                 header.format = metadata.eFormat;
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }

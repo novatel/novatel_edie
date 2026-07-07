@@ -86,7 +86,7 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
     // A TRACKSTAT message can use about 47k bytes when encoded as JSON.
     // FIXME: this is still not safe and there is no effective buffer overflow checking implemented in Encoder.
     uint8_t buffer[MESSAGE_SIZE_MAX * 3];
-    auto buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
+    auto buf_ptr = reinterpret_cast<unsigned char*>(&buffer);
     uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
     if (extras.rxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
     {

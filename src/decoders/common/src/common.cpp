@@ -116,7 +116,7 @@ void ConsumeAbbrevFormatting(const char** ppcMessageBuffer_)
         case '<': [[fallthrough]];
         case ' ': [[fallthrough]];
         case '\r': [[fallthrough]];
-        case '\n': *ppcMessageBuffer_ += sizeof(int8_t); break;
+        case '\n': *ppcMessageBuffer_ += sizeof(char); break;
         default: return;
         }
     }

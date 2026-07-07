@@ -38,6 +38,46 @@
 
 namespace novatel::edie {
 
+template <typename T, template <typename> class Template> struct is_specialization_of : std::false_type
+{
+};
+template <typename T, template <typename> class Template> struct is_specialization_of<Template<T>, Template> : std::true_type
+{
+};
+template <typename T, template <typename> class Template> inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
+
+template <typename T> struct is_byte_buffer : std::false_type
+{
+};
+template <> struct is_byte_buffer<char*> : std::true_type
+{
+};
+template <> struct is_byte_buffer<unsigned char*> : std::true_type
+{
+};
+template <> struct is_byte_buffer<std::byte*> : std::true_type
+{
+};
+template <typename T> inline constexpr bool is_byte_buffer_v = is_byte_buffer<T>::value;
+
+template <typename BufferType> constexpr void AssertWritableByteBuffer()
+{
+    static_assert(is_byte_buffer_v<std::decay_t<BufferType>>, "BufferType must be char*, unsigned char*, or std::byte*.");
+}
+
+template <typename T> struct FloatValue
+{
+    T value;
+    std::chars_format format;
+    std::optional<int> precision;
+};
+
+template <typename T> struct HexValue
+{
+    T value;
+    uint32_t width;
+};
+
 constexpr auto powLookup = [] {
     std::array<double, 16> arr{};
     arr[0] = 1.0;
@@ -67,20 +107,22 @@ template <typename T> inline std::chars_format FloatingPointFormat(const FieldCo
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> [[nodiscard]] bool WriteIntToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, T&& arg)
+template <typename BufferType, typename T> [[nodiscard]] bool WriteIntToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, T&& arg)
 {
+    AssertWritableByteBuffer<BufferType>();
     static_assert(std::is_integral_v<std::decay_t<T>>, "Argument must be integral type.");
-    auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, arg);
+    auto [end, ec] = std::to_chars(*buffer_, *buffer_ + uiBytesLeft_, arg);
     if (ec != std::errc{}) { return false; }
-    const auto written = static_cast<uint32_t>(end - *ppcBuffer_);
-    *ppcBuffer_ = end;
+    const auto written = static_cast<uint32_t>(end - *buffer_);
+    *buffer_ = end;
     uiBytesLeft_ -= written;
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> [[nodiscard]] bool WriteHexToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, T&& arg, uint32_t width)
+template <typename BufferType, typename T> [[nodiscard]] bool WriteHexToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, T&& arg, uint32_t width)
 {
+    AssertWritableByteBuffer<BufferType>();
     static_assert(std::is_integral_v<std::decay_t<T>>, "Argument must be integral type.");
 
     constexpr uint32_t maxDigits = sizeof(T) * 2;
@@ -88,29 +130,30 @@ template <typename T> [[nodiscard]] bool WriteHexToBuffer(char** ppcBuffer_, uin
 
     if (uiBytesLeft_ < requiredSpace) { return false; }
 
-    auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, arg, 16);
+    auto [end, ec] = std::to_chars(*buffer_, *buffer_ + uiBytesLeft_, arg, 16);
 
     if (ec != std::errc{}) { return false; }
 
-    const auto num_digits = static_cast<uint32_t>(end - *ppcBuffer_);
+    const auto num_digits = static_cast<uint32_t>(end - *buffer_);
 
     if (num_digits < width)
     {
         const uint32_t pad_chars = width - num_digits;
-        std::memmove(*ppcBuffer_ + pad_chars, *ppcBuffer_, num_digits);
-        std::fill_n(*ppcBuffer_, pad_chars, '0');
+        std::memmove(*buffer_ + pad_chars, *buffer_, num_digits);
+        std::fill_n(*buffer_, pad_chars, '0');
         end += pad_chars;
     }
 
-    uiBytesLeft_ -= static_cast<uint32_t>(end - *ppcBuffer_);
-    *ppcBuffer_ = end;
+    uiBytesLeft_ -= static_cast<uint32_t>(end - *buffer_);
+    *buffer_ = end;
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T>
-[[nodiscard]] bool WriteFloatToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, T value, std::chars_format format, std::optional<int> precision)
+template <typename BufferType, typename T>
+[[nodiscard]] bool WriteFloatToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, T value, std::chars_format format, std::optional<int> precision)
 {
+    AssertWritableByteBuffer<BufferType>();
     static_assert(std::is_floating_point_v<T>, "WriteFloatToBuffer requires float/double.");
 
     int precision_arg = -1;
@@ -121,119 +164,112 @@ template <typename T>
     }
     else if (format == std::chars_format::fixed || format == std::chars_format::scientific) { precision_arg = 6; }
 
-    auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, value, format, precision_arg);
+    auto [end, ec] = std::to_chars(*buffer_, *buffer_ + uiBytesLeft_, value, format, precision_arg);
 
     if (ec != std::errc{}) { return false; }
 
-    uiBytesLeft_ -= static_cast<uint32_t>(end - *ppcBuffer_);
-    *ppcBuffer_ = end;
+    uiBytesLeft_ -= static_cast<uint32_t>(end - *buffer_);
+    *buffer_ = end;
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
 template <typename BufferType>
-[[nodiscard]] inline bool SetInBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const unsigned char iItem_, const uint32_t uiItemSize_)
+[[nodiscard]] inline bool SetInBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const unsigned char iItem_, const uint32_t uiItemSize_)
 {
+    AssertWritableByteBuffer<BufferType>();
     if (uiBytesLeft_ < uiItemSize_) { return false; }
-    memset(*ppucBuffer_, iItem_, uiItemSize_);
-    *ppucBuffer_ += uiItemSize_;
+    std::memset(*buffer_, iItem_, uiItemSize_);
+    *buffer_ += uiItemSize_;
     uiBytesLeft_ -= uiItemSize_;
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType, typename T> [[nodiscard]] bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const T& item)
+template <typename BufferType, typename T> [[nodiscard]] bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const T& item)
 {
+    AssertWritableByteBuffer<BufferType>();
     static_assert(!std::is_pointer_v<T>, "Pointers not allowed.");
     if (uiBytesLeft_ < sizeof(T)) { return false; }
-    std::memcpy(*ppucBuffer_, &item, sizeof(T));
-    *ppucBuffer_ += sizeof(T);
+    std::memcpy(*buffer_, &item, sizeof(T));
+    *buffer_ += sizeof(T);
     uiBytesLeft_ -= sizeof(T);
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType> [[nodiscard]] bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const char* ptItem_)
+template <typename BufferType> [[nodiscard]] bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const char* ptItem_)
 {
+    AssertWritableByteBuffer<BufferType>();
     auto uiItemSize = static_cast<uint32_t>(std::strlen(ptItem_));
     if (uiBytesLeft_ < uiItemSize) { return false; }
-    std::memcpy(*ppucBuffer_, ptItem_, uiItemSize);
-    *ppucBuffer_ += uiItemSize;
+    std::memcpy(*buffer_, ptItem_, uiItemSize);
+    *buffer_ += uiItemSize;
     uiBytesLeft_ -= uiItemSize;
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, std::string_view sv)
+template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, std::string_view sv)
 {
+    AssertWritableByteBuffer<BufferType>();
     if (uiBytesLeft_ < sv.size()) { return false; }
-    std::memcpy(*ppucBuffer_, sv.data(), sv.size());
-    *ppucBuffer_ += sv.size();
+    std::memcpy(*buffer_, sv.data(), sv.size());
+    *buffer_ += sv.size();
     uiBytesLeft_ -= static_cast<uint32_t>(sv.size());
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const std::string& str)
+template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const std::string& str)
 {
+    AssertWritableByteBuffer<BufferType>();
     if (uiBytesLeft_ < str.size()) { return false; }
-    std::memcpy(*ppucBuffer_, str.data(), str.size());
-    *ppucBuffer_ += str.size();
+    std::memcpy(*buffer_, str.data(), str.size());
+    *buffer_ += str.size();
     uiBytesLeft_ -= static_cast<uint32_t>(str.size());
     return true;
 }
 
-template <typename T> struct FloatValue
-{
-    T value;
-    std::chars_format format;
-    std::optional<int> precision;
-};
-
-template <typename T> struct HexValue
-{
-    T value;
-    uint32_t width;
-};
-
-template <typename T, template <typename> class Template> struct is_specialization_of : std::false_type
-{
-};
-
-template <typename T, template <typename> class Template> struct is_specialization_of<Template<T>, Template> : std::true_type
-{
-};
-
-template <typename T, template <typename> class Template> inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
-
 // -------------------------------------------------------------------------------------------------------
-template <typename... Args> [[nodiscard]] bool CopyAllToBuffer(char** ppucBuffer_, uint32_t& uiBytesLeft_, Args&&... args_)
+template <typename BufferType, typename... Args> [[nodiscard]] bool CopyAllToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, Args&&... args_)
 {
+    AssertWritableByteBuffer<BufferType>();
     return ([&](auto&& arg) {
         using Decayed = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_integral_v<Decayed> && !std::is_same_v<Decayed, char>) { return WriteIntToBuffer(ppucBuffer_, uiBytesLeft_, arg); }
-        if constexpr (is_specialization_of_v<Decayed, FloatValue>)
+        auto* ppcBuffer = reinterpret_cast<char*>(*buffer_);
+        if constexpr (std::is_integral_v<Decayed> && !std::is_same_v<Decayed, char>)
         {
-            return WriteFloatToBuffer(ppucBuffer_, uiBytesLeft_, arg.value, arg.format, arg.precision);
+            if (!WriteIntToBuffer(&ppcBuffer, uiBytesLeft_, arg)) { return false; }
         }
-        if constexpr (is_specialization_of_v<Decayed, HexValue>) { return WriteHexToBuffer(ppucBuffer_, uiBytesLeft_, arg.value, arg.width); }
-        return CopyToBuffer(ppucBuffer_, uiBytesLeft_, arg);
+        else if constexpr (is_specialization_of_v<Decayed, FloatValue>)
+        {
+            if (!WriteFloatToBuffer(&ppcBuffer, uiBytesLeft_, arg.value, arg.format, arg.precision)) { return false; }
+        }
+        else if constexpr (is_specialization_of_v<Decayed, HexValue>)
+        {
+            if (!WriteHexToBuffer(&ppcBuffer, uiBytesLeft_, arg.value, arg.width)) { return false; }
+        }
+        else { return CopyToBuffer(buffer_, uiBytesLeft_, arg); }
+        *buffer_ = reinterpret_cast<BufferType>(ppcBuffer);
+        return true;
     }(args_) &&
             ...);
 }
 
 // -------------------------------------------------------------------------------------------------------
 template <typename BufferType, typename... Args>
-[[nodiscard]] bool CopyAllToBufferSeparated(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const char cSeparator_, Args&&... args_)
+[[nodiscard]] bool CopyAllToBufferSeparated(BufferType* buffer_, uint32_t& uiBytesLeft_, const char cSeparator_, Args&&... args_)
 {
+    AssertWritableByteBuffer<BufferType>();
     bool success = true;
     size_t i = 0;
     (
         [&](auto&& arg) {
             if (!success) { return; }
-            success &= CopyAllToBuffer(ppucBuffer_, uiBytesLeft_, arg);
+            success &= CopyAllToBuffer(buffer_, uiBytesLeft_, arg);
             // Copy the separator to the buffer for every item except the last.
-            if (success && (i++ < sizeof...(Args) - 1)) { success &= CopyToBuffer(ppucBuffer_, uiBytesLeft_, cSeparator_); }
+            if (success && (i++ < sizeof...(Args) - 1)) { success &= CopyToBuffer(buffer_, uiBytesLeft_, cSeparator_); }
         }(std::forward<Args>(args_)),
         ...);
 
@@ -241,26 +277,18 @@ template <typename BufferType, typename... Args>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicMapEntry(const char* pcF_)
-{
-    return [pcF_](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcF_, std::get<T>(fc_.fieldValue));
-    };
-}
-
-// -------------------------------------------------------------------------------------------------------
 template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicIntMapEntry()
 {
-    return [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<T>(fc_.fieldValue));
+    return [](const FieldContainer& fc_, char** ppucOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return WriteIntToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<T>(fc_.fieldValue));
     };
 }
 
 // -------------------------------------------------------------------------------------------------------
 template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicHexMapEntry(uint32_t width)
 {
-    return [width](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<T>(fc_.fieldValue), width);
+    return [width](const FieldContainer& fc_, char** ppucOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return WriteHexToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<T>(fc_.fieldValue), width);
     };
 }
 
@@ -282,9 +310,8 @@ template <typename Derived> class EncoderBase
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
     // TODO: ASCII and JSON could probably share the same map.
-    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] const MessageDatabase&)>>
-        asciiFieldMap;
-    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] const MessageDatabase&)>> jsonFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)>> asciiFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)>> jsonFieldMap;
 
     template <bool Flatten, bool Align>
     [[nodiscard]] bool EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
@@ -297,7 +324,7 @@ template <typename Derived> class EncoderBase
         // decoder for consistency.
         const auto alignBufferPtr = [&ppucOutBuf_, &uiBytesLeft_](uint8_t alignment) {
             const auto uiAlign = std::min(static_cast<uint8_t>(4U), alignment);
-            const auto ullRem = reinterpret_cast<uint64_t>(*ppucOutBuf_) % uiAlign;
+            const auto ullRem = reinterpret_cast<uintptr_t>(*ppucOutBuf_) % uiAlign;
             return (ullRem == 0) || SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, uiAlign - ullRem);
         };
 
@@ -396,7 +423,7 @@ template <typename Derived> class EncoderBase
                         const uint32_t maxSize = dynamic_cast<const ArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
                         if (diff < maxSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', maxSize - diff)) { return false; }
                     }
-                    else if (!SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', 4 - (reinterpret_cast<uint64_t>(*ppucOutBuf_) % 4))) { return false; }
+                    else if (!SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', 4 - (reinterpret_cast<uintptr_t>(*ppucOutBuf_) % 4))) { return false; }
                     break;
                 }
                 case FIELD_TYPE::ENUM:

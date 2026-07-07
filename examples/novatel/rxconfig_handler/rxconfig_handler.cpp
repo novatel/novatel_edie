@@ -132,9 +132,10 @@ int main(int argc, char* argv[])
                 else if (eEncodeFormat == ENCODE_FORMAT::BINARY)
                 {
                     // Flip the CRC at the end of the embedded message, so it becomes a valid command.
-                    auto* puiCrcBegin = reinterpret_cast<uint32_t*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) -
-                                                                    OEM4_BINARY_CRC_LENGTH);
-                    *puiCrcBegin ^= 0xFFFFFFFF;
+                    for (uint32_t uiIndex = 0; uiIndex < OEM4_BINARY_CRC_LENGTH; uiIndex++)
+                    {
+                        stEmbeddedMessageData.pucMessage[stEmbeddedMessageData.uiMessageLength - OEM4_BINARY_CRC_LENGTH + uiIndex] ^= 0xFF;
+                    }
                     strippedOfs.write(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
                 }
                 else if (eEncodeFormat == ENCODE_FORMAT::JSON)

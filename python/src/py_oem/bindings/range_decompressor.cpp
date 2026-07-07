@@ -35,7 +35,7 @@ void py_oem::init_novatel_range_decompressor(nb::module_& m)
                 uint32_t buf_size = MESSAGE_SIZE_MAX;
                 memcpy(buffer, data.c_str(), data.size());
                 buffer[data.size()] = '\0';
-                STATUS status = self.Decompress(reinterpret_cast<uint8_t*>(buffer), buf_size, metadata, encode_format);
+                STATUS status = self.Decompress(reinterpret_cast<unsigned char*>(buffer), buf_size, metadata, encode_format);
                 throw_exception_from_status(status);
                 return nb::bytes(buffer, metadata.uiLength);
             },

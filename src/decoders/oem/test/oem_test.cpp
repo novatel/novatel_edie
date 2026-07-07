@@ -2243,12 +2243,16 @@ class DecodeEncodeTest : public ::testing::Test
         ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, pucLog1, aucLog1EncodeBuffer, sizeof(aucLog1EncodeBuffer), stMetaData1, stMessageData1));
         ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, pucLog2, aucLog2EncodeBuffer, sizeof(aucLog2EncodeBuffer), stMetaData2, stMessageData2));
 
-        ASSERT_EQ(*reinterpret_cast<Oem4BinaryHeader*>(stMessageData1.pucMessageHeader), *reinterpret_cast<T2*>(stMessageData2.pucMessageHeader));
+        auto stHeader1 = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData1.pucMessageHeader);
+        auto stHeader2 = LoadValueFromBuffer<T2>(stMessageData2.pucMessageHeader);
+        ASSERT_EQ(stHeader1, stHeader2);
 
         // we shouldn't have to do this. should make structs for the log types tested with T != void
         if constexpr (!std::is_same<T, void>())
         {
-            ASSERT_EQ(*reinterpret_cast<T*>(stMessageData1.pucMessageBody), *reinterpret_cast<T*>(stMessageData2.pucMessageBody));
+            auto stLog1 = LoadValueFromBuffer<T>(stMessageData1.pucMessageBody);
+            auto stLog2 = LoadValueFromBuffer<T>(stMessageData2.pucMessageBody);
+            ASSERT_EQ(stLog1, stLog2);
         }
     }
 
@@ -2367,36 +2371,36 @@ TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_GLOEPHEM)
 
     ASSERT_EQ(0, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucEncodeBuffer, sizeof(acEncodeBuffer), stMetaData, stMessageData));
 
-    auto* pstGloEphemeris = reinterpret_cast<GLOEPHEMERIS*>(stMessageData.pucMessageBody);
-    ASSERT_EQ(pstGloEphemeris->sloto, 51);
-    ASSERT_EQ(pstGloEphemeris->freqo, 0);
-    ASSERT_EQ(pstGloEphemeris->sat_type, 1);
-    ASSERT_EQ(pstGloEphemeris->false_iod, 80);
-    ASSERT_EQ(pstGloEphemeris->ephem_week, 2168);
-    ASSERT_EQ(pstGloEphemeris->ephem_time, 161118000U);
-    ASSERT_EQ(pstGloEphemeris->time_offset, 10782U);
-    ASSERT_EQ(pstGloEphemeris->nt, 573);
-    ASSERT_EQ(pstGloEphemeris->GLOEPHEMERIS_reserved, 0);
-    ASSERT_EQ(pstGloEphemeris->GLOEPHEMERIS_reserved_9, 0);
-    ASSERT_EQ(pstGloEphemeris->issue, 95U);
-    ASSERT_EQ(pstGloEphemeris->broadcast_health, 0U);
-    ASSERT_EQ(pstGloEphemeris->pos_x, -2.3917966796875000e+07);
-    ASSERT_EQ(pstGloEphemeris->pos_y, 4.8163881835937500e+06);
-    ASSERT_EQ(pstGloEphemeris->pos_z, 7.4258510742187500e+06);
-    ASSERT_EQ(pstGloEphemeris->vel_x, -1.0062713623046875e+03);
-    ASSERT_EQ(pstGloEphemeris->vel_y, 1.8321990966796875e+02);
-    ASSERT_EQ(pstGloEphemeris->vel_z, -3.3695755004882813e+03);
-    ASSERT_NEAR(pstGloEphemeris->ls_acc_x, 1.86264514923095700e-06, 0.0000000000000001e-06);
-    ASSERT_NEAR(pstGloEphemeris->ls_acc_y, -9.31322574615478510e-07, 0.0000000000000001e-07);
-    ASSERT_NEAR(pstGloEphemeris->ls_acc_z, -0.00000000000000000, 0.0000000000000001);
-    ASSERT_NEAR(pstGloEphemeris->tau, -6.69313594698905940e-05, 0.0000000000000001e-05);
-    ASSERT_EQ(pstGloEphemeris->delta_tau, 5.587935448e-09);
-    ASSERT_NEAR(pstGloEphemeris->gamma, 0.00000000000000000, 0.0000000000000001);
-    ASSERT_EQ(pstGloEphemeris->tk, 84600U);
-    ASSERT_EQ(pstGloEphemeris->p, 3U);
-    ASSERT_EQ(pstGloEphemeris->ft, 2U);
-    ASSERT_EQ(pstGloEphemeris->age, 0U);
-    ASSERT_EQ(pstGloEphemeris->flags, 13U);
+    auto stGloEphemeris = LoadValueFromBuffer<GLOEPHEMERIS>(stMessageData.pucMessageBody);
+    ASSERT_EQ(stGloEphemeris.sloto, 51);
+    ASSERT_EQ(stGloEphemeris.freqo, 0);
+    ASSERT_EQ(stGloEphemeris.sat_type, 1);
+    ASSERT_EQ(stGloEphemeris.false_iod, 80);
+    ASSERT_EQ(stGloEphemeris.ephem_week, 2168);
+    ASSERT_EQ(stGloEphemeris.ephem_time, 161118000U);
+    ASSERT_EQ(stGloEphemeris.time_offset, 10782U);
+    ASSERT_EQ(stGloEphemeris.nt, 573);
+    ASSERT_EQ(stGloEphemeris.GLOEPHEMERIS_reserved, 0);
+    ASSERT_EQ(stGloEphemeris.GLOEPHEMERIS_reserved_9, 0);
+    ASSERT_EQ(stGloEphemeris.issue, 95U);
+    ASSERT_EQ(stGloEphemeris.broadcast_health, 0U);
+    ASSERT_EQ(stGloEphemeris.pos_x, -2.3917966796875000e+07);
+    ASSERT_EQ(stGloEphemeris.pos_y, 4.8163881835937500e+06);
+    ASSERT_EQ(stGloEphemeris.pos_z, 7.4258510742187500e+06);
+    ASSERT_EQ(stGloEphemeris.vel_x, -1.0062713623046875e+03);
+    ASSERT_EQ(stGloEphemeris.vel_y, 1.8321990966796875e+02);
+    ASSERT_EQ(stGloEphemeris.vel_z, -3.3695755004882813e+03);
+    ASSERT_NEAR(stGloEphemeris.ls_acc_x, 1.86264514923095700e-06, 0.0000000000000001e-06);
+    ASSERT_NEAR(stGloEphemeris.ls_acc_y, -9.31322574615478510e-07, 0.0000000000000001e-07);
+    ASSERT_NEAR(stGloEphemeris.ls_acc_z, -0.00000000000000000, 0.0000000000000001);
+    ASSERT_NEAR(stGloEphemeris.tau, -6.69313594698905940e-05, 0.0000000000000001e-05);
+    ASSERT_EQ(stGloEphemeris.delta_tau, 5.587935448e-09);
+    ASSERT_NEAR(stGloEphemeris.gamma, 0.00000000000000000, 0.0000000000000001);
+    ASSERT_EQ(stGloEphemeris.tk, 84600U);
+    ASSERT_EQ(stGloEphemeris.p, 3U);
+    ASSERT_EQ(stGloEphemeris.ft, 2U);
+    ASSERT_EQ(stGloEphemeris.age, 0U);
+    ASSERT_EQ(stGloEphemeris.flags, 13U);
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_IONUTC)
@@ -2617,47 +2621,47 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_BESTPOS)
 
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
 
-    auto* pstLogHeader = reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
-    ASSERT_EQ(pstLogHeader->ucSync1, OEM4_BINARY_SYNC1);
-    ASSERT_EQ(pstLogHeader->ucSync2, OEM4_BINARY_SYNC2);
-    ASSERT_EQ(pstLogHeader->ucSync3, OEM4_BINARY_SYNC3);
-    ASSERT_EQ(pstLogHeader->ucHeaderLength, OEM4_BINARY_HEADER_LENGTH);
-    ASSERT_EQ(pstLogHeader->usMsgNumber, 42);
-    ASSERT_EQ(pstLogHeader->ucMsgType, 0);
-    ASSERT_EQ(pstLogHeader->ucPort, 0x20);
-    ASSERT_EQ(pstLogHeader->usLength, 72);
-    ASSERT_EQ(pstLogHeader->usSequenceNumber, 0);
-    ASSERT_EQ(pstLogHeader->ucIdleTime, 0x90);
-    ASSERT_EQ(pstLogHeader->ucTimeStatus, 180);
-    ASSERT_EQ(pstLogHeader->usWeekNo, 2215);
-    ASSERT_EQ(pstLogHeader->uiWeekMSec, 148248000U);
-    ASSERT_EQ(pstLogHeader->uiStatus, 0x02000020U);
-    ASSERT_EQ(pstLogHeader->usMsgDefCrc, 0xcdba);
-    ASSERT_EQ(pstLogHeader->usReceiverSwVersion, 32768);
+    auto stHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    ASSERT_EQ(stHeader.ucSync1, OEM4_BINARY_SYNC1);
+    ASSERT_EQ(stHeader.ucSync2, OEM4_BINARY_SYNC2);
+    ASSERT_EQ(stHeader.ucSync3, OEM4_BINARY_SYNC3);
+    ASSERT_EQ(stHeader.ucHeaderLength, OEM4_BINARY_HEADER_LENGTH);
+    ASSERT_EQ(stHeader.usMsgNumber, 42);
+    ASSERT_EQ(stHeader.ucMsgType, 0);
+    ASSERT_EQ(stHeader.ucPort, 0x20);
+    ASSERT_EQ(stHeader.usLength, 72);
+    ASSERT_EQ(stHeader.usSequenceNumber, 0);
+    ASSERT_EQ(stHeader.ucIdleTime, 0x90);
+    ASSERT_EQ(stHeader.ucTimeStatus, 180);
+    ASSERT_EQ(stHeader.usWeekNo, 2215);
+    ASSERT_EQ(stHeader.uiWeekMSec, 148248000U);
+    ASSERT_EQ(stHeader.uiStatus, 0x02000020U);
+    ASSERT_EQ(stHeader.usMsgDefCrc, 0xcdba);
+    ASSERT_EQ(stHeader.usReceiverSwVersion, 32768);
 
     // SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n"
-    auto* pstLogBody = reinterpret_cast<BESTPOS*>(stMessageData.pucMessageBody);
-    ASSERT_EQ(pstLogBody->solution_status, 0);
-    ASSERT_EQ(pstLogBody->position_type, 16);
-    ASSERT_EQ(pstLogBody->latitude, 51.15043711386);
-    ASSERT_EQ(pstLogBody->longitude, -114.03067767000);
-    ASSERT_EQ(pstLogBody->orthometric_height, 1097.2099);
-    ASSERT_EQ(pstLogBody->undulation, -17.0000);
-    ASSERT_EQ(pstLogBody->datum_id, 61);
-    ASSERT_NEAR(pstLogBody->latitude_std_dev, 0.9038, 0.00001);
-    ASSERT_NEAR(pstLogBody->longitude_std_dev, 0.8534, 0.00001);
-    ASSERT_NEAR(pstLogBody->height_std_dev, 1.7480, 0.00001);
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->base_id), ""));
-    ASSERT_EQ(pstLogBody->diff_age, 0.000);
-    ASSERT_EQ(pstLogBody->solution_age, 0.000);
-    ASSERT_EQ(pstLogBody->num_svs, 35);
-    ASSERT_EQ(pstLogBody->num_soln_svs, 30);
-    ASSERT_EQ(pstLogBody->num_soln_L1_svs, 30);
-    ASSERT_EQ(pstLogBody->num_soln_multi_svs, 30);
-    ASSERT_EQ(pstLogBody->extended_solution_status2, 0x00);
-    ASSERT_EQ(pstLogBody->ext_sol_stat, 0x06);
-    ASSERT_EQ(pstLogBody->gal_and_bds_mask, 0x39);
-    ASSERT_EQ(pstLogBody->gps_and_glo_mask, 0x33);
+    auto stLogBody = LoadValueFromBuffer<BESTPOS>(stMessageData.pucMessageBody);
+    ASSERT_EQ(stLogBody.solution_status, 0);
+    ASSERT_EQ(stLogBody.position_type, 16);
+    ASSERT_EQ(stLogBody.latitude, 51.15043711386);
+    ASSERT_EQ(stLogBody.longitude, -114.03067767000);
+    ASSERT_EQ(stLogBody.orthometric_height, 1097.2099);
+    ASSERT_EQ(stLogBody.undulation, -17.0000);
+    ASSERT_EQ(stLogBody.datum_id, 61);
+    ASSERT_NEAR(stLogBody.latitude_std_dev, 0.9038, 0.00001);
+    ASSERT_NEAR(stLogBody.longitude_std_dev, 0.8534, 0.00001);
+    ASSERT_NEAR(stLogBody.height_std_dev, 1.7480, 0.00001);
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.base_id), ""));
+    ASSERT_EQ(stLogBody.diff_age, 0.000);
+    ASSERT_EQ(stLogBody.solution_age, 0.000);
+    ASSERT_EQ(stLogBody.num_svs, 35);
+    ASSERT_EQ(stLogBody.num_soln_svs, 30);
+    ASSERT_EQ(stLogBody.num_soln_L1_svs, 30);
+    ASSERT_EQ(stLogBody.num_soln_multi_svs, 30);
+    ASSERT_EQ(stLogBody.extended_solution_status2, 0x00);
+    ASSERT_EQ(stLogBody.ext_sol_stat, 0x06);
+    ASSERT_EQ(stLogBody.gal_and_bds_mask, 0x39);
+    ASSERT_EQ(stLogBody.gps_and_glo_mask, 0x33);
 }
 
 TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_GLOEPHEMA)
@@ -2672,54 +2676,54 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_GLOEPHEMA)
 
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
 
-    auto* pstLogHeader = reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
-    ASSERT_EQ(pstLogHeader->ucSync1, OEM4_BINARY_SYNC1);
-    ASSERT_EQ(pstLogHeader->ucSync2, OEM4_BINARY_SYNC2);
-    ASSERT_EQ(pstLogHeader->ucSync3, OEM4_BINARY_SYNC3);
-    ASSERT_EQ(pstLogHeader->ucHeaderLength, OEM4_BINARY_HEADER_LENGTH);
-    ASSERT_EQ(pstLogHeader->usMsgNumber, 723);
-    ASSERT_EQ(pstLogHeader->ucMsgType, 0);
-    ASSERT_EQ(pstLogHeader->ucPort, 0x20);
-    ASSERT_EQ(pstLogHeader->usLength, 144);
-    ASSERT_EQ(pstLogHeader->usSequenceNumber, 11);
-    ASSERT_EQ(pstLogHeader->ucIdleTime, 0x86);
-    ASSERT_EQ(pstLogHeader->ucTimeStatus, 200);
-    ASSERT_EQ(pstLogHeader->usWeekNo, 2168);
-    ASSERT_EQ(pstLogHeader->uiWeekMSec, 160218000U);
-    ASSERT_EQ(pstLogHeader->uiStatus, 0x02000820U);
-    ASSERT_EQ(pstLogHeader->usMsgDefCrc, 0x8d29);
-    ASSERT_EQ(pstLogHeader->usReceiverSwVersion, 32768);
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    ASSERT_EQ(stLogHeader.ucSync1, OEM4_BINARY_SYNC1);
+    ASSERT_EQ(stLogHeader.ucSync2, OEM4_BINARY_SYNC2);
+    ASSERT_EQ(stLogHeader.ucSync3, OEM4_BINARY_SYNC3);
+    ASSERT_EQ(stLogHeader.ucHeaderLength, OEM4_BINARY_HEADER_LENGTH);
+    ASSERT_EQ(stLogHeader.usMsgNumber, 723);
+    ASSERT_EQ(stLogHeader.ucMsgType, 0);
+    ASSERT_EQ(stLogHeader.ucPort, 0x20);
+    ASSERT_EQ(stLogHeader.usLength, 144);
+    ASSERT_EQ(stLogHeader.usSequenceNumber, 11);
+    ASSERT_EQ(stLogHeader.ucIdleTime, 0x86);
+    ASSERT_EQ(stLogHeader.ucTimeStatus, 200);
+    ASSERT_EQ(stLogHeader.usWeekNo, 2168);
+    ASSERT_EQ(stLogHeader.uiWeekMSec, 160218000U);
+    ASSERT_EQ(stLogHeader.uiStatus, 0x02000820U);
+    ASSERT_EQ(stLogHeader.usMsgDefCrc, 0x8d29);
+    ASSERT_EQ(stLogHeader.usReceiverSwVersion, 32768);
 
-    auto* pstLogBody = reinterpret_cast<GLOEPHEMERIS*>(stMessageData.pucMessageBody);
-    ASSERT_EQ(pstLogBody->sloto, 51);
-    ASSERT_EQ(pstLogBody->freqo, 0);
-    ASSERT_EQ(pstLogBody->sat_type, 1);
-    ASSERT_EQ(pstLogBody->false_iod, 80);
-    ASSERT_EQ(pstLogBody->ephem_week, 2168);
-    ASSERT_EQ(pstLogBody->ephem_time, 161118000U);
-    ASSERT_EQ(pstLogBody->time_offset, 10782U);
-    ASSERT_EQ(pstLogBody->nt, 573);
-    ASSERT_EQ(pstLogBody->GLOEPHEMERIS_reserved, 0);
-    ASSERT_EQ(pstLogBody->GLOEPHEMERIS_reserved_9, 0);
-    ASSERT_EQ(pstLogBody->issue, 95U);
-    ASSERT_EQ(pstLogBody->broadcast_health, 0U);
-    ASSERT_EQ(pstLogBody->pos_x, -2.3917966796875000e+07);
-    ASSERT_EQ(pstLogBody->pos_y, 4.8163881835937500e+06);
-    ASSERT_EQ(pstLogBody->pos_z, 7.4258510742187500e+06);
-    ASSERT_EQ(pstLogBody->vel_x, -1.0062713623046875e+03);
-    ASSERT_EQ(pstLogBody->vel_y, 1.8321990966796875e+02);
-    ASSERT_EQ(pstLogBody->vel_z, -3.3695755004882813e+03);
-    ASSERT_NEAR(pstLogBody->ls_acc_x, 1.86264514923095700e-06, 0.0000000000000001e-06);
-    ASSERT_NEAR(pstLogBody->ls_acc_y, -9.31322574615478510e-07, 0.0000000000000001e-07);
-    ASSERT_NEAR(pstLogBody->ls_acc_z, -0.00000000000000000, 0.0000000000000001);
-    ASSERT_NEAR(pstLogBody->tau, -6.69313594698905940e-05, 0.0000000000000001e-05);
-    ASSERT_EQ(pstLogBody->delta_tau, 5.587935448e-09);
-    ASSERT_NEAR(pstLogBody->gamma, 0.00000000000000000, 0.0000000000000001);
-    ASSERT_EQ(pstLogBody->tk, 84600U);
-    ASSERT_EQ(pstLogBody->p, 3U);
-    ASSERT_EQ(pstLogBody->ft, 2U);
-    ASSERT_EQ(pstLogBody->age, 0U);
-    ASSERT_EQ(pstLogBody->flags, 13U);
+    auto stLogBody = LoadValueFromBuffer<GLOEPHEMERIS>(stMessageData.pucMessageBody);
+    ASSERT_EQ(stLogBody.sloto, 51);
+    ASSERT_EQ(stLogBody.freqo, 0);
+    ASSERT_EQ(stLogBody.sat_type, 1);
+    ASSERT_EQ(stLogBody.false_iod, 80);
+    ASSERT_EQ(stLogBody.ephem_week, 2168);
+    ASSERT_EQ(stLogBody.ephem_time, 161118000U);
+    ASSERT_EQ(stLogBody.time_offset, 10782U);
+    ASSERT_EQ(stLogBody.nt, 573);
+    ASSERT_EQ(stLogBody.GLOEPHEMERIS_reserved, 0);
+    ASSERT_EQ(stLogBody.GLOEPHEMERIS_reserved_9, 0);
+    ASSERT_EQ(stLogBody.issue, 95U);
+    ASSERT_EQ(stLogBody.broadcast_health, 0U);
+    ASSERT_EQ(stLogBody.pos_x, -2.3917966796875000e+07);
+    ASSERT_EQ(stLogBody.pos_y, 4.8163881835937500e+06);
+    ASSERT_EQ(stLogBody.pos_z, 7.4258510742187500e+06);
+    ASSERT_EQ(stLogBody.vel_x, -1.0062713623046875e+03);
+    ASSERT_EQ(stLogBody.vel_y, 1.8321990966796875e+02);
+    ASSERT_EQ(stLogBody.vel_z, -3.3695755004882813e+03);
+    ASSERT_NEAR(stLogBody.ls_acc_x, 1.86264514923095700e-06, 0.0000000000000001e-06);
+    ASSERT_NEAR(stLogBody.ls_acc_y, -9.31322574615478510e-07, 0.0000000000000001e-07);
+    ASSERT_NEAR(stLogBody.ls_acc_z, -0.00000000000000000, 0.0000000000000001);
+    ASSERT_NEAR(stLogBody.tau, -6.69313594698905940e-05, 0.0000000000000001e-05);
+    ASSERT_EQ(stLogBody.delta_tau, 5.587935448e-09);
+    ASSERT_NEAR(stLogBody.gamma, 0.00000000000000000, 0.0000000000000001);
+    ASSERT_EQ(stLogBody.tk, 84600U);
+    ASSERT_EQ(stLogBody.p, 3U);
+    ASSERT_EQ(stLogBody.ft, 2U);
+    ASSERT_EQ(stLogBody.age, 0U);
+    ASSERT_EQ(stLogBody.flags, 13U);
 }
 
 TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_PORTSTATSB)
@@ -2737,9 +2741,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_PORTSTATSB)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(1356U, stMessageData.uiMessageLength);
 
-    Oem4BinaryHeader stLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
-    PORTSTATS stLogBody = *reinterpret_cast<PORTSTATS*>(stMessageData.pucMessageBody);
-    Oem4BinaryHeader stTestLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(aucLog);
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    auto stLogBody = LoadValueFromBuffer<PORTSTATS>(stMessageData.pucMessageBody);
+    auto stTestLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(aucLog);
     stTestLogHeader.usLength = 1356 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
     ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -2781,9 +2785,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_PSRDOPB)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(1360U, stMessageData.uiMessageLength);
 
-    auto stLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
-    auto stLogBody = *reinterpret_cast<PSRDOP*>(stMessageData.pucMessageBody);
-    auto stTestLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(aucLog);
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    auto stLogBody = LoadValueFromBuffer<PSRDOP>(stMessageData.pucMessageBody);
+    auto stTestLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(aucLog);
     stTestLogHeader.usLength = 1360 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
     ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -2814,9 +2818,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VALIDMODELSB)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(708U, stMessageData.uiMessageLength);
 
-    auto stLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
-    auto stLogBody = *reinterpret_cast<VALIDMODELS*>(stMessageData.pucMessageBody);
-    auto stTestLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(aucLog);
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    auto stLogBody = LoadValueFromBuffer<VALIDMODELS>(stMessageData.pucMessageBody);
+    auto stTestLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(aucLog);
     stTestLogHeader.usLength = 708 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
     ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -2854,68 +2858,68 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSION)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-    auto* pstLogHeader = reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
-    ASSERT_EQ(pstLogHeader->ucSync1, OEM4_BINARY_SYNC1);
-    ASSERT_EQ(pstLogHeader->ucSync2, OEM4_BINARY_SYNC2);
-    ASSERT_EQ(pstLogHeader->ucSync3, OEM4_BINARY_SYNC3);
-    ASSERT_EQ(pstLogHeader->ucHeaderLength, OEM4_BINARY_HEADER_LENGTH);
-    ASSERT_EQ(pstLogHeader->usMsgNumber, 37);
-    ASSERT_EQ(pstLogHeader->ucMsgType, 0);
-    ASSERT_EQ(pstLogHeader->ucPort, 0x20);
-    ASSERT_EQ(pstLogHeader->usLength, 2164);
-    ASSERT_EQ(pstLogHeader->usSequenceNumber, 0);
-    ASSERT_EQ(pstLogHeader->ucIdleTime, 0x8D);
-    ASSERT_EQ(pstLogHeader->ucTimeStatus, 180);
-    ASSERT_EQ(pstLogHeader->usWeekNo, 2215);
-    ASSERT_EQ(pstLogHeader->uiWeekMSec, 148710357U);
-    ASSERT_EQ(pstLogHeader->uiStatus, 0x02000020U);
-    ASSERT_EQ(pstLogHeader->usMsgDefCrc, 0x3681);
-    ASSERT_EQ(pstLogHeader->usReceiverSwVersion, 32768);
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    ASSERT_EQ(stLogHeader.ucSync1, OEM4_BINARY_SYNC1);
+    ASSERT_EQ(stLogHeader.ucSync2, OEM4_BINARY_SYNC2);
+    ASSERT_EQ(stLogHeader.ucSync3, OEM4_BINARY_SYNC3);
+    ASSERT_EQ(stLogHeader.ucHeaderLength, OEM4_BINARY_HEADER_LENGTH);
+    ASSERT_EQ(stLogHeader.usMsgNumber, 37);
+    ASSERT_EQ(stLogHeader.ucMsgType, 0);
+    ASSERT_EQ(stLogHeader.ucPort, 0x20);
+    ASSERT_EQ(stLogHeader.usLength, 2164);
+    ASSERT_EQ(stLogHeader.usSequenceNumber, 0);
+    ASSERT_EQ(stLogHeader.ucIdleTime, 0x8D);
+    ASSERT_EQ(stLogHeader.ucTimeStatus, 180);
+    ASSERT_EQ(stLogHeader.usWeekNo, 2215);
+    ASSERT_EQ(stLogHeader.uiWeekMSec, 148710357U);
+    ASSERT_EQ(stLogHeader.uiStatus, 0x02000020U);
+    ASSERT_EQ(stLogHeader.usMsgDefCrc, 0x3681);
+    ASSERT_EQ(stLogHeader.usReceiverSwVersion, 32768);
 
-    auto* pstLogBody = reinterpret_cast<VERSION*>(stMessageData.pucMessageBody);
+    auto stLogBody = LoadValueFromBuffer<VERSION>(stMessageData.pucMessageBody);
 
     // Check the populated parts of the log
-    ASSERT_EQ(4U, pstLogBody->versions_arraylength);
+    ASSERT_EQ(4U, stLogBody.versions_arraylength);
 
     // Check GPSCARD fields
-    ASSERT_EQ(pstLogBody->versions[0].component_type, 1);
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].model_name), "FFNRNNCBN"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].psn), "BMGX15360035V"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].hardware_version), "OEM729-0.00H"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].software_version), "OM7MG0810DN0000"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].boot_version), "OM7BR0000ABG001"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].compile_date), "2022/Jun/17"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].compile_time), "08:24:06"));
+    ASSERT_EQ(stLogBody.versions[0].component_type, 1);
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].model_name), "FFNRNNCBN"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].psn), "BMGX15360035V"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].hardware_version), "OEM729-0.00H"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].software_version), "OM7MG0810DN0000"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].boot_version), "OM7BR0000ABG001"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].compile_date), "2022/Jun/17"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].compile_time), "08:24:06"));
 
     // Check OEM7FPGA fields
-    ASSERT_EQ(pstLogBody->versions[1].component_type, 21);
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].model_name), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].psn), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].hardware_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].software_version), "OMV070001RN0000"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].boot_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].compile_date), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].compile_time), ""));
+    ASSERT_EQ(stLogBody.versions[1].component_type, 21);
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].model_name), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].psn), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].hardware_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].software_version), "OMV070001RN0000"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].boot_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].compile_date), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].compile_time), ""));
 
     // Check DB_LUA_SCRIPTS fields
-    ASSERT_EQ(pstLogBody->versions[2].component_type, 981073930);
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[2].model_name), "SCRIPTS"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[2].psn), "Block1"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[2].hardware_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[2].software_version), "Package1_1.0"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[2].boot_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[2].compile_date), "2017/Oct/27"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[2].compile_time), "16:02:54"));
+    ASSERT_EQ(stLogBody.versions[2].component_type, 981073930);
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[2].model_name), "SCRIPTS"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[2].psn), "Block1"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[2].hardware_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[2].software_version), "Package1_1.0"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[2].boot_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[2].compile_date), "2017/Oct/27"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[2].compile_time), "16:02:54"));
 
     // Check DB_WWWISO fields
-    ASSERT_EQ(pstLogBody->versions[3].component_type, 981073928);
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[3].model_name), "WWWISO"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[3].psn), "0"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[3].hardware_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[3].software_version), "WMC010202RN0002"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[3].boot_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[3].compile_date), "2017/Dec/15"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[3].compile_time), "9:08:56"));
+    ASSERT_EQ(stLogBody.versions[3].component_type, 981073928);
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[3].model_name), "WWWISO"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[3].psn), "0"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[3].hardware_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[3].software_version), "WMC010202RN0002"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[3].boot_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[3].compile_date), "2017/Dec/15"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[3].compile_time), "9:08:56"));
 }
 
 TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONA)
@@ -2931,60 +2935,60 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONA)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-    auto* pstLogHeader = reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
-    ASSERT_EQ(pstLogHeader->ucSync1, OEM4_BINARY_SYNC1);
-    ASSERT_EQ(pstLogHeader->ucSync2, OEM4_BINARY_SYNC2);
-    ASSERT_EQ(pstLogHeader->ucSync3, OEM4_BINARY_SYNC3);
-    ASSERT_EQ(pstLogHeader->ucHeaderLength, OEM4_BINARY_HEADER_LENGTH);
-    ASSERT_EQ(pstLogHeader->usMsgNumber, 37);
-    ASSERT_EQ(pstLogHeader->ucMsgType, 0);
-    ASSERT_EQ(pstLogHeader->ucPort, 0x20);
-    ASSERT_EQ(pstLogHeader->usLength, 2164);
-    ASSERT_EQ(pstLogHeader->usSequenceNumber, 0);
-    ASSERT_EQ(pstLogHeader->ucIdleTime, 0x6F);
-    ASSERT_EQ(pstLogHeader->ucTimeStatus, 180);
-    ASSERT_EQ(pstLogHeader->usWeekNo, 2167);
-    ASSERT_EQ(pstLogHeader->uiWeekMSec, 254938857U);
-    ASSERT_EQ(pstLogHeader->uiStatus, 0x02000000U);
-    ASSERT_EQ(pstLogHeader->usMsgDefCrc, 0x3681);
-    ASSERT_EQ(pstLogHeader->usReceiverSwVersion, 16248);
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    ASSERT_EQ(stLogHeader.ucSync1, OEM4_BINARY_SYNC1);
+    ASSERT_EQ(stLogHeader.ucSync2, OEM4_BINARY_SYNC2);
+    ASSERT_EQ(stLogHeader.ucSync3, OEM4_BINARY_SYNC3);
+    ASSERT_EQ(stLogHeader.ucHeaderLength, OEM4_BINARY_HEADER_LENGTH);
+    ASSERT_EQ(stLogHeader.usMsgNumber, 37);
+    ASSERT_EQ(stLogHeader.ucMsgType, 0);
+    ASSERT_EQ(stLogHeader.ucPort, 0x20);
+    ASSERT_EQ(stLogHeader.usLength, 2164);
+    ASSERT_EQ(stLogHeader.usSequenceNumber, 0);
+    ASSERT_EQ(stLogHeader.ucIdleTime, 0x6F);
+    ASSERT_EQ(stLogHeader.ucTimeStatus, 180);
+    ASSERT_EQ(stLogHeader.usWeekNo, 2167);
+    ASSERT_EQ(stLogHeader.uiWeekMSec, 254938857U);
+    ASSERT_EQ(stLogHeader.uiStatus, 0x02000000U);
+    ASSERT_EQ(stLogHeader.usMsgDefCrc, 0x3681);
+    ASSERT_EQ(stLogHeader.usReceiverSwVersion, 16248);
 
-    auto* pstLogBody = reinterpret_cast<VERSION*>(stMessageData.pucMessageBody);
+    auto stLogBody = LoadValueFromBuffer<VERSION>(stMessageData.pucMessageBody);
 
     // Check the populated parts of the log
-    ASSERT_EQ(8U, pstLogBody->versions_arraylength);
+    ASSERT_EQ(8U, stLogBody.versions_arraylength);
 
     // Check GPSCARD fields
-    ASSERT_EQ(pstLogBody->versions[0].component_type, 1);
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].model_name), "FFNBYNTMNP1"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].psn), "BMHR15470120X"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].hardware_version), "OEM719N-0.00C"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].software_version), "OM7CR0707RN0000"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].boot_version), "OM7BR0000RBG000"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].compile_date), "2020/Apr/09"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[0].compile_time), "13:40:45"));
+    ASSERT_EQ(stLogBody.versions[0].component_type, 1);
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].model_name), "FFNBYNTMNP1"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].psn), "BMHR15470120X"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].hardware_version), "OEM719N-0.00C"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].software_version), "OM7CR0707RN0000"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].boot_version), "OM7BR0000RBG000"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].compile_date), "2020/Apr/09"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[0].compile_time), "13:40:45"));
 
     // Check OEM7FPGA fields
-    ASSERT_EQ(pstLogBody->versions[1].component_type, 21);
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].model_name), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].psn), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].hardware_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].software_version), "OMV070001RN0000"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].boot_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].compile_date), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[1].compile_time), ""));
+    ASSERT_EQ(stLogBody.versions[1].component_type, 21);
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].model_name), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].psn), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].hardware_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].software_version), "OMV070001RN0000"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].boot_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].compile_date), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[1].compile_time), ""));
 
     // If the last component is correct, we can assume the middle ones are as well.
 
     // Check RADIO fields
-    ASSERT_EQ(pstLogBody->versions[7].component_type, 18);
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[7].model_name), "M3-R4"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[7].psn), "1843000570"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[7].hardware_version), "SPL0020d12"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[7].software_version), "V07.34.2.5.1.11"));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[7].boot_version), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[7].compile_date), ""));
-    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(pstLogBody->versions[7].compile_time), ""));
+    ASSERT_EQ(stLogBody.versions[7].component_type, 18);
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[7].model_name), "M3-R4"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[7].psn), "1843000570"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[7].hardware_version), "SPL0020d12"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[7].software_version), "V07.34.2.5.1.11"));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[7].boot_version), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[7].compile_date), ""));
+    ASSERT_EQ(0, strcmp(reinterpret_cast<char*>(stLogBody.versions[7].compile_time), ""));
 }
 
 TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONB)
@@ -3002,9 +3006,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONB)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-    auto stLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
-    auto stLogBody = *reinterpret_cast<VERSION*>(stMessageData.pucMessageBody);
-    auto stTestLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(aucLog);
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    auto stLogBody = LoadValueFromBuffer<VERSION>(stMessageData.pucMessageBody);
+    auto stTestLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(aucLog);
     stTestLogHeader.usLength = 2196 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
     ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -4171,7 +4175,7 @@ TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
     std::vector<char> buffer(chunkSize);
     while (clInputFileStream.read(buffer.data(), chunkSize) || clInputFileStream.gcount() > 0) {
         auto n = static_cast<uint32_t>(clInputFileStream.gcount());
-        if (pclParser->Write(reinterpret_cast<const uint8_t*>(buffer.data()), n) != n) {
+        if (pclParser->Write(reinterpret_cast<const unsigned char*>(buffer.data()), n) != n) {
             std::cerr << "Failed to write data to parser.";
             break;
         };

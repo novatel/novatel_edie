@@ -413,27 +413,21 @@ void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr&& pstMessageDataT
 {
     switch (pstMessageDataType_->dataType.name)
     {
-    case DATA_TYPE::BOOL: vIntermediateFormat_.emplace_back(*reinterpret_cast<const bool*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::BOOL: vIntermediateFormat_.emplace_back(static_cast<bool>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint8_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
-    case DATA_TYPE::CHAR: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int8_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
-    case DATA_TYPE::USHORT:
-        vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint16_t*>(*ppucLogBuf_), std::move(pstMessageDataType_));
-        break;
-    case DATA_TYPE::SHORT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int16_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::UCHAR: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::CHAR: vIntermediateFormat_.emplace_back(static_cast<int8_t>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::USHORT: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<uint16_t>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::SHORT: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int16_t>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::UINT: [[fallthrough]];
     case DATA_TYPE::SATELLITEID: [[fallthrough]];
-    case DATA_TYPE::ULONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint32_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::ULONG: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<uint32_t>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int32_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
-    case DATA_TYPE::ULONGLONG:
-        vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint64_t*>(*ppucLogBuf_), std::move(pstMessageDataType_));
-        break;
-    case DATA_TYPE::LONGLONG:
-        vIntermediateFormat_.emplace_back(*reinterpret_cast<const int64_t*>(*ppucLogBuf_), std::move(pstMessageDataType_));
-        break;
-    case DATA_TYPE::FLOAT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const float*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
-    case DATA_TYPE::DOUBLE: vIntermediateFormat_.emplace_back(*reinterpret_cast<const double*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::LONG: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int32_t>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::ULONGLONG: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<uint64_t>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::LONGLONG: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int64_t>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::FLOAT: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<float>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::DOUBLE: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<double>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     default: throw std::runtime_error("DecodeBinaryField(): Unknown field type\n");
     }
 
@@ -467,9 +461,9 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
         case FIELD_TYPE::ENUM:
             switch (field->dataType.length)
             {
-            case 1: vIntermediateFormat_.emplace_back(*reinterpret_cast<const std::int8_t*>(*ppucLogBuf_), field); break;
-            case 2: vIntermediateFormat_.emplace_back(*reinterpret_cast<const std::int16_t*>(*ppucLogBuf_), field); break;
-            case 4: vIntermediateFormat_.emplace_back(*reinterpret_cast<const std::int32_t*>(*ppucLogBuf_), field); break;
+            case 1: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int8_t>(*ppucLogBuf_), field); break;
+            case 2: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int16_t>(*ppucLogBuf_), field); break;
+            case 4: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int32_t>(*ppucLogBuf_), field); break;
             default:
                 SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeBinary(): Invalid field length\n");
                 throw std::runtime_error("DecodeBinary(): Invalid field length\n");
@@ -477,7 +471,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             *ppucLogBuf_ += field->dataType.length;
             break;
         case FIELD_TYPE::RESPONSE_ID:
-            vIntermediateFormat_.emplace_back(*reinterpret_cast<const std::int32_t*>(*ppucLogBuf_), field);
+            vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int32_t>(*ppucLogBuf_), field);
             *ppucLogBuf_ += sizeof(int32_t);
             break;
         case FIELD_TYPE::RESPONSE_STR: {
@@ -1016,17 +1010,19 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
     switch (stMetaData_.eFormat)
     {
     case HEADER_FORMAT::ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ASCII: //
-        return DecodeAscii<false>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_,
-                                  stMetaData_.uiLength > stMetaData_.uiHeaderLength
-                                      ? reinterpret_cast<const char*>(pucTempInData) + stMetaData_.uiLength - stMetaData_.uiHeaderLength
-                                      : nullptr);
+    case HEADER_FORMAT::SHORT_ASCII: {
+        const auto* pcTempInData = reinterpret_cast<const char*>(pucTempInData);
+        return DecodeAscii<false>(msgFields, &pcTempInData, stInterMessage_,
+                                  stMetaData_.uiLength > stMetaData_.uiHeaderLength ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
+                                                                                    : nullptr);
+    }
     case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ABB_ASCII: //
-        return DecodeAscii<true>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_,
-                                 stMetaData_.uiLength > stMetaData_.uiHeaderLength
-                                     ? reinterpret_cast<const char*>(pucTempInData) + stMetaData_.uiLength - stMetaData_.uiHeaderLength
-                                     : nullptr);
+    case HEADER_FORMAT::SHORT_ABB_ASCII: {
+        const auto* pcTempInData = reinterpret_cast<const char*>(pucTempInData);
+        return DecodeAscii<true>(msgFields, &pcTempInData, stInterMessage_,
+                                 stMetaData_.uiLength > stMetaData_.uiHeaderLength ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
+                                                                                   : nullptr);
+    }
     case HEADER_FORMAT::BINARY: [[fallthrough]];
     case HEADER_FORMAT::SHORT_BINARY: //
         return DecodeBinary(msgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);

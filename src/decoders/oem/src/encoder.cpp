@@ -285,33 +285,33 @@ void Encoder::InitFieldMaps()
     };
 }
 
-bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
+bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
 {
-    if (const auto* pValue = std::get_if<uint8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<float>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<double>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<bool>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(*pValue)); }
-    if (const auto* pValue = std::get_if<int8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<int16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<int32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<int64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<uint16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<uint32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<uint64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<uint8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<float>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<double>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<bool>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<int32_t>(*pValue)); }
+    if (const auto* pValue = std::get_if<int8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<int16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<int32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<int64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<uint16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<uint32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<uint64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
 
     throw std::runtime_error("Unsupported field type");
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Encoder::EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
+bool Encoder::EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
 {
-    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, Oem4BinaryHeader(stInterHeader_));
+    return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, Oem4BinaryHeader(stInterHeader_));
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Encoder::EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
+bool Encoder::EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
 {
-    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, Oem4BinaryShortHeader(stInterHeader_));
+    return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, Oem4BinaryShortHeader(stInterHeader_));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -439,7 +439,7 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
                 ENCODE_FORMAT eFormat_) const
 {
@@ -456,12 +456,12 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
 
     if (eFormat_ == ENCODE_FORMAT::ABBREV_ASCII && ((stHeader_.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0))
     {
-        if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, "<")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, "<")) { return STATUS::BUFFER_FULL; }
         stMessageData_.uiMessageHeaderLength = 1;
 
         auto sResponse = std::get<std::string>(stMessage_[1].fieldValue);
-        if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
-        if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         stMessageData_.pucMessage = *ppucBuffer_;
         stMessageData_.uiMessageLength = pucTempEncodeBuffer - *ppucBuffer_;
         stMessageData_.uiMessageBodyLength = stMessageData_.uiMessageLength - stMessageData_.uiMessageHeaderLength;
@@ -496,32 +496,38 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_, MessageDataStruct& stMessageData_,
-                      const HEADER_FORMAT eHeaderFormat_, const ENCODE_FORMAT eFormat_, const bool bIsEmbeddedHeader_) const
+Encoder::EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                      MessageDataStruct& stMessageData_, const HEADER_FORMAT eHeaderFormat_, const ENCODE_FORMAT eFormat_,
+                      const bool bIsEmbeddedHeader_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     unsigned char* pucTempBuffer = *ppucBuffer_;
-    auto** ppcTempBuffer = reinterpret_cast<char**>(&pucTempBuffer);
 
     switch (eFormat_)
     {
-    case ENCODE_FORMAT::ASCII:
-        if (IsShortHeaderFormat(eHeaderFormat_) ? !EncodeAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                : !EncodeAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
+    case ENCODE_FORMAT::ASCII: {
+        auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
+        if (IsShortHeaderFormat(eHeaderFormat_) ? !EncodeAsciiShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
+                                                : !EncodeAsciiHeader(stHeader_, &pcTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
+        pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
-    case ENCODE_FORMAT::ABBREV_ASCII:
-        if (IsShortHeaderFormat(eHeaderFormat_) ? !EncodeAbbrevAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                : !EncodeAbbrevAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
+    }
+    case ENCODE_FORMAT::ABBREV_ASCII: {
+        auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
+        if (IsShortHeaderFormat(eHeaderFormat_) ? !EncodeAbbrevAsciiShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
+                                                : !EncodeAbbrevAsciiHeader(stHeader_, &pcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
         {
             return STATUS::BUFFER_FULL;
         }
+        pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
+    }
     case ENCODE_FORMAT::FLATTENED_BINARY: [[fallthrough]];
     case ENCODE_FORMAT::BINARY:
         if (IsShortHeaderFormat(eHeaderFormat_) ? !EncodeBinaryShortHeader(stHeader_, &pucTempBuffer, uiBufferSize_)
@@ -530,13 +536,16 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
             return STATUS::BUFFER_FULL;
         }
         break;
-    case ENCODE_FORMAT::JSON:
-        if (IsShortHeaderFormat(eHeaderFormat_) ? !EncodeJsonShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                : !EncodeJsonHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
+    case ENCODE_FORMAT::JSON: {
+        auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
+        if (IsShortHeaderFormat(eHeaderFormat_) ? !EncodeJsonShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
+                                                : !EncodeJsonHeader(stHeader_, &pcTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
+        pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
+    }
     default: return STATUS::UNSUPPORTED;
     }
 
@@ -548,7 +557,7 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
+Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
                     MessageDataStruct& stMessageData_, const HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const
 {
     // TODO: this entire function should be in common, only header stuff and map redefinitions belong in this file
@@ -556,26 +565,28 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
-    unsigned char* pucTempBuffer = *ppucBuffer_;
+    auto* pucTempBuffer = *ppucBuffer_;
 
     switch (eFormat_)
     {
     case ENCODE_FORMAT::ASCII: {
-        if (!EncodeAsciiBody<false>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
-        pucTempBuffer--; // Remove last delimiter ','
-        const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1, pucTempBuffer - stMessageData_.pucMessageHeader - 1);
-        if (!CopyAllToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n"))
-        {
-            return STATUS::BUFFER_FULL;
-        }
+        auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
+        if (!EncodeAsciiBody<false>(stMessage_, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        pcTempBuffer--; // Remove last delimiter ','
+        const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1,
+                                                   reinterpret_cast<unsigned char*>(pcTempBuffer) - stMessageData_.pucMessageHeader - 1);
+        if (!CopyAllToBuffer(&pcTempBuffer, uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n")) { return STATUS::BUFFER_FULL; }
+        pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
     }
-    case ENCODE_FORMAT::ABBREV_ASCII:
-        if (!EncodeAsciiBody<true>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
-        pucTempBuffer--; // Remove last delimiter ' '
-        if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
+    case ENCODE_FORMAT::ABBREV_ASCII: {
+        auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
+        if (!EncodeAsciiBody<true>(stMessage_, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        pcTempBuffer--; // Remove last delimiter ' '
+        if (!CopyToBuffer(&pcTempBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
+        pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
-
+    }
     case ENCODE_FORMAT::FLATTENED_BINARY:
         if (!EncodeBinaryBody<true, true>(stMessage_, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         [[fallthrough]];
@@ -591,11 +602,13 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         // TODO: this block of code below is what's blocking us from moving this function to common (can solve this with dynamic casting or CRTP?)
         if (!IsShortHeaderFormat(eHeaderFormat_))
         {
-            reinterpret_cast<Oem4BinaryHeader*>(stMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
+            auto usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
+            std::memcpy(stMessageData_.pucMessageHeader + offsetof(Oem4BinaryHeader, usLength), &usLength, sizeof(usLength));
         }
         else
         {
-            reinterpret_cast<Oem4BinaryShortHeader*>(stMessageData_.pucMessageHeader)->ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
+            auto ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
+            std::memcpy(stMessageData_.pucMessageHeader + offsetof(Oem4BinaryShortHeader, ucLength), &ucLength, sizeof(ucLength));
         }
         if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_,
                           CalculateBlockCrc32(stMessageData_.pucMessageHeader, pucTempBuffer - stMessageData_.pucMessageHeader)))
@@ -604,9 +617,12 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         }
         break;
     }
-    case ENCODE_FORMAT::JSON:
-        if (!EncodeJsonBody(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+    case ENCODE_FORMAT::JSON: {
+        auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
+        if (!EncodeJsonBody(stMessage_, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
+    }
 
     default: return STATUS::UNSUPPORTED;
     }

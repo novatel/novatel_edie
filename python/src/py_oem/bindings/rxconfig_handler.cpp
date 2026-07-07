@@ -26,7 +26,7 @@ void py_oem::init_novatel_rxconfig_handler(nb::module_& m)
             nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
         .def("write",
              [](oem::RxConfigHandler& self, const nb::bytes& data) {
-                 return self.Write(reinterpret_cast<uint8_t*>(const_cast<char*>(data.c_str())), static_cast<uint32_t>(data.size()));
+                 return self.Write(reinterpret_cast<const unsigned char*>(data.c_str()), static_cast<uint32_t>(data.size()));
              })
         .def(
             "convert",

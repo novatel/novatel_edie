@@ -41,6 +41,19 @@
 
 namespace novatel::edie {
 
+//-----------------------------------------------------------------------
+//! \brief Helper function for safely loading a value of type T from a buffer.
+//-----------------------------------------------------------------------
+template <typename T, typename BufferType> inline T LoadValueFromBuffer(const BufferType* logBuf_)
+{
+    static_assert(std::is_same_v<BufferType, char> || std::is_same_v<BufferType, unsigned char> || std::is_same_v<BufferType, std::byte> ||
+                      std::is_same_v<BufferType, int8_t> || std::is_same_v<BufferType, uint8_t>,
+                  "BufferType must be char, unsigned char, std::byte, int8_t, or uint8_t");
+    T value;
+    std::memcpy(&value, logBuf_, sizeof(T));
+    return value;
+}
+
 inline void ValidateMessageDatabaseFamily(MessageDatabase::ConstPtr pclMessageDb_, std::string_view expectedFamily,
                                           const std::shared_ptr<spdlog::logger>& logger)
 {

@@ -122,7 +122,7 @@ class RxConfigHandler
     //!   UNSUPPORTED: eFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] STATUS Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
                                 MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
 
@@ -144,7 +144,7 @@ class RxConfigHandler
     //! - BUFFER_FULL: The provided buffer was not large enough to hold the encoded message.
     //! - FAILURE: An error occurred during encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] STATUS EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                       MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                       MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
                                       std::vector<FieldContainer>& stEmbeddedMessage_) const;
@@ -167,7 +167,7 @@ class RxConfigHandler
     //! - BUFFER_FULL: The provided buffer was not large enough to hold the encoded message.
     //! - FAILURE: An error occurred during encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] STATUS EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                      MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                      MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
                                      std::vector<FieldContainer>& stEmbeddedMessage_) const;
@@ -190,7 +190,7 @@ class RxConfigHandler
     //! - BUFFER_FULL: The provided buffer was not large enough to hold the encoded message.
     //! - FAILURE: An error occurred during encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] STATUS EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                            MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                            MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
                                            std::vector<FieldContainer>& stEmbeddedMessage_) const;
@@ -213,7 +213,7 @@ class RxConfigHandler
     //! - BUFFER_FULL: The provided buffer was not large enough to hold the encoded message.
     //! - FAILURE: An error occurred during encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeJSON(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] STATUS EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                     MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
                                     IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const;
 
@@ -334,7 +334,7 @@ class RxConfigHandler
     //!   UNSUPPORTED: eFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] STATUS Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
