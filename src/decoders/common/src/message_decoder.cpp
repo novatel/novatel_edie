@@ -461,6 +461,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
         case FIELD_TYPE::ENUM:
             switch (field->dataType.length)
             {
+            case 1: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int8_t>(*ppucLogBuf_), field); break;
             case 2: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int16_t>(*ppucLogBuf_), field); break;
             case 4: vIntermediateFormat_.emplace_back(LoadValueFromBuffer<int32_t>(*ppucLogBuf_), field); break;
             default:
