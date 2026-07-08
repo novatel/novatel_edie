@@ -21,10 +21,11 @@ This package uses the nanobind binding library to expose functionality of EDIE t
    - [UnknownMessage](#unknownmessage)
    - [UnknownBytes](#unknownbytes)
    - [MessageData](#messagedata)
-5. [Memory Management](#memory-management)
-6. [Message Databases](#message-databases)
-7. [Logging](#logging)
-8. [Additional Documentation](#additional-documentation)
+6. [Constructing & Mutating Messages](#constructing--mutating-messages)
+7. [Memory Management](#memory-management)
+8. [Message Databases](#message-databases)
+9. [Logging](#logging)
+10. [Additional Documentation](#additional-documentation)
 
 ## Overview
 
@@ -384,6 +385,64 @@ b'#BESTPOSA,USB1,0,58.5,FINESTEERING,2209,502061.000,02000020,cdba,16809;'
 >> print(message_data.payload)
 b'SOL_COMPUTED,PPP,51.15043706870,-114.03067882331,1097.3462,-17.0001,WGS84,0.0154,0.0139,0.0288,"TSTR",11.000,0.000,43,39,39,38,00,00,7f,37*52483ac5\r\n'
 ```
+
+## Constructing & Mutating Messages
+
+`Message` objects aren't only produced by decoding — they can be built and modified directly in Python.
+
+### Construction
+
+Every generated message class accepts its settable fields as keyword arguments. Any field left out takes a type-appropriate default (`0`, `""`, an empty array, etc.):
+
+```python
+bestpos = oem_msgs.BESTPOS(
+    solution_status=oem_enums.SolStatus.SOL_COMPUTED,
+    position_type=oem_enums.SolType.SINGLE,
+    latitude=51.15043706870,
+    longitude=-114.03067882331,
+)
+```
+
+A `Header` can optionally be supplied via the `header` keyword. Any header fields not passed to `Header()` take defaults of their own:
+
+```python
+header = oem.Header(week=2300, milliseconds=345600.0)
+bestpos = oem_msgs.BESTPOS(header=header, latitude=51.0)
+```
+
+Regardless of what header is supplied, `message_id` and `message_definition_crc` are always taken from the message definition, so a constructed message always identifies as itself.
+
+### Mutation
+
+Most attributes of a message object can be set direclty:
+
+```python
+bestpos.latitude = 51.16
+bestpos.longitude = -114.04
+```
+
+Assigning an unknown field name, or a value of the wrong type, raises `AttributeError`/`TypeError` respectively. Length fields (e.g. `obs_length`) are read-only; modify the corresponding array instead.
+
+`FIELD_ARRAY` fields hold a repeated sub-message and accept either a plain `list` of `Field` objects or an explicit `FieldArray`. Individual elements can be set and modified in place:
+
+```python
+range_msg = oem_msgs.RANGE()                # Create a RANGE message
+ObsField = oem_msgs.RANGE_obs_Field         # Alias the obs field type
+obs = [ObsField(sv_prn=5, psr=20.0), ObsField(sv_prn=7, psr=21.0)]
+range_msg.obs = obs                         # Set a field array
+range_msg.obs[0] = ObsField(sv_prn=99)      # Set a field array element
+range_msg.obs[0].psr = 25.0                 # Modify a field array element
+```
+
+### Encoding a constructed message
+
+Once built, a message can be encoded the same way as a decoded one:
+
+```python
+encoded = bestpos.encode(ne.ENCODE_FORMAT.ASCII)
+```
+
+Look to [message_construction.py](./examples/message_construction.py) for a full example of constructing, mutating, and encoding a message.
 
 ## Memory Management
 
