@@ -30,8 +30,6 @@
 #include <filesystem>
 #include <sstream>
 
-#include <nlohmann/json.hpp>
-
 #include "novatel_edie/decoders/common/message_database.hpp"
 
 namespace novatel::edie {
