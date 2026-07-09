@@ -193,10 +193,6 @@ void ParseMessageDefinition(element j_, MessageDefinition& md_)
     md_.description = AsStringOrEmpty(Member(j_, "description"));
     md_.latestMessageCrc = std::stoul(AsString(Member(j_, "latestMsgDefCrc")));
 
-    element messageStyle;
-    md_.messageStyle =
-        j_["messageStyle"].get(messageStyle) == simdjson::SUCCESS && !messageStyle.is_null() ? AsString(messageStyle) : "OEM4_MESSAGE_STYLE";
-
     object fields;
     if (Member(j_, "fields").get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON object"); }
     for (auto field : fields)
