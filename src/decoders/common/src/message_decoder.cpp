@@ -344,13 +344,13 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             const auto* subFieldDefinitions = fieldArrayDef.get();
             const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, clMessageBody_);
 
-            if (subFieldDefinitions->fieldInfo.varFieldCount == 0)
+            if (subFieldDefinitions->fieldInfo->varFieldCount == 0)
             {
-                const size_t totalBytes = uiArraySize * subFieldDefinitions->fieldInfo.fixedFieldBytes;
+                const size_t totalBytes = uiArraySize * subFieldDefinitions->fieldInfo->fixedFieldBytes;
                 // Store flat FIELD_ARRAY directly as std::vector<std::byte>
                 std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
                                                      reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
-                clMessageBody_.GetVarFields()[field->index] = FixedFieldRegion(std::move(flatFieldData));
+                clMessageBody_.GetVarFields()[field->index] = FlatFieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo);
                 *ppucLogBuf_ += totalBytes;
             }
             else
@@ -361,8 +361,8 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                     *ppucLogBuf_ +=
                         fMyAlignmentFunc(fieldTypeLength, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
                     vFieldArrayContainer[i] =
-                        MessageBody(subFieldDefinitions->fieldInfo.fixedFieldBytes, subFieldDefinitions->fieldInfo.varFieldCount);
-                    STATUS eStatus = DecodeBinary(subFieldDefinitions->fieldInfo, ppucLogBuf_, vFieldArrayContainer[i],
+                        MessageBody(subFieldDefinitions->fieldInfo->fixedFieldBytes, subFieldDefinitions->fieldInfo->varFieldCount);
+                    STATUS eStatus = DecodeBinary(*subFieldDefinitions->fieldInfo, ppucLogBuf_, vFieldArrayContainer[i],
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 }
@@ -517,11 +517,11 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
         case FIELD_TYPE::ENUM: {
             std::string_view sEnum(*ppcLogBuf_, tokenLength);
             const auto* enumField = dynamic_cast<const EnumField*>(field.get());
-            const uint32_t enumValue = GetEnumValue(enumField->enumDef, sEnum);
-            switch (enumField->length)
+            const int32_t enumValue = GetEnumValue(enumField->enumDef, sEnum);
+            switch (enumField->dataType.length)
             {
-            case 1: clMessageBody_.SetFieldValue<true>(field->index, static_cast<uint8_t>(enumValue), 1); break;
-            case 2: clMessageBody_.SetFieldValue<true>(field->index, static_cast<uint16_t>(enumValue), 1); break;
+            case 1: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int8_t>(enumValue), 1); break;
+            case 2: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int16_t>(enumValue), 1); break;
             default: clMessageBody_.SetFieldValue<true>(field->index, enumValue, 1); break;
             }
             *ppcLogBuf_ += tokenLength + 1;
@@ -683,8 +683,8 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
 
             for (uint32_t i = 0; i < uiArraySize; ++i)
             {
-                pvFieldArrayContainer[i] = MessageBody(subFieldDefinitions->fieldInfo.fixedFieldBytes, subFieldDefinitions->fieldInfo.varFieldCount);
-                STATUS eStatus = DecodeAscii<Abbreviated>(subFieldDefinitions->fieldInfo, ppcLogBuf_, pvFieldArrayContainer[i], pcBufEnd_);
+                pvFieldArrayContainer[i] = MessageBody(subFieldDefinitions->fieldInfo->fixedFieldBytes, subFieldDefinitions->fieldInfo->varFieldCount);
+                STATUS eStatus = DecodeAscii<Abbreviated>(*subFieldDefinitions->fieldInfo, ppcLogBuf_, pvFieldArrayContainer[i], pcBufEnd_);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
             clMessageBody_.GetVarFields()[field->index] = std::move(pvFieldArrayContainer);
@@ -739,12 +739,12 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
             if (clField.get(enumValue) == simdjson::SUCCESS)
             {
                 const auto* enumField = dynamic_cast<const EnumField*>(field.get());
-                const uint32_t parsedEnumValue = GetEnumValue(enumField->enumDef, enumValue);
+                const int32_t parsedEnumValue = GetEnumValue(enumField->enumDef, enumValue);
 
-                switch (enumField->length)
+                switch (enumField->dataType.length)
                 {
-                case 1: clMessageBody_.SetFieldValue<true>(field->index, static_cast<uint8_t>(parsedEnumValue), 1); break;
-                case 2: clMessageBody_.SetFieldValue<true>(field->index, static_cast<uint16_t>(parsedEnumValue), 1); break;
+                case 1: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int8_t>(parsedEnumValue), 1); break;
+                case 2: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int16_t>(parsedEnumValue), 1); break;
                 default: clMessageBody_.SetFieldValue<true>(field->index, parsedEnumValue, 1); break;
                 }
             }
@@ -876,11 +876,11 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
 
             for (simdjson::dom::element element : array)
             {
-                vFieldArrayContainer.emplace_back(subFieldDefinitions->fieldInfo.fixedFieldBytes, subFieldDefinitions->fieldInfo.varFieldCount);
+                vFieldArrayContainer.emplace_back(subFieldDefinitions->fieldInfo->fixedFieldBytes, subFieldDefinitions->fieldInfo->varFieldCount);
                 auto& stSubMessageBody = vFieldArrayContainer.back();
 
                 // Recursively decode the subfields
-                STATUS eStatus = DecodeJson(subFieldDefinitions->fieldInfo, element, stSubMessageBody);
+                STATUS eStatus = DecodeJson(*subFieldDefinitions->fieldInfo, element, stSubMessageBody);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
 
@@ -924,11 +924,10 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, MessageBody& stInte
 
     MessageDefinition::ConstPtr pclMsgDef = GetMessageDefinition(stMetaData_);
 
-        if (pclMsgDef == nullptr)
-        {
-            LogMissingMsgDef(*pclMyLogger, stMetaData_.usMessageId);
-            return STATUS::NO_DEFINITION;
-        }
+    if (pclMsgDef == nullptr)
+    {
+        LogMissingMsgDef(*pclMyLogger, stMetaData_.usMessageId);
+        return STATUS::NO_DEFINITION;
     }
 
     if (stMetaData_.messageName == "RXCONFIG")
@@ -940,7 +939,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, MessageBody& stInte
     const FieldInfo& msgFieldInfo = pclMsgDef->GetMsgDefFromCrc(uiMessageCrc);
 
     stInterMessage_.Resize(msgFieldInfo.fixedFieldBytes, msgFieldInfo.varFieldCount);
-    stInterMessage_.SetDefinition(pclMsgDef, uiMessageCrc);
+    stInterMessage_.SetFieldInfo(pclMsgDef, uiMessageCrc);
 
     // Decode the detected format
     switch (stMetaData_.eFormat)

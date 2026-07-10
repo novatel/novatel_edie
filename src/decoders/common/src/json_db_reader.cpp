@@ -197,35 +197,11 @@ void ParseFieldArrayField(element j_, FieldArrayField& fd_, const AlignFunction&
     fd_.arrayLengthFieldSize =
         j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsUint(arrayLengthFieldSize)) : 4;
 
-    fd_.fieldInfo = FieldInfo();
+    fd_.fieldInfo = std::make_shared<FieldInfo>();
     fd_.fieldSize = fd_.arrayLength * ParseFields(Member(j_, "fields"), fd_.fieldInfo, alignFn_);
 
     element arrayLengthRef;
     if (j_["arrayLengthRef"].get(arrayLengthRef) == simdjson::SUCCESS) { fd_.arrayLengthRef = AsStringOrEmpty(arrayLengthRef); }
-}
-
-//-----------------------------------------------------------------------
-void from_json(const json& j_, MessageDefinition& md_)
-{
-    md_._id = j_.at("_id");
-    md_.logID = j_.at("messageID"); // this was "logID"
-    md_.name = j_.at("name");
-    md_.description = j_.at("description").is_null() ? "" : j_.at("description");
-    md_.latestMessageCrc = std::stoul(j_.at("latestMsgDefCrc").get<std::string>());
-
-    for (const auto& fields : j_.at("fields").items())
-    {
-        uint32_t defCrc = std::stoul(fields.key());
-        ParseFields(fields.value(), md_.fieldInfo[defCrc]);
-    }
-}
-
-//-----------------------------------------------------------------------
-void from_json(const json& j_, EnumDefinition& ed_)
-{
-    std::vector<EnumDataType> enumerators;
-    ParseEnumerators(Member(j_, "enumerators"), enumerators);
-    ed_ = EnumDefinition(AsString(Member(j_, "_id")), AsString(Member(j_, "name")), std::move(enumerators));
 }
 
 //-----------------------------------------------------------------------

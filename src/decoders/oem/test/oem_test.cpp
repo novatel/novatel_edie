@@ -3122,8 +3122,8 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     MessageBody stMessage;
     stHeader.ucMessageType = static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE);
     auto messageDefinition = std::make_shared<MessageDefinition>();
-    messageDefinition->fieldInfo[0];
-    stMessage.SetDefinition(messageDefinition, std::optional<uint32_t>(0));
+    messageDefinition->fieldInfo[0] = std::make_shared<FieldInfo>();;
+    stMessage.SetFieldInfo(messageDefinition, std::optional<uint32_t>(0));
     const std::vector<BaseField::ConstPtr> fieldDefinitions;
 
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];

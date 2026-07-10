@@ -264,7 +264,6 @@ novatel::edie::MessageDefinition::ConstPtr MessageDecoder::GetMessageDefinition(
         responseIdField->type = FIELD_TYPE::RESPONSE_ID;
         responseIdField->dataType = responseIdDataType;
         responseIdField->index = 0;
-        responseIdField->length = 4;
         if (responsesEnum != nullptr) { responseIdField->enumId = responsesEnum->_id; }
         responseIdField->enumDef = responsesEnum;
 
@@ -279,10 +278,7 @@ novatel::edie::MessageDefinition::ConstPtr MessageDecoder::GetMessageDefinition(
         responseStrField->dataType = responseStrDataType;
         responseStrField->index = 0;
 
-        auto& responseFieldInfo = responseDefinition->fieldInfo[0]; // Responses do not use definition CRCs.
-        responseFieldInfo.fixedFieldBytes = sizeof(uint32_t);
-        responseFieldInfo.varFieldCount = 1;
-        responseFieldInfo.messageOrderedFields = {responseIdField, responseStrField};
+        responseDefinition->fieldInfo[0] = std::make_shared<FieldInfo>(FieldInfo{sizeof(uint32_t), 1, std::vector<BaseField::ConstPtr>{responseIdField, responseStrField}});
 
         pResponseDefinition = responseDefinition;
         return pResponseDefinition;
