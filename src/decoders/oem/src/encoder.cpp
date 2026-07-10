@@ -113,7 +113,7 @@ void Encoder::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("id")] = [](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                   const MessageDatabase&, size_t offset) {
-        const uint32_t uiTempId = mb_.GetFieldValue<uint32_t>(offset, fd_);
+        const auto uiTempId = mb_.GetFieldValue<uint32_t>(offset, fd_);
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
         return (sGloChan < 0)    ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, usSv, sGloChan)
