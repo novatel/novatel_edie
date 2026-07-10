@@ -120,6 +120,52 @@ template <typename T> class TypedBuffer
     const_iterator end() const { return const_iterator(data, sz); }
 };
 
+template <typename Fn> inline void SimpleTypeVisitor(const BaseField& fd_, Fn&& visitor)
+{
+    if (fd_.type == FIELD_TYPE::ENUM)
+    {
+        switch (fd_.dataType.length)
+        {
+        case 1: visitor(int8_t{}); break;
+        case 2: visitor(int16_t{}); break;
+        case 4: visitor(int32_t{}); break;
+        default: throw std::runtime_error("SimpleTypeVisitor(): unsupported enum width");
+        }
+        return;
+    }
+
+    switch (fd_.dataType.name)
+    {
+    case DATA_TYPE::BOOL: visitor(bool{}); break;
+    case DATA_TYPE::CHAR: visitor(int8_t{}); break;
+    case DATA_TYPE::HEXBYTE: [[fallthrough]];
+    case DATA_TYPE::UCHAR: visitor(uint8_t{}); break;
+    case DATA_TYPE::SHORT: visitor(int16_t{}); break;
+    case DATA_TYPE::USHORT: visitor(uint16_t{}); break;
+    case DATA_TYPE::LONG: [[fallthrough]];
+    case DATA_TYPE::INT: visitor(int32_t{}); break;
+    case DATA_TYPE::SATELLITEID: [[fallthrough]];
+    case DATA_TYPE::ULONG: [[fallthrough]];
+    case DATA_TYPE::UINT: visitor(uint32_t{}); break;
+    case DATA_TYPE::LONGLONG: visitor(int64_t{}); break;
+    case DATA_TYPE::ULONGLONG: visitor(uint64_t{}); break;
+    case DATA_TYPE::FLOAT: visitor(float{}); break;
+    case DATA_TYPE::DOUBLE: visitor(double{}); break;
+    default: throw std::runtime_error("SimpleTypeVisitor(): unknown or unsupported data type");
+    }
+}
+
+template <typename T> inline T CheckAndLoadType(const BaseField& fd_, const std::byte* fieldPtr_)
+{
+    SimpleTypeVisitor(fd_, [&](auto&& arg) {
+        if constexpr (!std::is_same_v<T, std::decay_t<decltype(arg)>>)
+        {
+            throw std::runtime_error("GetFieldValue<T>(): type T does not match field data type");
+        }
+    });
+    return LoadValueFromBuffer<T>(fieldPtr_);
+}
+
 // ---------------------------------------------------------------------------
 //! \class FixedFieldRegion
 //! \brief A byte vector for storing fixed-size fields.
@@ -243,52 +289,6 @@ using FieldValueVariant =
                  std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>,
                  std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::string, FlatFieldArray, NestedFieldArray>;
 
-template <typename Fn> inline void SimpleTypeVisitor(const BaseField& fd_, Fn&& visitor)
-{
-    if (fd_.type == FIELD_TYPE::ENUM)
-    {
-        switch (fd_.dataType.length)
-        {
-        case 1: visitor(int8_t{}); break;
-        case 2: visitor(int16_t{}); break;
-        case 4: visitor(int32_t{}); break;
-        default: throw std::runtime_error("SimpleTypeVisitor(): unsupported enum width");
-        }
-        return;
-    }
-
-    switch (fd_.dataType.name)
-    {
-    case DATA_TYPE::BOOL: visitor(bool{}); break;
-    case DATA_TYPE::CHAR: visitor(int8_t{}); break;
-    case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: visitor(uint8_t{}); break;
-    case DATA_TYPE::SHORT: visitor(int16_t{}); break;
-    case DATA_TYPE::USHORT: visitor(uint16_t{}); break;
-    case DATA_TYPE::LONG: [[fallthrough]];
-    case DATA_TYPE::INT: visitor(int32_t{}); break;
-    case DATA_TYPE::SATELLITEID: [[fallthrough]];
-    case DATA_TYPE::ULONG: [[fallthrough]];
-    case DATA_TYPE::UINT: visitor(uint32_t{}); break;
-    case DATA_TYPE::LONGLONG: visitor(int64_t{}); break;
-    case DATA_TYPE::ULONGLONG: visitor(uint64_t{}); break;
-    case DATA_TYPE::FLOAT: visitor(float{}); break;
-    case DATA_TYPE::DOUBLE: visitor(double{}); break;
-    default: throw std::runtime_error("SimpleTypeVisitor(): unknown or unsupported data type");
-    }
-}
-
-template <typename T> inline T CheckAndLoadType(const BaseField& fd_, const std::byte* fieldPtr_)
-{
-    SimpleTypeVisitor(fd_, [&](auto&& arg) {
-        if constexpr (!std::is_same_v<T, std::decay_t<decltype(arg)>>)
-        {
-            throw std::runtime_error("GetFieldValue<T>(): type T does not match field data type");
-        }
-    });
-    return LoadValueFromBuffer<T>(fieldPtr_);
-}
-
 inline FieldValueVariant LoadVariant(const BaseField& fd_, const std::byte* fieldPtr_)
 {
     FieldValueVariant result;
@@ -330,6 +330,8 @@ class MessageBody
     MessageBody(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_) {}
 
     MessageBody(const MessageBody& other) : fixedFields(other.fixedFields), varFields(other.varFields), fieldInfo(other.fieldInfo) {}
+
+    MessageBody& operator=(const MessageBody& other) = default;
 
     MessageBody(FixedFieldRegion&& fixedFields_, std::vector<FieldValueVariant>&& varFields_)
         : fixedFields(std::move(fixedFields_)), varFields(std::move(varFields_))
