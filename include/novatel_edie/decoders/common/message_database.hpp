@@ -484,6 +484,9 @@ struct FieldInfo
     size_t fixedFieldBytes{0};
     size_t varFieldCount{0};
     std::vector<BaseField::ConstPtr> messageOrderedFields; // vector of field definitions in the order they are encoded in the message
+
+    using Ptr = std::shared_ptr<FieldInfo>;
+    using ConstPtr = std::shared_ptr<const FieldInfo>;
 };
 
 //-----------------------------------------------------------------------
@@ -493,16 +496,16 @@ struct FieldInfo
 struct FieldArrayField : ArrayField
 {
     uint32_t fieldSize{0}; // cached
-    FieldInfo fieldInfo{};
+    FieldInfo::ConstPtr fieldInfo;
 
     FieldArrayField() = default;
 
     FieldArrayField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_, uint32_t arrayLength_,
-                    std::vector<std::shared_ptr<BaseField>> fields_)
-        : ArrayField(std::move(name_), type_, std::move(conversion_), eDataTypeName_, arrayLength_), fields(std::move(fields_))
+                    FieldInfo::ConstPtr fields_)
+        : ArrayField(std::move(name_), type_, std::move(conversion_), eDataTypeName_, arrayLength_), fieldInfo(std::move(fields_))
     {
         uint32_t childTotal = 0;
-        for (const auto& f : *fieldInfo.messageOrderedFields)
+        for (const auto& f : fieldInfo->messageOrderedFields)
         {
             if (!f) { continue; }
             switch (f->type)
@@ -523,7 +526,13 @@ struct FieldArrayField : ArrayField
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override
     {
         auto copy = std::make_shared<FieldArrayField>(*this);
-        for (auto& sub : *copy->fieldInfo.messageOrderedFields) { sub = sub->clone(); }
+        auto copiedFieldInfo = std::make_shared<FieldInfo>();
+        copiedFieldInfo->fixedFieldBytes = fieldInfo->fixedFieldBytes;
+        copiedFieldInfo->varFieldCount = fieldInfo->varFieldCount;
+        auto& copiedFields = copiedFieldInfo->messageOrderedFields;
+        copiedFields.reserve(fieldInfo->messageOrderedFields.size());
+        for (const auto& sub : fieldInfo->messageOrderedFields) { copiedFields.push_back(sub ? sub->clone() : nullptr); }
+        copy->fieldInfo = std::move(copiedFieldInfo);
         return copy;
     }
 
@@ -535,13 +544,13 @@ struct FieldArrayField : ArrayField
     {
         if (!ArrayField::equalsImpl(other)) { return false; }
         const auto& o = static_cast<const FieldArrayField&>(other);
-        if (fields.size() != o.fields.size()) { return false; }
-        for (size_t i = 0; i < fields.size(); ++i)
+        if (fieldInfo->messageOrderedFields.size() != o.fieldInfo->messageOrderedFields.size()) { return false; }
+        for (size_t i = 0; i < fieldInfo->messageOrderedFields.size(); ++i)
         {
-            const bool lhs_null = !fields[i];
-            const bool rhs_null = !o.fields[i];
+            const bool lhs_null = !fieldInfo->messageOrderedFields[i];
+            const bool rhs_null = !o.fieldInfo->messageOrderedFields[i];
             if (lhs_null != rhs_null) { return false; }
-            if (!lhs_null && *fields[i] != *o.fields[i]) { return false; }
+            if (!lhs_null && *fieldInfo->messageOrderedFields[i] != *o.fieldInfo->messageOrderedFields[i]) { return false; }
         }
         return true;
     }
@@ -573,7 +582,7 @@ struct MessageDefinition
     std::string name;
     std::string description;
     std::string messageStyle;
-    std::unordered_map<uint32_t, FieldInfo> fieldInfo; // map of crc keys to field info
+    std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfo; // map of crc keys to field info
     uint32_t latestMessageCrc{0};
 
     const FieldInfo& GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) const;
@@ -588,22 +597,28 @@ struct MessageDefinition
     [[nodiscard]] bool operator==(const MessageDefinition& other) const
     {
         if (_id != other._id || logID != other.logID || name != other.name || description != other.description ||
-            latestMessageCrc != other.latestMessageCrc || fields.size() != other.fields.size())
+            latestMessageCrc != other.latestMessageCrc || fieldInfo.size() != other.fieldInfo.size())
         {
             return false;
         }
-        for (const auto& [crc, fieldVec] : fields)
+        for (const auto& [crc, info] : fieldInfo)
         {
-            auto it = other.fields.find(crc);
-            if (it == other.fields.end()) { return false; }
-            const auto& otherVec = it->second;
-            if (fieldVec.size() != otherVec.size()) { return false; }
-            for (size_t i = 0; i < fieldVec.size(); ++i)
+            auto it = other.fieldInfo.find(crc);
+            if (it == other.fieldInfo.end()) { return false; }
+
+            const auto& otherInfo = it->second;
+            if (info->fixedFieldBytes != otherInfo->fixedFieldBytes || info->varFieldCount != otherInfo->varFieldCount ||
+                info->messageOrderedFields.size() != otherInfo->messageOrderedFields.size())
             {
-                const bool lhs_null = !fieldVec[i];
-                const bool rhs_null = !otherVec[i];
+                return false;
+            }
+
+            for (size_t i = 0; i < info->messageOrderedFields.size(); ++i)
+            {
+                const bool lhs_null = !info->messageOrderedFields[i];
+                const bool rhs_null = !otherInfo->messageOrderedFields[i];
                 if (lhs_null != rhs_null) { return false; }
-                if (!lhs_null && *fieldVec[i] != *otherVec[i]) { return false; }
+                if (!lhs_null && *info->messageOrderedFields[i] != *otherInfo->messageOrderedFields[i]) { return false; }
             }
         }
         return true;
@@ -615,8 +630,8 @@ struct MessageDefinition
     ~MessageDefinition() = default;
 
     MessageDefinition(std::string id_, uint32_t logID_, std::string name_, std::string description_, uint32_t latestMessageCrc_,
-                      std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields_)
-        : _id(std::move(id_)), logID(logID_), name(std::move(name_)), description(std::move(description_)), fields(std::move(fields_)),
+                      std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfo_)
+        : _id(std::move(id_)), logID(logID_), name(std::move(name_)), description(std::move(description_)), fieldInfo(std::move(fieldInfo_)),
           latestMessageCrc(latestMessageCrc_)
     {
     }
@@ -630,11 +645,15 @@ struct MessageDefinition
     MessageDefinition(const MessageDefinition& other)
         : _id(other._id), logID(other.logID), name(other.name), description(other.description), latestMessageCrc(other.latestMessageCrc)
     {
-        for (const auto& [crc, fieldVec] : other.fields)
+        for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo)
         {
-            auto& copyVec = fields[crc];
-            copyVec.reserve(fieldVec.size());
-            for (const auto& f : fieldVec) { copyVec.push_back(f ? f->clone() : nullptr); }
+            auto copiedFieldInfo = std::make_shared<FieldInfo>();
+            copiedFieldInfo->fixedFieldBytes = otherFieldInfoPtr->fixedFieldBytes;
+            copiedFieldInfo->varFieldCount = otherFieldInfoPtr->varFieldCount;
+            auto& copyVec = copiedFieldInfo->messageOrderedFields;
+            copyVec.reserve(otherFieldInfoPtr->messageOrderedFields.size());
+            for (const auto& f : otherFieldInfoPtr->messageOrderedFields) { copyVec.push_back(f ? f->clone() : nullptr); }
+            fieldInfo[crc] = std::move(copiedFieldInfo);
         }
     }
 
@@ -646,12 +665,16 @@ struct MessageDefinition
         name = other.name;
         description = other.description;
         latestMessageCrc = other.latestMessageCrc;
-        fields.clear();
-        for (const auto& [crc, fieldVec] : other.fields)
+        fieldInfo.clear();
+        for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo)
         {
-            auto& copyVec = fields[crc];
-            copyVec.reserve(fieldVec.size());
-            for (const auto& f : fieldVec) { copyVec.push_back(f ? f->clone() : nullptr); }
+            auto copiedFieldInfo = std::make_shared<FieldInfo>();
+            copiedFieldInfo->fixedFieldBytes = otherFieldInfoPtr->fixedFieldBytes;
+            copiedFieldInfo->varFieldCount = otherFieldInfoPtr->varFieldCount;
+            auto& copyVec = copiedFieldInfo->messageOrderedFields;
+            copyVec.reserve(otherFieldInfoPtr->messageOrderedFields.size());
+            for (const auto& f : otherFieldInfoPtr->messageOrderedFields) { copyVec.push_back(f ? f->clone() : nullptr); }
+            fieldInfo[crc] = std::move(copiedFieldInfo);
         }
         return *this;
     }
@@ -747,7 +770,7 @@ class MessageDatabase
 
             for (const auto& item : msgDef->fieldInfo)
             {
-                if (!item.second.messageOrderedFields.empty()) { MapMessageEnumFields(item.second.messageOrderedFields); }
+                if (!item.second->messageOrderedFields.empty()) { MapMessageEnumFields(item.second->messageOrderedFields); }
             }
         }
     }
@@ -896,7 +919,7 @@ class MessageDatabase
 
             for (const auto& item : msg->fieldInfo)
             {
-                if (!item.second.messageOrderedFields.empty()) { MapMessageEnumFields(item.second.messageOrderedFields); }
+                if (!item.second->messageOrderedFields.empty()) { MapMessageEnumFields(item.second->messageOrderedFields); }
             }
         }
     }
@@ -917,8 +940,8 @@ class MessageDatabase
             else if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
                 auto fieldArrayField = std::dynamic_pointer_cast<const FieldArrayField>(field);
-                if (!fieldArrayField || fieldArrayField->fieldInfo.messageOrderedFields.empty()) { continue; }
-                MapMessageEnumFields(fieldArrayField->fieldInfo.messageOrderedFields);
+                if (!fieldArrayField || fieldArrayField->fieldInfo->messageOrderedFields.empty()) { continue; }
+                MapMessageEnumFields(fieldArrayField->fieldInfo->messageOrderedFields);
             }
         }
     }

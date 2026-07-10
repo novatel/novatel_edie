@@ -415,18 +415,9 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
 
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
 
-    const auto* pMessageDef = stMessage_.GetDefinition().get();
-    const auto findFieldDefinitions = [&](uint32_t defCrc) -> const std::vector<BaseField::ConstPtr>* {
-        const auto it = pMessageDef->fieldInfo.find(defCrc);
-        return it != pMessageDef->fieldInfo.end() ? &it->second.messageOrderedFields : nullptr;
-    };
+    if (stMessage_.GetFieldInfo() == nullptr) { return STATUS::NO_DEFINITION; }
 
-    const std::vector<BaseField::ConstPtr>* fieldDefinitions = findFieldDefinitions(stMessage_.GetDefinitionCrc());
-    if (fieldDefinitions == nullptr)
-    {
-        fieldDefinitions = findFieldDefinitions(pMessageDef->latestMessageCrc);
-        if (fieldDefinitions == nullptr) { return STATUS::NO_DEFINITION; }
-    }
+    const auto& fieldDefinitions = stMessage_.GetFieldInfo()->messageOrderedFields;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
@@ -438,8 +429,8 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, "<")) { return STATUS::BUFFER_FULL; }
         stMessageData_.uiMessageHeaderLength = 1;
 
-        if (fieldDefinitions->size() <= 1) { return STATUS::MALFORMED_INPUT; }
-        auto sResponse = stMessage_.GetFieldValue<std::string>(*fieldDefinitions->at(1));
+        if (fieldDefinitions.size() <= 1) { return STATUS::MALFORMED_INPUT; }
+        auto sResponse = stMessage_.GetFieldValue<std::string>(*fieldDefinitions.at(1));
         if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
         if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         stMessageData_.pucMessage = *ppucBuffer_;
@@ -458,7 +449,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"(,"body": )")) { return STATUS::BUFFER_FULL; }
     }
 
-    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, *fieldDefinitions, stMessageData_, eHeaderFormat_, eFormat_);
+    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, fieldDefinitions, stMessageData_, eHeaderFormat_, eFormat_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageBodyLength;

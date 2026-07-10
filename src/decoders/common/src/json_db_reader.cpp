@@ -114,7 +114,9 @@ void from_json(const json& j_, FieldArrayField& fd_)
 
     fd_.arrayLength = j_.at("arrayLength").is_null() ? 0 : static_cast<uint32_t>(j_.at("arrayLength"));
     fd_.arrayLengthFieldSize = j_.value("arrayLengthFieldSize", 4);
-    fd_.fieldSize = fd_.arrayLength * ParseFields(j_.at("fields"), fd_.fieldInfo);
+    auto parsedFieldInfo = std::make_shared<FieldInfo>();
+    fd_.fieldSize = fd_.arrayLength * ParseFields(j_.at("fields"), *parsedFieldInfo);
+    fd_.fieldInfo = std::move(parsedFieldInfo);
     if (j_.find("arrayLengthRef") != j_.end()) { fd_.arrayLengthRef = j_.at("arrayLengthRef").is_null() ? "" : j_.at("arrayLengthRef"); }
 }
 
@@ -164,7 +166,6 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& a
             auto pstField = std::make_shared<EnumField>(field);
             alignFixed(stDataType.length);
             pstField->index = vFields_.fixedFieldBytes;
-            pstField->length = stDataType.length;
             vFields_.messageOrderedFields.push_back(pstField);
             uiFieldSize += stDataType.length;
             vFields_.fixedFieldBytes += stDataType.length;
@@ -188,8 +189,9 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& a
         else if (sFieldType == "FIELD_ARRAY")
         {
             auto pstField = std::make_shared<FieldArrayField>(field);
-            pstField->fieldInfo = {};
-            pstField->fieldSize = pstField->arrayLength * ParseFields(field.at("fields"), pstField->fieldInfo, alignFn_);
+            auto parsedFieldInfo = std::make_shared<FieldInfo>();
+            pstField->fieldSize = pstField->arrayLength * ParseFields(field.at("fields"), *parsedFieldInfo, alignFn_);
+            pstField->fieldInfo = std::move(parsedFieldInfo);
             vFields_.messageOrderedFields.push_back(pstField);
             pstField->index = vFields_.varFieldCount;
             vFields_.varFieldCount++;
@@ -226,7 +228,9 @@ std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(const json& j
         for (const auto& fields : it.at("fields").items())
         {
             uint32_t defCrc = std::stoul(fields.key());
-            ParseFields(fields.value(), md->fieldInfo[defCrc], alignFn_);
+            auto parsedFieldInfo = std::make_shared<FieldInfo>();
+            ParseFields(fields.value(), *parsedFieldInfo, alignFn_);
+            md->fieldInfo[defCrc] = std::move(parsedFieldInfo);
         }
         res.emplace_back(std::move(md));
     }

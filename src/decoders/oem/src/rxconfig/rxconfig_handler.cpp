@@ -46,7 +46,7 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
 
 void RxConfigHandler::ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
 {
-    const auto& vFieldDefs = pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc).messageOrderedFields;
+    const auto& vFieldDefs = pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc)->messageOrderedFields;
     std::string sMsgName = pclMsgDef_->name;
     if (vFieldDefs.size() != 1) { throw std::invalid_argument(sMsgName + " definition has too many fields."); }
     const BaseField::ConstPtr& pclFieldDef = vFieldDefs[0];
@@ -98,7 +98,7 @@ size_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize
 // -------------------------------------------------------------------------------------------------------
 BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
 {
-    return pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc).messageOrderedFields.at(0);
+    return pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc)->messageOrderedFields.at(0);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -125,9 +125,9 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, MessageBody& st
     std::vector<uint8_t> stEmbeddedMessageData;
     uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
     stInterMessage_ = MessageBody(0, 1);
-    stInterMessage_.SetDefinition(pclMyMsgDb != nullptr ? pclMyMsgDb->GetMsgDef(stRxConfigMetaData_.usMessageId) : nullptr,
-                                  std::optional<uint32_t>(stRxConfigMetaData_.uiMessageCrc));
-    if (stInterMessage_.GetDefinition() == nullptr) { return STATUS::NO_DEFINITION; }
+    stInterMessage_.SetFieldInfo(pclMyMsgDb != nullptr ? pclMyMsgDb->GetMsgDef(stRxConfigMetaData_.usMessageId) : nullptr,
+                                 std::optional<uint32_t>(stRxConfigMetaData_.uiMessageCrc));
+    if (stInterMessage_.GetFieldInfo() == nullptr) { return STATUS::NO_DEFINITION; }
 
     // Determine how many bytes to copy from raw message data to the embedded message data.
     uint32_t uiCopyableEmbeddedMsgBytes;
@@ -281,7 +281,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
 
     // -- Encode Embedded Body --
     const auto& embeddedFieldDefinitions =
-        stEmbeddedMessage_.GetDefinition()->GetMsgDefFromCrc(stEmbeddedHeader_.uiMessageDefinitionCrc).messageOrderedFields;
+        stEmbeddedMessage_.GetFieldInfo()->messageOrderedFields;
     eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedMessage_, embeddedFieldDefinitions, stEmbeddedMessageData_,
                                      stEmbeddedMetaData_.eFormat, ENCODE_FORMAT::ABBREV_ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
@@ -414,8 +414,8 @@ STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBuf
     MessageBody stEmbeddedMessage;
 
     // Convert embedded data to a dynamically allocated character array
-    if (stMessage_.GetDefinition() == nullptr) { return STATUS::MALFORMED_INPUT; }
-    const auto& fieldDefinitions = stMessage_.GetDefinition()->GetMsgDefFromCrc(stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
+    if (stMessage_.GetFieldInfo() == nullptr) { return STATUS::MALFORMED_INPUT; }
+    const auto& fieldDefinitions = stMessage_.GetFieldInfo()->messageOrderedFields;
     if (fieldDefinitions.empty()) { return STATUS::MALFORMED_INPUT; }
     const auto fieldValue = stMessage_.GetFieldValue<std::vector<uint8_t>>(*fieldDefinitions.at(0));
     std::unique_ptr<unsigned char[]> pucEmbeddedDataBuffer = std::make_unique<unsigned char[]>(fieldValue.size());

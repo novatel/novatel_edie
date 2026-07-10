@@ -135,7 +135,8 @@ std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
 MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(std::string_view strMsgName_) const
 {
     const auto it = mMessageName.find(strMsgName_.data());
-    return it != mMessageName.end() ? it->second : nullptr;
+    if (it != mMessageName.end()) { return it->second; }
+    return nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -143,7 +144,8 @@ MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(std::string_view strMsgNa
 MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(const int32_t iMsgId_) const
 {
     const auto it = mMessageId.find(iMsgId_);
-    return it != mMessageId.end() ? it->second : nullptr;
+    if (it != mMessageId.end()) { return it->second; }
+    return nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -155,57 +157,16 @@ void LogMissingMsgDef(spdlog::logger& pclLogger_, const int32_t iMsgId_)
     else { SPDLOG_LOGGER_DEBUG(&pclLogger_, "No log definition for ID {}", iMsgId_); }
 }
 
-//-----------------------------------------------------------------------
-MessageDefinition::ConstPtr MessageDatabase::GetResponseDefinition() const
-{
-    if (pResponseDefinition != nullptr) { return pResponseDefinition; }
-
-    auto responseDefinition = std::make_shared<MessageDefinition>();
-    responseDefinition->name = "response";
-
-    auto responsesEnum = GetEnumDefName("Responses");
-
-    SimpleDataType responseIdDataType;
-    responseIdDataType.description = "Response as numerical id";
-    responseIdDataType.length = 4;
-    responseIdDataType.name = DATA_TYPE::UINT;
-
-    auto responseIdField = std::make_shared<EnumField>();
-    responseIdField->name = "response_id";
-    responseIdField->type = FIELD_TYPE::RESPONSE_ID;
-    responseIdField->dataType = responseIdDataType;
-    responseIdField->index = 0;
-    responseIdField->length = 4;
-    if (responsesEnum != nullptr) { responseIdField->enumId = responsesEnum->_id; }
-    responseIdField->enumDef = responsesEnum;
-
-    SimpleDataType responseStrDataType;
-    responseStrDataType.description = "Response as a string";
-    responseStrDataType.length = 1;
-    responseStrDataType.name = DATA_TYPE::CHAR;
-
-    auto responseStrField = std::make_shared<BaseField>();
-    responseStrField->name = "response_str";
-    responseStrField->type = FIELD_TYPE::RESPONSE_STR;
-    responseStrField->dataType = responseStrDataType;
-    responseStrField->index = 0;
-
-    auto& responseFieldInfo = responseDefinition->fieldInfo[0]; // Responses do not use definition CRCs.
-    responseFieldInfo.fixedFieldBytes = sizeof(uint32_t);
-    responseFieldInfo.varFieldCount = 1;
-    responseFieldInfo.messageOrderedFields = {responseIdField, responseStrField};
-    responseFieldInfo.fieldNameToDef[responseIdField->name] = responseIdField;
-    responseFieldInfo.fieldNameToDef[responseStrField->name] = responseStrField;
-
-    pResponseDefinition = responseDefinition;
-    return pResponseDefinition;
-}
-
 // -------------------------------------------------------------------------------------------------------
 const FieldInfo& MessageDefinition::GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) const
 {
     auto it = fieldInfo.find(uiMsgDefCrc_);
-    return (it != fieldInfo.end()) ? it->second : fieldInfo.at(latestMessageCrc);
+    if (it != fieldInfo.end() && it->second) { return *it->second; }
+
+    const auto latestIt = fieldInfo.find(latestMessageCrc);
+    if (latestIt != fieldInfo.end() && latestIt->second) { return *latestIt->second; }
+
+    throw std::runtime_error("GetMsgDefFromCrc(): no field definition found for requested or latest CRC");
 }
 
 // -------------------------------------------------------------------------------------------------------

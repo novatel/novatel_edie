@@ -39,14 +39,6 @@
 
 namespace novatel::edie {
 
-template <typename T, template <typename> class Template> struct is_specialization_of : std::false_type
-{
-};
-template <typename T, template <typename> class Template> struct is_specialization_of<Template<T>, Template> : std::true_type
-{
-};
-template <typename T, template <typename> class Template> inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
-
 template <typename T> struct is_byte_buffer : std::false_type
 {
 };
@@ -232,19 +224,6 @@ template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType
     return true;
 }
 
-template <typename T> struct FloatValue
-{
-    T value;
-    std::chars_format format;
-    std::optional<int> precision;
-};
-
-template <typename T> struct HexValue
-{
-    T value;
-    uint32_t width;
-};
-
 // -------------------------------------------------------------------------------------------------------
 template <typename BufferType, typename... Args> [[nodiscard]] bool CopyAllToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, Args&&... args_)
 {
@@ -390,7 +369,7 @@ template <typename Derived> class EncoderBase
                         using ValueType = std::decay_t<decltype(fieldVector)>;
                         size_t maxBytes = 0;
                         size_t count = 0;
-                        if constexpr (std::is_same_v<ValueType, FixedFieldRegion> || std::is_same_v<ValueType, VarLengthFieldArray>)
+                        if constexpr (std::is_same_v<ValueType, FlatFieldArray> || std::is_same_v<ValueType, NestedFieldArray>)
                         {
                             fieldArrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
                             if (!fieldArrayFieldDef)
@@ -399,9 +378,9 @@ template <typename Derived> class EncoderBase
                             }
                             maxBytes = fieldArrayFieldDef->fieldSize;
 
-                            if constexpr (std::is_same_v<ValueType, FixedFieldRegion>)
+                            if constexpr (std::is_same_v<ValueType, FlatFieldArray>)
                             {
-                                count = fieldVector.size() / fieldArrayFieldDef->fieldInfo.fixedFieldBytes;
+                                count = fieldVector.size() / fieldArrayFieldDef->fieldInfo->fixedFieldBytes;
                             }
                             else
                             {
@@ -414,7 +393,7 @@ template <typename Derived> class EncoderBase
                             count = fieldVector.size();
                         }
 
-                        if constexpr (is_specialization_of_v<ValueType, std::vector> || std::is_same_v<ValueType, FixedFieldRegion>)
+                        if constexpr (is_specialization_of_v<ValueType, std::vector> || std::is_same_v<ValueType, FlatFieldArray>)
                         {
                             // Write array length
                             if (arrayFieldDef->arrayLengthRef.empty())
@@ -439,11 +418,11 @@ template <typename Derived> class EncoderBase
                         const unsigned char* startPos = *ppucOutBuf_;
 
                         // Variable-length FIELD_ARRAY
-                        if constexpr (std::is_same_v<ValueType, VarLengthFieldArray>)
+                        if constexpr (std::is_same_v<ValueType, NestedFieldArray>)
                         {
                             for (const auto& element : fieldVector)
                             {
-                                if (!EncodeBinaryBody<Flatten>(element, fieldArrayFieldDef->fieldInfo.messageOrderedFields,
+                                if (!EncodeBinaryBody<Flatten>(element, fieldArrayFieldDef->fieldInfo->messageOrderedFields,
                                                                ppucOutBuf_, uiBytesLeft_))
                                 {
                                     return false;
@@ -517,32 +496,9 @@ template <typename Derived> class EncoderBase
         {
             auto enumFieldPtr = dynamic_cast<const EnumField*>(&fieldDefRef_);
             if (!enumFieldPtr) return false;
-            switch (fieldDefRef_.dataType.length)
-            {
-            case 1:
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_,
-                                  GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(mb_.GetFieldValue<uint8_t>(fieldDefRef_)))))
-                {
-                    return false;
-                }
-                break;
-            case 2:
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_,
-                                  GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(mb_.GetFieldValue<uint16_t>(fieldDefRef_)))))
-                {
-                    return false;
-                }
-                break;
-            case 4:
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_,
-                                  GetEnumString(enumFieldPtr->enumDef, mb_.GetFieldValue<uint32_t>(fieldDefRef_))))
-                {
-                    return false;
-                }
-                break;
-            default: throw std::runtime_error("Unsupported enum size");
-            }
-            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator);
+            std::string_view enumString;
+            SimpleTypeVisitor(fieldDefRef_, [&](auto&& arg) { enumString = GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(mb_.GetFieldValue<std::decay_t<decltype(arg)>>(fieldDefRef_))); });
+            return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, enumString, separator);
         }
 
         const auto it = asciiFieldMap.find(fieldDefRef_.conversionHash);
@@ -659,8 +615,8 @@ template <typename Derived> class EncoderBase
                 auto encoded = std::visit(
                     [&](auto&& fa) -> bool {
                         using FieldArrayType = std::decay_t<decltype(fa)>;
-                        const auto& subfieldDefs = fieldArrayDef->fieldInfo.messageOrderedFields;
-                        if constexpr (std::is_same_v<FieldArrayType, VarLengthFieldArray> || std::is_same_v<FieldArrayType, FixedFieldRegion>)
+                        const auto& subfieldDefs = fieldArrayDef->fieldInfo->messageOrderedFields;
+                        if constexpr (std::is_same_v<FieldArrayType, FlatFieldArray> || std::is_same_v<FieldArrayType, NestedFieldArray>)
                         {
                             for (size_t i = 0; i < count; i++)
                             {
@@ -668,14 +624,14 @@ template <typename Derived> class EncoderBase
                                 {
                                     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
                                 }
-                                if constexpr (std::is_same_v<FieldArrayType, VarLengthFieldArray>)
+                                if constexpr (std::is_same_v<FieldArrayType, NestedFieldArray>)
                                 {
                                     if (!EncodeAsciiBody<Abbreviated>(fa[i], subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1)) { return false; }
                                 }
-                                else if constexpr (std::is_same_v<FieldArrayType, FixedFieldRegion>)
+                                else if constexpr (std::is_same_v<FieldArrayType, FlatFieldArray>)
                                 {
-                                    const auto fixedFieldBytes = fieldArrayDef->fieldInfo.fixedFieldBytes;
-                                    const auto elementStart = fa.begin() + (i * fixedFieldBytes);
+                                    const auto fixedFieldBytes = fieldArrayDef->fieldInfo->fixedFieldBytes;
+                                    const auto elementStart = fa.data() + (i * fixedFieldBytes);
                                     const auto elementEnd = elementStart + fixedFieldBytes;
                                     std::vector<std::byte> fixedFields(elementStart, elementEnd);
                                     MessageBody mb(std::move(fixedFields), std::vector<FieldValueVariant>{});
@@ -732,33 +688,9 @@ template <typename Derived> class EncoderBase
         {
             auto enumFieldPtr = dynamic_cast<const EnumField*>(&fieldDefRef_);
             if (!enumFieldPtr) return false;
-            if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"')) { return false; }
-            switch (fieldDefRef_.dataType.length)
-            {
-            case 1:
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_,
-                                  GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(mb_.GetFieldValue<uint8_t>(fieldDefRef_)))))
-                {
-                    return false;
-                }
-                break;
-            case 2:
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_,
-                                  GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(mb_.GetFieldValue<uint16_t>(fieldDefRef_)))))
-                {
-                    return false;
-                }
-                break;
-            case 4:
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_,
-                                  GetEnumString(enumFieldPtr->enumDef, mb_.GetFieldValue<uint32_t>(fieldDefRef_))))
-                {
-                    return false;
-                }
-                break;
-            default: throw std::runtime_error("Unsupported enum size");
-            }
-            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\",");
+            std::string_view enumString;
+            SimpleTypeVisitor(fieldDefRef_, [&](auto&& arg) { enumString = GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(mb_.GetFieldValue<std::decay_t<decltype(arg)>>(fieldDefRef_))); });
+            return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', enumString, "\",");
         }
 
         const auto it = jsonFieldMap.find(fieldDefRef_.conversionHash);
@@ -849,21 +781,21 @@ template <typename Derived> class EncoderBase
                             using FieldArrayType = std::decay_t<decltype(fa)>;
                             for (size_t i = 0; i < count; i++)
                             {
-                                if constexpr (std::is_same_v<FieldArrayType, VarLengthFieldArray>)
+                                if constexpr (std::is_same_v<FieldArrayType, NestedFieldArray>)
                                 {
-                                    if (!EncodeJsonBody(fa[i], arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
+                                    if (!EncodeJsonBody(fa[i], arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
                                     {
                                         return false;
                                     }
                                 }
-                                else if constexpr (std::is_same_v<FieldArrayType, FixedFieldRegion>)
+                                else if constexpr (std::is_same_v<FieldArrayType, FlatFieldArray>)
                                 {
-                                    const auto fixedFieldBytes = arrayFieldDef->fieldInfo.fixedFieldBytes;
-                                    const auto elementStart = fa.begin() + (i * fixedFieldBytes);
+                                    const auto fixedFieldBytes = arrayFieldDef->fieldInfo->fixedFieldBytes;
+                                    const auto elementStart = fa.data() + (i * fixedFieldBytes);
                                     const auto elementEnd = elementStart + fixedFieldBytes;
                                     std::vector<std::byte> fixedFields(elementStart, elementEnd);
                                     MessageBody mb(std::move(fixedFields), std::vector<FieldValueVariant>{});
-                                    if (!EncodeJsonBody(mb, arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
+                                    if (!EncodeJsonBody(mb, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
                                     {
                                         return false;
                                     }
