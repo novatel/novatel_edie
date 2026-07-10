@@ -1,4 +1,4 @@
-﻿// ===============================================================================
+// ===============================================================================
 // |                                                                             |
 // |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
 // |                                                                             |
@@ -96,8 +96,9 @@ void Encoder::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("s")] = [](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  const MessageDatabase&, size_t offset) {
-        return fd_.dataType.name == DATA_TYPE::UCHAR ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(mb_.GetFieldValue<uint8_t>(offset, fd_)))
-                                 : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(mb_.GetFieldValue<int8_t>(offset, fd_)));
+        return fd_.dataType.name == DATA_TYPE::UCHAR
+                   ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(mb_.GetFieldValue<uint8_t>(offset, fd_)))
+                   : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(mb_.GetFieldValue<int8_t>(offset, fd_)));
     };
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -123,7 +124,7 @@ void Encoder::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("P")] = [](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  const MessageDatabase&, size_t offset) {
         const uint8_t uiValue = fd_.dataType.name == DATA_TYPE::CHAR ? static_cast<uint8_t>(mb_.GetFieldValue<int8_t>(offset, fd_))
-                                          : mb_.GetFieldValue<uint8_t>(offset, fd_);
+                                                                     : mb_.GetFieldValue<uint8_t>(offset, fd_);
         if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }
         if (uiValue > 31 && uiValue < 127) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(uiValue)); }
         return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x") && WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, uiValue, 2);
@@ -196,7 +197,8 @@ void Encoder::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("m")] = [](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 const MessageDatabase& pclMsgDb_, size_t offset) {
-        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(pclMsgDb_.MsgIdToMsgName(mb_.GetFieldValue<uint32_t>(offset, fd_))), '"');
+        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(pclMsgDb_.MsgIdToMsgName(mb_.GetFieldValue<uint32_t>(offset, fd_))),
+                               '"');
     };
 
     jsonFieldMap[CalculateBlockCrc32("id")] = [](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -229,8 +231,14 @@ void Encoder::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("e")] = [](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 const MessageDatabase&, size_t offset) {
-        if (fd_.dataType.length == 4) { return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, mb_.GetFieldValue<float>(offset, fd_), std::chars_format::scientific, fd_.precision); }
-        if (fd_.dataType.length == 8) { return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, mb_.GetFieldValue<double>(offset, fd_), std::chars_format::scientific, fd_.precision); }
+        if (fd_.dataType.length == 4)
+        {
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, mb_.GetFieldValue<float>(offset, fd_), std::chars_format::scientific, fd_.precision);
+        }
+        if (fd_.dataType.length == 8)
+        {
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, mb_.GetFieldValue<double>(offset, fd_), std::chars_format::scientific, fd_.precision);
+        }
         return false;
     };
 
@@ -604,4 +612,3 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
     stMessageData_.uiMessageBodyLength = pucTempBuffer - stMessageData_.pucMessageBody;
     return STATUS::SUCCESS;
 }
-

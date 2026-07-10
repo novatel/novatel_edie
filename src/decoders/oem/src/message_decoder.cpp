@@ -278,7 +278,8 @@ novatel::edie::MessageDefinition::ConstPtr MessageDecoder::GetMessageDefinition(
         responseStrField->dataType = responseStrDataType;
         responseStrField->index = 0;
 
-        responseDefinition->fieldInfo[0] = std::make_shared<FieldInfo>(FieldInfo{sizeof(uint32_t), 1, std::vector<BaseField::ConstPtr>{responseIdField, responseStrField}});
+        responseDefinition->fieldInfo[0] =
+            std::make_shared<FieldInfo>(FieldInfo{sizeof(uint32_t), 1, std::vector<BaseField::ConstPtr>{responseIdField, responseStrField}});
 
         pResponseDefinition = responseDefinition;
         return pResponseDefinition;
