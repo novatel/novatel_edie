@@ -469,7 +469,7 @@ struct ArrayField : BaseField
 
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;
-    
+
   protected:
     [[nodiscard]] bool equalsImpl(const BaseField& other) const override
     {

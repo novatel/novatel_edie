@@ -280,8 +280,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
     stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>((szAbbrevAsciiEmbeddedHeaderPrefix.length()));
 
     // -- Encode Embedded Body --
-    const auto& embeddedFieldDefinitions =
-        stEmbeddedMessage_.GetFieldInfo()->messageOrderedFields;
+    const auto& embeddedFieldDefinitions = stEmbeddedMessage_.GetFieldInfo()->messageOrderedFields;
     eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedMessage_, embeddedFieldDefinitions, stEmbeddedMessageData_,
                                      stEmbeddedMetaData_.eFormat, ENCODE_FORMAT::ABBREV_ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
