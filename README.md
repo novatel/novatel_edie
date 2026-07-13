@@ -80,35 +80,6 @@ The build can then be started with:
 cmake --build {path_to_build_folder}
 ```
 
-> **⚠️ Known issue — IDE configure fails on CMake 4.x with `IMPORTED_LOCATION not set`**
->
-> When a project that consumes EDIE's dependencies through Conan's classic `CMakeDeps`
-> generator is configured **from an IDE** (Visual Studio / VS Code) using **CMake 4.x**, 
-> configuration fails during CMake's file-API *codemodel* generation with errors such as:
->
-> ```
-> CMake Error in src/common/CMakeLists.txt:
->   IMPORTED_LOCATION not set for imported target "CONAN_LIB::fmt_fmt_RELEASE" configuration "Debug".
-> ```
->
-> **Cause:** Conan's `CMakeDeps` generator creates the per-config imported
-> targets with `IMPORTED_LOCATION_<CONFIG>` but never sets `IMPORTED_CONFIGURATIONS`
-> [(conan-io/conan#14606)](https://github.com/conan-io/conan/issues/14606). CMake 4.x's codemodel resolution no longer tolerates that
-> omission; Building the model for one configuration demands incompatible targets from the *other* configuration. 
-> Plain command-line `cmake` configures are **not** affected — they do not request the codemodel — so this only surfaces
-> through an IDE's CMake integration. Older versions of CMake are also unaffected.
->
-> **Fix:** switch Conan to the newer `CMakeConfigDeps` generator, which sets
-> `IMPORTED_CONFIGURATIONS`. Add this line to your Conan `global.conf` (its folder is
-> printed by `conan config home`):
->
-> ```
-> tools.cmake.cmakedeps:new=will_break_next
-> ```
->
-> Note: this conf and `CMakeConfigDeps` are experimental hence the name
-> `will_break_next`.
-
 ### CMake Presets
 
 It is recommended to use [CMake presets](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html) to define specific build parameters, such as compiler and build type.
