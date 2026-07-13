@@ -332,8 +332,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     //! standard deviation values defined in the RANGECMP5 documentation:
     //! TODO: link to documentation
     //-----------------------------------------------------------------------
-    constexpr std::array<double, 32> stdDevPhrScaling = {0.00391, 0.00458, 0.00536, 0.00628, 0.00735, 0.00861, 0.01001, 0.1182,
-                                                         0.01385, 0.01621, 0.1900,  0.02223, 0.02607, 0.03054, 0.03577, 0.04190,
+    constexpr std::array<double, 32> stdDevPhrScaling = {0.00391, 0.00458, 0.00536, 0.00628, 0.00735, 0.00861, 0.01001, 0.01182,
+                                                         0.01385, 0.01621, 0.01900, 0.02223, 0.02607, 0.03054, 0.03577, 0.04190,
                                                          0.04908, 0.05749, 0.06734, 0.07889, 0.09240, 0.10824, 0.12679, 0.14851,
                                                          0.17396, 0.20378, 0.23870, 0.27961, 0.32753, 0.38366, 0.44940, 0.44940};
 
