@@ -197,6 +197,8 @@ class FixedFieldRegion
 
     template <typename T> T GetFieldValue(const BaseField& field_, size_t baseIndex_ = 0) const
     {
+        static_assert(std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>,
+                      "GetFieldValue only supports trivially copyable types or TypedBuffer specializations");
         switch (field_.type)
         {
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
@@ -222,6 +224,7 @@ class FixedFieldRegion
 
     template <typename T> T GetFieldValue(size_t elemIndex_, const ArrayField& field_, size_t baseIndex_ = 0) const
     {
+        static_assert(std::is_trivially_copyable_v<T>, "GetFieldValue only supports trivially copyable types");
         if (elemIndex_ >= field_.arrayLength) { throw std::runtime_error("GetFieldValue<T>(): index out of bounds for fixed-length array field"); }
         if (field_.type != FIELD_TYPE::FIXED_LENGTH_ARRAY)
         {
@@ -237,6 +240,7 @@ class FixedFieldRegion
 
     template <typename T> T GetFieldValue(size_t elemIndex_, const BaseField& field_, size_t baseIndex_ = 0) const
     {
+        static_assert(std::is_trivially_copyable_v<T>, "GetFieldValue only supports trivially copyable types");
         if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
         {
             const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
@@ -434,13 +438,11 @@ class MessageBody
         case FIELD_TYPE::FIELD_ARRAY:
             if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, NestedFieldArray>) { return std::get<T>(varFields[field_.index]); }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
-        default: {
-            return fixedFields.GetFieldValue<T>(field_);
-        }
+        default:
+            if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>) { return fixedFields.GetFieldValue<T>(field_); }
+            else { throw std::runtime_error("GetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization"); }
         }
     }
-
-    template <typename T> T GetFieldValue(size_t index_, const ArrayField& field_) const { return fixedFields.GetFieldValue<T>(index_, field_); }
 
     template <typename T> T GetFieldValue(size_t index_, const BaseField& field_) const
     {
@@ -463,6 +465,12 @@ class MessageBody
 
         if (index_ == 0) { return GetFieldValue<T>(field_); }
         throw std::runtime_error("GetFieldValue<T>(): field must be an array type or index must be zero");
+    }
+
+    template <typename T> T GetFieldValue(size_t index_, const ArrayField& field_) const
+    {
+        if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return fixedFields.GetFieldValue<T>(index_, field_); }
+        return GetFieldValue<T>(index_, static_cast<const BaseField&>(field_));
     }
 
     // ---------------------------------------------------------------------------

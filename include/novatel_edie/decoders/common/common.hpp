@@ -46,6 +46,7 @@ namespace novatel::edie {
 //-----------------------------------------------------------------------
 template <typename T, typename BufferType> inline T LoadValueFromBuffer(const BufferType* logBuf_)
 {
+    static_assert(std::is_trivially_copyable_v<T>, "LoadValueFromBuffer only supports trivially copyable types");
     static_assert(std::is_same_v<BufferType, char> || std::is_same_v<BufferType, unsigned char> || std::is_same_v<BufferType, std::byte> ||
                       std::is_same_v<BufferType, int8_t> || std::is_same_v<BufferType, uint8_t>,
                   "BufferType must be char, unsigned char, std::byte, int8_t, or uint8_t");
