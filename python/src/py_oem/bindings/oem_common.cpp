@@ -111,7 +111,7 @@ void py_oem::init_novatel_common(nb::module_& m)
                          auto msg_def = py_oem::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
                          if (!msg_def) { return nb::none(); }
                          auto fields_it = msg_def->fieldInfo.find(self.uiMessageCrc);
-                         return fields_it == msg_def->fieldInfo.end() ? nb::none() : nb::cast(fields_it->second.messageOrderedFields);
+                         return fields_it == msg_def->fieldInfo.end() ? nb::none() : nb::cast(fields_it->second->messageOrderedFields);
                      })
         .def("__repr__", [](const nb::handle self) {
             auto& metadata = nb::cast<oem::MetaDataStruct&>(self);
