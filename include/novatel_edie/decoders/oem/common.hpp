@@ -131,7 +131,6 @@ struct MetaDataStruct : public MetaDataBase
 {
     uint8_t ucSiblingId{NULL_SIBLING_ID};
     TIME_STATUS eTimeStatus{TIME_STATUS::UNKNOWN};
-    CONSTELLATION constellation{CONSTELLATION::UNKNOWN};
 
     // NOTE: C++20 automatically generates a generic operator== for this struct.
     bool operator==(const MetaDataStruct& other_) const

@@ -241,15 +241,12 @@ class MessageDecoderBase
         static_assert(!std::is_same_v<IntermediateType, void>, "Unsupported type for PushElement");
 
         IntermediateType intermediateValue;
-        if (clJsonField_.get(intermediateValue) == simdjson::SUCCESS)
+        if (clJsonField_.get(intermediateValue) != simdjson::SUCCESS)
         {
-            T value = static_cast<T>(intermediateValue);
-            vIntermediate_.emplace_back(value, std::move(pstMessageDataType_));
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
         }
-        else
-        {
-            // Handle error (e.g., log a warning or throw an exception)
-        }
+        T value = static_cast<T>(intermediateValue);
+        vIntermediate_.emplace_back(value, std::move(pstMessageDataType_));
     }
 
     // -------------------------------------------------------------------------------------------------------
