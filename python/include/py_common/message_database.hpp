@@ -194,7 +194,7 @@ class PyMessageDatabase
                 auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(field.get());
                 nb::handle fieldType = field_types.at(fieldArrayField);
                 m_.attr(fieldType.attr("__name__")) = fieldType;
-                bindFieldsToModule(m_, fieldArrayField->fieldInfo.messageOrderedFields);
+                bindFieldsToModule(m_, fieldArrayField->fieldInfo->messageOrderedFields);
             }
         }
     }
@@ -209,7 +209,7 @@ class PyMessageDatabase
                 nb::handle fieldType = field_types[fieldArrayField];
                 std::string alias = parentAlias_ + "_" + fieldArrayField->name + "_Field";
                 m_.attr(alias.c_str()) = fieldType;
-                addFieldAliasToModule(m_, fieldArrayField->fieldInfo.messageOrderedFields, alias);
+                addFieldAliasToModule(m_, fieldArrayField->fieldInfo->messageOrderedFields, alias);
             }
         }
     }
@@ -222,9 +222,9 @@ class PyMessageDatabase
             {
                 std::string name = nb::cast<nb::str>(message_type.attr("__name__")).c_str();
                 messageMod_.attr(message_type.attr("__name__")) = message_type;
-                bindFieldsToModule(messageMod_, message_def->fieldInfo.at(crc).messageOrderedFields);
+                bindFieldsToModule(messageMod_, message_def->fieldInfo.at(crc)->messageOrderedFields);
             }
-            const std::vector<BaseField::ConstPtr>& latestDef = message_def->fieldInfo.at(message_def->latestMessageCrc).messageOrderedFields;
+            const std::vector<BaseField::ConstPtr>& latestDef = message_def->fieldInfo.at(message_def->latestMessageCrc)->messageOrderedFields;
             messageMod_.attr(message_def->name.c_str()) = message_version_defs.at(message_def->latestMessageCrc);
             addFieldAliasToModule(messageMod_, latestDef, message_def->name);
         }
@@ -261,7 +261,7 @@ class PyMessageDatabase
 
     void UpdatePythonEnums();
     void UpdatePythonMessageTypes();
-    void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message, nb::handle type_cons);
+    void AddFieldType(std::vector<BaseField::ConstPtr> fields, std::string base_name, std::string parent_message, nb::handle type_cons);
 
     const MessageFamilyRegistration* message_family_registration_ = nullptr;
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_types{};

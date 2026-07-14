@@ -65,6 +65,54 @@ int py_common::db_tp_clear(PyObject* self)
 // Table of custom type slots we want to install
 PyType_Slot db_slots[] = {{Py_tp_traverse, (void*)py_common::db_tp_traverse}, {Py_tp_clear, (void*)py_common::db_tp_clear}, {0, 0}};
 
+namespace {
+
+FieldInfo::ConstPtr BuildFieldInfo(std::vector<std::shared_ptr<BaseField>> fields)
+{
+    size_t fixedBytes = 0;
+    size_t varFields = 0;
+    std::vector<BaseField::ConstPtr> constFields;
+    constFields.reserve(fields.size());
+
+    for (auto& f : fields)
+    {
+        switch (f->type)
+        {
+        case FIELD_TYPE::BITFIELD: [[fallthrough]];
+        case FIELD_TYPE::RESPONSE_ID: [[fallthrough]];
+        case FIELD_TYPE::SIMPLE: [[fallthrough]];
+        case FIELD_TYPE::ENUM:
+            f->index = fixedBytes;
+            fixedBytes += f->dataType.length;
+            break;
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+            f->index = fixedBytes;
+            const auto* arrayField = dynamic_cast<const ArrayField*>(f.get());
+            if (!arrayField) { throw nb::value_error("FIXED_LENGTH_ARRAY field is not of type ArrayField."); }
+            fixedBytes += f->dataType.length * arrayField->arrayLength;
+            break;
+        }
+        case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
+        case FIELD_TYPE::STRING: [[fallthrough]];
+        case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            varFields++;
+            break;
+        default:
+            throw nb::value_error("FieldArrayField: Unknown field type encountered in fields vector.");
+        }
+        constFields.push_back(std::move(f));
+    }
+
+    auto fieldInfo = std::make_shared<FieldInfo>();
+    fieldInfo->fixedFieldBytes = fixedBytes;
+    fieldInfo->varFieldCount = varFields;
+    fieldInfo->messageOrderedFields = std::move(constFields);
+    return fieldInfo;
+}
+
+} // namespace
+
 void py_common::init_common_message_database(nb::module_& m)
 {
     nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "The concrete data types of base-level message fields.", nb::is_arithmetic())
@@ -235,8 +283,8 @@ void py_common::init_common_message_database(nb::module_& m)
                std::vector<std::shared_ptr<BaseField>> fields) {
                 try
                 {
-                    new (t) FieldArrayField(std::move(name), type, std::move(conversion), data_type, array_length,
-                                            std::move(fields)); // NOLINT(*.NewDeleteLeaks)
+                    auto fieldInfo = BuildFieldInfo(std::move(fields));
+                    new (t) FieldArrayField(std::move(name), type, std::move(conversion), data_type, array_length, std::move(fieldInfo)); // NOLINT(*.NewDeleteLeaks)
                 }
                 catch (const std::exception& e)
                 {
@@ -246,19 +294,46 @@ void py_common::init_common_message_database(nb::module_& m)
             "name"_a = std::string{}, "type"_a = FIELD_TYPE::FIELD_ARRAY, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
             "array_length"_a = uint32_t{0}, "fields"_a = std::vector<std::shared_ptr<BaseField>>{})
         .def_rw("array_length", &FieldArrayField::arrayLength)
-        .def_rw("fields", &FieldArrayField::fields, nb::rv_policy::reference_internal)
+        .def_prop_rw(
+            "fields",
+            [](FieldArrayField& self) -> const std::vector<BaseField::ConstPtr>& {
+                if (!self.fieldInfo) { self.fieldInfo = std::make_shared<FieldInfo>(); }
+                return self.fieldInfo->messageOrderedFields;
+            },
+            [](FieldArrayField& self, std::vector<std::shared_ptr<BaseField>> fields) {
+                FieldArrayField rebuilt(self.name, self.type, self.conversion, self.dataType.name, self.arrayLength,
+                                        BuildFieldInfo(std::move(fields)));
+                self = std::move(rebuilt);
+            },
+            nb::rv_policy::reference_internal)
         .def("__repr__", [](const FieldArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
+            const auto emptyFields = std::vector<BaseField::ConstPtr>{};
+            const auto& fields = field.fieldInfo ? field.fieldInfo->messageOrderedFields : emptyFields;
             return nb::str("FieldArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r}, "
                            "fields={!r})")
-                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.arrayLength, field.fields);
+                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.arrayLength, fields);
         });
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")
-        .def(nb::init<std::string, uint32_t, std::string, std::string, uint32_t,
-                      std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>>(),
-             "id"_a = std::string{}, "log_id"_a = uint32_t{0}, "name"_a = std::string{}, "description"_a = std::string{},
-             "latest_message_crc"_a = uint32_t{0}, "fields"_a = std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>{})
+        .def(
+            "__init__",
+            [](MessageDefinition* t, std::string id, uint32_t log_id, std::string name, std::string description, uint32_t latest_message_crc,
+               std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>> fields) {
+                try
+                {
+                    std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfoMap;
+                    for (auto& [crc, defs] : fields) { fieldInfoMap[crc] = BuildFieldInfo(std::move(defs)); }
+                    new (t) MessageDefinition(std::move(id), log_id, std::move(name), std::move(description), latest_message_crc,
+                                              std::move(fieldInfoMap)); // NOLINT(*.NewDeleteLeaks)
+                }
+                catch (const std::exception& e)
+                {
+                    throw nb::value_error(e.what());
+                }
+            },
+            "id"_a = std::string{}, "log_id"_a = uint32_t{0}, "name"_a = std::string{}, "description"_a = std::string{},
+            "latest_message_crc"_a = uint32_t{0}, "fields"_a = std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>{})
         .def_rw("id", &MessageDefinition::_id)
         .def_rw("log_id", &MessageDefinition::logID)
         .def_rw("name", &MessageDefinition::name)
@@ -267,11 +342,13 @@ void py_common::init_common_message_database(nb::module_& m)
             "fields",
             [](MessageDefinition& self) {
                 nb::dict py_map;
-                for (const auto& [id, value] : self.fields) { py_map[nb::cast(id)] = nb::cast(value); }
+                for (const auto& [id, info] : self.fieldInfo) { py_map[nb::cast(id)] = nb::cast(info->messageOrderedFields); }
                 return py_map;
             },
             [](MessageDefinition& self, std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>> fields) {
-                self.fields = std::move(fields);
+                std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfoMap;
+                for (auto& [crc, defs] : fields) { fieldInfoMap[crc] = BuildFieldInfo(std::move(defs)); }
+                self.fieldInfo = std::move(fieldInfoMap);
             })
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)
         .def("__eq__", [](const MessageDefinition& self, const MessageDefinition& other) { return self == other; })
@@ -353,11 +430,11 @@ void py_common::init_common_message_database(nb::module_& m)
                 auto msg_def = self.GetMsgDef(msg_name);
                 if (!msg_def) { throw nb::key_error(msg_name.c_str()); }
                 const uint32_t resolvedCrc = crc.value_or(msg_def->latestMessageCrc);
-                auto it = msg_def->fields.find(resolvedCrc);
-                if (it == msg_def->fields.end()) { throw nb::key_error(std::to_string(resolvedCrc).c_str()); }
+                auto it = msg_def->fieldInfo.find(resolvedCrc);
+                if (it == msg_def->fieldInfo.end()) { throw nb::key_error(std::to_string(resolvedCrc).c_str()); }
 
-                const std::vector<BaseField::Ptr>* fields = &it->second;
-                BaseField* current = nullptr;
+                const std::vector<BaseField::ConstPtr>* fields = &it->second->messageOrderedFields;
+                const BaseField* current = nullptr;
                 for (size_t i = 0; i < path.size(); ++i)
                 {
                     current = nullptr;
@@ -370,12 +447,12 @@ void py_common::init_common_message_database(nb::module_& m)
                         }
                     }
                     if (current == nullptr) { throw nb::key_error(path[i].c_str()); }
-                    auto* fa = dynamic_cast<FieldArrayField*>(current);
+                    auto* fa = dynamic_cast<const FieldArrayField*>(current);
                     const bool last = (i == path.size() - 1);
                     if (!last)
                     {
                         if (fa == nullptr) { throw nb::type_error(("cannot descend into non-FieldArray field: " + path[i]).c_str()); }
-                        fields = &fa->fields;
+                        fields = &fa->fieldInfo->messageOrderedFields;
                     }
                     else if (fa == nullptr) { throw nb::key_error(path[i].c_str()); }
                 }

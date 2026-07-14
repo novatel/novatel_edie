@@ -18,34 +18,6 @@ using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
 namespace {
-
-// Returns a zero-initialised FieldValueVariant alternative matching the given DATA_TYPE.
-// Used by BuildDefaultFields to populate scalar fields with sensible defaults.
-// ENUM fields are handled at the call site (int32_t to satisfy the debug-mode
-// FieldContainer::Validate() invariant).
-FieldValueVariant MakeDefaultScalarValue(DATA_TYPE dt)
-{
-    switch (dt)
-    {
-    case DATA_TYPE::BOOL: return bool{};
-    case DATA_TYPE::CHAR: return int8_t{};
-    case DATA_TYPE::UCHAR: return uint8_t{};
-    case DATA_TYPE::SHORT: return int16_t{};
-    case DATA_TYPE::USHORT: return uint16_t{};
-    case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG: return int32_t{};
-    case DATA_TYPE::UINT: [[fallthrough]];
-    case DATA_TYPE::ULONG: return uint32_t{};
-    case DATA_TYPE::LONGLONG: return int64_t{};
-    case DATA_TYPE::ULONGLONG: return uint64_t{};
-    case DATA_TYPE::FLOAT: return float{};
-    case DATA_TYPE::DOUBLE: return double{};
-    case DATA_TYPE::HEXBYTE: return uint8_t{};
-    case DATA_TYPE::SATELLITEID: return uint32_t{};
-    default: return uint32_t{};
-    }
-}
-
 template <typename T> T attr_cast(nb::handle value)
 {
     try
@@ -57,43 +29,33 @@ template <typename T> T attr_cast(nb::handle value)
         throw nb::type_error("Invalid type conversion.");
     }
 }
-
-// Builds a SIMPLE-typed FieldContainer from a Python value, casting to the
-// variant alternative that matches fieldDef's DATA_TYPE. Each return site is a
-// prvalue, so mandatory copy elision applies. Unsupported DATA_TYPEs raise.
-FieldContainer get_simple_attribute(BaseField::ConstPtr fieldDef, nb::handle value)
-{
-    switch (fieldDef->dataType.name)
-    {
-    case DATA_TYPE::BOOL: return FieldContainer{attr_cast<bool>(value), std::move(fieldDef)};
-    case DATA_TYPE::CHAR: return FieldContainer{attr_cast<int8_t>(value), std::move(fieldDef)};
-    case DATA_TYPE::UCHAR: return FieldContainer{attr_cast<uint8_t>(value), std::move(fieldDef)};
-    case DATA_TYPE::SHORT: return FieldContainer{attr_cast<int16_t>(value), std::move(fieldDef)};
-    case DATA_TYPE::USHORT: return FieldContainer{attr_cast<uint16_t>(value), std::move(fieldDef)};
-    case DATA_TYPE::LONG: [[fallthrough]];
-    case DATA_TYPE::INT: return FieldContainer{attr_cast<int32_t>(value), std::move(fieldDef)};
-    case DATA_TYPE::ULONG: [[fallthrough]];
-    case DATA_TYPE::UINT: return FieldContainer{attr_cast<uint32_t>(value), std::move(fieldDef)};
-    case DATA_TYPE::LONGLONG: return FieldContainer{attr_cast<int64_t>(value), std::move(fieldDef)};
-    case DATA_TYPE::ULONGLONG: return FieldContainer{attr_cast<uint64_t>(value), std::move(fieldDef)};
-    case DATA_TYPE::FLOAT: return FieldContainer{attr_cast<float>(value), std::move(fieldDef)};
-    case DATA_TYPE::DOUBLE: return FieldContainer{attr_cast<double>(value), std::move(fieldDef)};
-    default:
-        throw nb::attribute_error(
-            ("Modification of attributes with the \"" + std::string(DataTypeToString(fieldDef->dataType.name)) + "\" type is not yet supported.")
-                .c_str());
-    }
-}
-
 } // namespace
+
+PYCOMMON_EXPORT MessageBody* PyField::GetMessageBody() const
+{
+    if (std::holds_alternative<OwnedFields>(storage)) { return std::get<OwnedFields>(storage).get(); }
+
+    if (!std::holds_alternative<nb::object>(storage)) { return nullptr; }
+    nb::handle owner = std::get<nb::object>(storage);
+    if (!nb::isinstance<PyFieldArray>(owner)) { return nullptr; }
+
+    auto* parentField = nb::inst_ptr<PyFieldArray>(owner);
+    if (std::holds_alternative<NestedFieldArray>(*parentField->dataPtr))
+    {
+        auto& nested = std::get<NestedFieldArray>(*parentField->dataPtr);
+        if (myFieldIndex < nested.size()) { return &nested[myFieldIndex]; }
+    }
+
+    return nullptr;
+}
 
 PYCOMMON_EXPORT nb::object PyField::py_new(nb::handle cls, nb::kwargs kwargs)
 {
     py_common::PyMessageDatabase::Ptr database = nb::cast<py_common::PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
     if (!database) { throw py_common::FailureException("Constructor could not resolve owning MessageDatabase for this type."); }
 
-    BaseField::ConstPtr field_def = database->GetFieldTypeLookup(cls);
-    if (!field_def) { throw py_common::FailureException("Constructor could not resolve BaseField for this type."); }
+    auto field_def = std::dynamic_pointer_cast<const FieldArrayField>(database->GetFieldTypeLookup(cls));
+    if (!field_def) { throw py_common::FailureException("Constructor could not resolve FieldArrayField for this type."); }
 
     nb::object field_pyinst = nb::inst_alloc(cls);
     py_common::PyField* field_cinst = nb::inst_ptr<py_common::PyField>(field_pyinst);
@@ -109,20 +71,17 @@ PYCOMMON_EXPORT nb::object PyField::py_new(nb::handle cls, nb::kwargs kwargs)
 
 PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
 {
-    const auto& orderedFields = GetOrderedFields();
+    const auto& orderedFields = fieldInfo->messageOrderedFields;
     if (entry.index >= orderedFields.size()) { throw std::runtime_error("PyField::resolve_entry(): field lookup index out of range"); }
 
     const auto& field = *orderedFields[entry.index];
     if (entry.is_length)
     {
-        if (IsFlatElement())
-        {
-            const auto* arrayDef = dynamic_cast<const ArrayField*>(&field); // array elements in flat field arrays must be fixed-length arrays
-            if (arrayDef == nullptr) { throw std::runtime_error("PyField::resolve_entry(): invalid fixed array metadata"); }
-            return nb::cast(static_cast<size_t>(arrayDef->arrayLength));
-        }
+        if (auto* mb = GetMessageBody()) { return nb::cast(mb->GetFieldSize(field)); }
 
-        return nb::cast(GetMessageBody()->GetFieldSize(field));
+        const auto* arrayDef = dynamic_cast<const ArrayField*>(&field); // array elements in flat field arrays must be fixed-length arrays
+        if (arrayDef == nullptr) { throw std::runtime_error("PyField::resolve_entry(): invalid fixed array metadata"); }
+        return nb::cast(static_cast<size_t>(arrayDef->arrayLength));
     }
 
     return convert_field(field);
@@ -135,12 +94,64 @@ PyFieldArray* PyField::cached_array(size_t index) const
     return obj.is_none() ? nullptr : nb::inst_ptr<PyFieldArray>(obj);
 }
 
-PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& field) const
+PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& field) const
 {
-    if (field.fieldDef->type == FIELD_TYPE::ENUM)
+    if (field.type == FIELD_TYPE::FIELD_ARRAY)
     {
-        // Handle Enums
-        const auto* enumField = static_cast<const EnumField*>(field.fieldDef.get());
+        const auto& orderedFields = fieldInfo->messageOrderedFields;
+        const auto it = std::find_if(orderedFields.begin(), orderedFields.end(), [&field](const BaseField::ConstPtr& f) {
+            return f.get() == &field;
+        });
+        if (it == orderedFields.end()) { throw std::runtime_error("PyField::convert_field(): field lookup failed"); }
+        const size_t fieldIdx = static_cast<size_t>(std::distance(orderedFields.begin(), it));
+
+        // Return the cached PyFieldArray if one is still alive
+        if (cachedArrays_[fieldIdx].has_value())
+        {
+            if (nb::object existing = cachedArrays_[fieldIdx].value()(); !existing.is_none()) { return existing; }
+        }
+
+        auto arrayDef = std::dynamic_pointer_cast<const FieldArrayField>(*it);
+        if (arrayDef == nullptr) { throw std::runtime_error("PyField::convert_field(): missing field array metadata"); }
+
+        const MessageBody* messageBody = GetMessageBody();
+        if (messageBody == nullptr) { throw std::runtime_error("PyField::convert_field(): missing message body for FIELD_ARRAY access"); }
+        const auto& varFields = messageBody->GetVarFields();
+        if (field.index >= varFields.size()) { throw std::runtime_error("PyField::convert_field(): field index out of range"); }
+
+        // Construct a new PyFieldArray in place
+        nb::object pyArr = nb::inst_alloc(nb::type<PyFieldArray>());
+        auto* varField = const_cast<FieldValueVariant*>(&varFields[field.index]);
+        new (nb::inst_ptr<PyFieldArray>(pyArr)) PyFieldArray(*varField, arrayDef, parentDb, nb::cast(this, nb::rv_policy::none));
+        nb::inst_mark_ready(pyArr);
+
+        cachedArrays_[fieldIdx] = nb::weakref(pyArr);
+        return pyArr;
+    }
+
+    FieldValueVariant fieldValue;
+    if (const auto* mb = GetMessageBody()) { fieldValue = mb->GetFieldValueVariant(field); }
+    else if (std::holds_alternative<nb::object>(storage) && nb::isinstance<PyFieldArray>(std::get<nb::object>(storage)))
+    {
+        auto parentFieldArray = nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage));
+        // If field has no containing MessageBody, then it must be in a FlatFieldArray
+        auto& fa = std::get<FlatFieldArray>(*parentFieldArray->dataPtr);
+        SimpleTypeVisitor(field, [&](auto&& arg) {
+            using ValueT = std::decay_t<decltype(arg)>;
+            if (field.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { fieldValue = fa.GetFieldValue<TypedBuffer<ValueT>>(field, myFieldIndex); }
+            else { fieldValue = fa.GetFieldValue<ValueT>(field, myFieldIndex); }
+        });
+    }
+    else
+    {
+        throw std::runtime_error("PyField::convert_field(): unsupported storage type for field access");
+    }
+
+    if (field.type == FIELD_TYPE::ENUM)
+    {
+        const auto* enumField = dynamic_cast<const EnumField*>(&field);
+        if (enumField == nullptr) { throw std::runtime_error("PyField::convert_field(): enum metadata not found"); }
+
         const EnumDefinition* enumDef = parentDb->GetEnumDefId(enumField->enumId).get();
         nb::object enum_type = parentDb->GetEnumType(enumField->enumDef.get());
         if (enum_type.is_none())
@@ -162,53 +173,9 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
             fieldValue);
     }
 
-    if (field.conversion == "%s")
+    if (field.conversionHash == CalculateBlockCrc32("id"))
     {
-        if (const auto* stringValue = std::get_if<std::string>(&fieldValue)) { return nb::cast(*stringValue); }
-        if (const auto* bytes = std::get_if<std::vector<uint8_t>>(&fieldValue))
-        {
-            // Handle Field Arrays — find the index of this field for caching
-            size_t fieldIdx = static_cast<size_t>(&field - fieldsPtr);
-
-            // Return the cached PyFieldArray if one is still alive
-            if (cachedArrays_[fieldIdx].has_value())
-            {
-                if (nb::object existing = cachedArrays_[fieldIdx].value()(); !existing.is_none()) { return existing; }
-            }
-
-            // Construct a new PyFieldArray in place
-            nb::object pyArr = nb::inst_alloc(nb::type<PyFieldArray>());
-            new (nb::inst_ptr<PyFieldArray>(pyArr)) PyFieldArray(message_field, field.fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
-            nb::inst_mark_ready(pyArr);
-            cachedArrays_[fieldIdx] = nb::weakref(pyArr);
-            return pyArr;
-        }
-        else
-        {
-            // Handle Fixed or Variable-Length Arrays
-            if (field.fieldDef->isString)
-            {
-                // The array is actually a string
-                std::string str;
-                str.reserve(message_field.size());
-                for (const auto& sub_field : message_field)
-                {
-                    auto c = std::get<uint8_t>(sub_field.fieldValue);
-                    if (c == 0) { break; }
-                    str.push_back(c);
-                }
-                return nb::cast(str);
-            }
-            std::vector<nb::object> sub_values;
-            sub_values.reserve(message_field.size());
-            for (FieldContainer& f : message_field) { sub_values.push_back(convert_field(f)); }
-            return nb::cast(sub_values);
-        }
-    }
-
-    if (field.conversion == "%id")
-    {
-        const uint32_t temp_id = fixedFields.GetFieldValue<uint32_t>(field, baseOffset);
+        const uint32_t temp_id = std::get<uint32_t>(fieldValue);
         SatelliteId sat_id;
         sat_id.usPrnOrSlot = temp_id & 0x0000FFFF;
         sat_id.sFrequencyChannel = (temp_id & 0xFFFF0000) >> 16;
@@ -218,44 +185,39 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
     return std::visit(
         [&](auto&& value) -> nb::object {
             using T = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<T, FixedFieldRegion> || std::is_same_v<T, VarLengthFieldArray>)
+            if constexpr (std::is_same_v<T, std::vector<std::byte>> || std::is_same_v<T, std::vector<MessageBody>>)
             {
                 throw std::runtime_error("PyField::convert_field(): field array types should be handled through PyFieldArray");
             }
-            if constexpr (is_specialization_of_v<T, std::vector>)
+            if constexpr (is_specialization_of_v<T, std::vector> || is_specialization_of_v<T, TypedBuffer>)
             {
-                size_t count;
-                if constexpr (std::is_pointer_v<T>)
-                {
-                    const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(&field);
-                    if (arrayFieldDef == nullptr)
-                    {
-                        throw std::runtime_error("PyField::convert_field(): missing array field metadata for pointer field array type");
-                    }
-                    count = arrayFieldDef->arrayLength;
-                }
-                else { count = value.size(); }
-
                 if constexpr (std::is_same_v<T, std::vector<uint8_t>> || std::is_same_v<T, std::vector<int8_t>> ||
-                              std::is_same_v<T, std::vector<char>> || std::is_same_v<T, std::vector<unsigned char>>)
+                              std::is_same_v<T, std::vector<char>> || std::is_same_v<T, std::vector<unsigned char>> ||
+                              std::is_same_v<T, TypedBuffer<uint8_t>> || std::is_same_v<T, TypedBuffer<int8_t>> ||
+                              std::is_same_v<T, TypedBuffer<char>> || std::is_same_v<T, TypedBuffer<unsigned char>>)
                 {
-                    if (field.conversionHash == CalculateBlockCrc32("s") || field.conversionHash == CalculateBlockCrc32("S"))
+                    if (field.isString)
                     {
-                        std::string str(count, '\0');
-                        snprintf(str.data(), count + 1, "%.*s", static_cast<int>(count), reinterpret_cast<const char*>(value.data()));
+                        std::string str;
+                        str.reserve(value.size());
+                        for (size_t i = 0; i < value.size(); ++i)
+                        {
+                            if (value[i] == 0) { break; }
+                            str.push_back(static_cast<char>(value[i]));
+                        }
                         return nb::cast(str);
                     }
                 }
+                if (field.isString && value.empty()) { return nb::cast(std::string{}); }
                 std::vector<nb::object> vec;
-                vec.reserve(count);
-                for (size_t i = 0; i < count; ++i) { vec.push_back(nb::cast(value[i])); }
+                vec.reserve(value.size());
+                for (size_t i = 0; i < value.size(); ++i) { vec.push_back(nb::cast(value[i])); }
                 return nb::cast(vec);
             }
             // STRING and SIMPLE types
             else { return nb::cast(value); }
         },
-        IsFlatElement() ? std::visit([&](auto&& fixedVal_) { return FieldValueVariant(fixedVal_); }, fixedFields.GetFieldValueVariant(field, baseOffset))
-            : GetMessageBody()->GetFieldValueVariant(field));
+        fieldValue);
 }
 
 PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
@@ -367,13 +329,10 @@ PYCOMMON_EXPORT nb::object PyFieldArray::getitem(ssize_t signedIndex) const
     }
 
     // Construct a new PyField for this element
-    FieldContainer& subfield = dataPtr[index];
-    auto& subfields = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-
     nb::handle field_ptype = parentDb->GetFieldType(fieldDef.get());
     nb::object pyinst = nb::inst_alloc(field_ptype);
     PyField* cinst = nb::inst_ptr<PyField>(pyinst);
-    new (cinst) PyField(data, index, fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
+    new (cinst) PyField(index, fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
     nb::inst_mark_ready(pyinst);
 
     cache[index] = nb::weakref(pyinst);
@@ -390,14 +349,29 @@ PYCOMMON_EXPORT void PyFieldArray::setitem(ssize_t signedIndex, nb::object value
     // fieldDef will be set here because array has been verified to be at least one element in length
     if (fieldVal->fieldDef != fieldDef) { throw nb::type_error("Field does not match the type of the FieldArray!"); }
 
-    auto& oldValue = std::get<std::vector<FieldContainer>>(dataPtr[index].fieldValue);
+    MessageBody* source = fieldVal->GetMessageBody();
+    if (source == nullptr) { throw nb::type_error("Field does not have accessible MessageBody storage."); }
 
-    // Let the old element wrapper (if still alive) take ownership of its data
-    if (PyField* existingFieldVal = cached_element(index)) { existingFieldVal->take_ownership(std::move(oldValue)); }
-    cache[index].reset();
+    std::visit(
+        [&](auto&& arrayData) {
+            using T = std::decay_t<decltype(arrayData)>;
+            if constexpr (std::is_same_v<T, NestedFieldArray>)
+            {
+                if (index >= arrayData.size()) { throw nb::index_error(); }
 
-    // Copy value in
-    oldValue = std::vector<FieldContainer>(fieldVal->fieldsPtr, fieldVal->fieldsPtr + fieldVal->fieldCount);
+                // Let the old element wrapper (if still alive) take ownership of its prior data.
+                if (PyField* existingFieldVal = cached_element(index)) { existingFieldVal->take_ownership(std::move(arrayData[index])); }
+                cache[index].reset();
+
+                arrayData[index] = *source;
+            }
+            else if constexpr (std::is_same_v<T, FlatFieldArray>)
+            {
+                throw nb::type_error("Assigning FieldArray elements is not supported for flat field-array storage.");
+            }
+            else { throw nb::type_error("FieldArray contains unsupported storage type."); }
+        },
+        *dataPtr);
 }
 
 PYCOMMON_EXPORT size_t PyFieldArray::len() const { return length; }
@@ -409,7 +383,7 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
         // No elements to infer fieldDef/parentDb from, but we must still own an (empty)
         // backing vector so `data` is valid — it is dereferenced unconditionally when
         // this array is assigned to a field. fieldDef is filled in later by setattr.
-        take_ownership({});
+        take_ownership(NestedFieldArray{});
         return;
     }
 
@@ -418,56 +392,99 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
         if (!nb::isinstance<PyField>(nb::handle(*it))) { throw nb::type_error("Only Fields can appear within a FieldArray!"); }
     }
     PyField* candidate = nb::inst_ptr<PyField>(nb::handle(*values.begin()));
-    fieldDef = candidate->fieldDef;
+    auto fieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(candidate->fieldDef);
+    if (fieldArrayDef == nullptr) { throw nb::type_error("Only regular fields can appear within a FieldArray!"); }
+    if (values.size() > fieldArrayDef->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
+    fieldDef = std::move(fieldArrayDef);
+    fieldInfo = candidate->fieldInfo;
     parentDb = candidate->parentDb;
-    const auto* arrayDef = dynamic_cast<const ArrayField*>(fieldDef.get());
-    if (arrayDef == nullptr) { throw nb::type_error("Only regular fields can appear within a FieldArray!"); }
-    if (values.size() > arrayDef->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
     cache.resize(values.size());
-    std::vector<FieldContainer> owned;
+    // Always use NestedFieldArray for simplicity. Probably not worth the extra complexity to use FlatFieldArray here.
+    NestedFieldArray owned;
     owned.reserve(values.size());
     for (auto it = values.begin(); it != values.end(); it++)
     {
         PyField* itVal = nb::inst_ptr<PyField>(nb::handle(*it));
 
         // Copy value (minor part of constructor overhead - not worth optimizing)
-        owned.emplace_back(FieldContainer(std::vector(itVal->fieldsPtr, itVal->fieldsPtr + itVal->fieldCount), fieldDef));
+        owned.emplace_back(MessageBody(*itVal->fieldsPtr));
     }
     take_ownership(std::move(owned));
 }
 
-std::vector<FieldContainer> PyField::get_regular_array(const std::shared_ptr<const ArrayField>& fixedArrDef, nb::handle value)
+template <bool Fixed, typename T>
+void PyField::set_field_value(size_t ind_, T* val_, size_t n_)
 {
-    std::vector<FieldContainer> fixedArrVal;
-    if (nb::isinstance<nb::str>(value) || nb::isinstance<nb::bytes>(value))
+    if (auto* mb = GetMessageBody())
     {
-        if (fixedArrDef->isCsv) { throw nb::type_error("String value is not valid for a non-string array."); }
-        std::string_view strVal;
-        if (nb::isinstance<nb::str>(value)) { strVal = nb::cast<nb::str>(value).c_str(); }
-        else { strVal = nb::cast<nb::bytes>(value).c_str(); }
-        if (strVal.size() > fixedArrDef->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
-        fixedArrVal.reserve(strVal.size());
-        for (unsigned char b : strVal) { fixedArrVal.emplace_back(FieldContainer{b, fixedArrDef}); }
+        mb->SetFieldValue<Fixed>(ind_, val_, n_);
     }
-    else if (nb::isinstance<nb::list>(value))
+    else if (std::holds_alternative<nb::object>(storage) && nb::isinstance<PyFieldArray>(std::get<nb::object>(storage)))
     {
-        auto listVal = nb::cast<nb::list>(value);
-        if (listVal.size() > fixedArrDef->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
-        fixedArrVal.reserve(listVal.size());
-        for (auto listIt = listVal.begin(); listIt != listVal.end(); listIt++)
+        if constexpr (!Fixed) { throw std::runtime_error("set_field_value(): Variable-length arrays are not valid in this context."); }
+        else
         {
-            fixedArrVal.emplace_back(get_simple_attribute(fixedArrDef, nb::handle(*listIt)));
+            auto parentFieldArray = nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage));
+            std::visit([&](auto&& v) {
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, FlatFieldArray>)
+                {
+                    v.SetFieldValue(myFieldIndex, ind_, val_, n_);
+                }
+            }, *parentFieldArray->dataPtr);
+        }
+    }
+    else { throw std::runtime_error("set_field_value(): unsupported storage type for field access"); }
+}
+
+template <bool Fixed>
+void PyField::set_regular_array(const ArrayField::ConstPtr& arrFieldDef_, nb::handle value_)
+{
+    if (arrFieldDef_ == nullptr) { throw nb::type_error("Array field metadata is missing."); }
+
+    size_t i = 0;
+    if (nb::isinstance<nb::str>(value_) || nb::isinstance<nb::bytes>(value_))
+    {
+        if (arrFieldDef_->isCsv) { throw nb::type_error("String value is not valid for a non-string array."); }
+        std::string_view strVal;
+        if (nb::isinstance<nb::str>(value_)) { strVal = nb::cast<nb::str>(value_).c_str(); }
+        else { strVal = nb::cast<nb::bytes>(value_).c_str(); }
+        if (strVal.size() > arrFieldDef_->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
+        set_field_value<Fixed>(arrFieldDef_->index, reinterpret_cast<const unsigned char*>(strVal.data()), strVal.size());
+        i = strVal.size();
+    }
+    else if (nb::isinstance<nb::list>(value_))
+    {
+        auto listVal = nb::cast<nb::list>(value_);
+        if (listVal.size() > arrFieldDef_->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
+        if (listVal.size() > 0)
+        {
+            SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
+                using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
+                std::vector<ValueT> temp(listVal.size());
+                for (; i < listVal.size(); i++) { temp[i] = attr_cast<ValueT>(listVal[i]); }
+                set_field_value<Fixed>(arrFieldDef_->index, temp.data(), temp.size());
+            });
         }
     }
     else { throw nb::attribute_error("Value cannot be converted to a fixed length array."); }
-    return fixedArrVal;
+    if constexpr (Fixed)
+    {
+        if (arrFieldDef_->arrayLength > i)
+        {
+            SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
+                using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
+                std::vector<ValueT> temp(arrFieldDef_->arrayLength - i);
+                set_field_value<true>(arrFieldDef_->index + (i * sizeof(ValueT)), temp.data(), temp.size());
+            });
+        }
+    }
 }
 
 PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
 {
     try
     {
-
         if (fieldNameMap_ == nullptr) { throw nb::attribute_error(field_name.c_str()); }
 
         auto it = fieldNameMap_->find(field_name.c_str());
@@ -476,25 +493,29 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
 
         if (entry.is_length) { throw nb::attribute_error("Length cannot be set directly, modify the corresponding array instead."); }
 
-        FieldContainer& field = fieldsPtr[entry.index];
+        const auto& entryField = fieldInfo->messageOrderedFields[entry.index];
 
-        switch (field.fieldDef->type)
+        switch (entryField->type)
         {
-        case FIELD_TYPE::SIMPLE: field = get_simple_attribute(field.fieldDef, value); break;
-        case FIELD_TYPE::ENUM: field.fieldValue = attr_cast<int32_t>(value); break;
-        case FIELD_TYPE::STRING: field.fieldValue = attr_cast<std::string>(value); break;
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            auto arrayDef = std::dynamic_pointer_cast<const ArrayField>(field.fieldDef);
-            auto values = get_regular_array(arrayDef, value);
-            while (values.size() < arrayDef->arrayLength)
-            {
-                values.emplace_back(FieldContainer{MakeDefaultScalarValue(arrayDef->dataType.name), arrayDef});
-            }
-            field.fieldValue = std::move(values);
+        case FIELD_TYPE::ENUM: [[fallthrough]];
+        case FIELD_TYPE::SIMPLE:
+            SimpleTypeVisitor(*entryField, [&](auto&& arg) {
+                auto v = attr_cast<std::decay_t<decltype(arg)>>(value);
+                set_field_value<true>(entryField->index, &v);
+            });
             break;
-        }
+        case FIELD_TYPE::STRING:
+            if (auto* mb = GetMessageBody())
+            {
+                mb->SetFieldValue(entryField->index, attr_cast<std::string>(value));
+            }
+            else { throw nb::attribute_error("STRING types not allowed in fixed-length fields."); }
+            break;
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY:
+            set_regular_array<true>(std::dynamic_pointer_cast<const ArrayField>(entryField), value);
+            break;
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
-            field.fieldValue = get_regular_array(std::dynamic_pointer_cast<const ArrayField>(field.fieldDef), value);
+            set_regular_array<false>(std::dynamic_pointer_cast<const ArrayField>(entryField), value);
             break;
         case FIELD_TYPE::FIELD_ARRAY: {
             nb::object owned_array_obj;
@@ -511,21 +532,25 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
             }
             PyFieldArray* fieldArrayVal = nb::inst_ptr<PyFieldArray>(array_handle);
             // Note: accessing "value" or "curVal" from another thread while this is occuring is a race conditon
-            if (fieldArrayVal->fieldDef == nullptr) { fieldArrayVal->fieldDef = field.fieldDef; }
-            if (fieldArrayVal->fieldDef != field.fieldDef) { throw nb::type_error("FieldArray contains elements of the wrong type!"); }
+            auto fieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(entryField);
+            if (fieldArrayDef == nullptr) { throw nb::type_error("FIELD_ARRAY assignment requires field-array metadata."); }
+
+            if (fieldArrayVal->fieldDef == nullptr) { fieldArrayVal->fieldDef = fieldArrayDef; }
+            if (fieldArrayVal->fieldDef != fieldArrayDef) { throw nb::type_error("FieldArray contains elements of the wrong type!"); }
+            auto* mb = GetMessageBody();
             // Transfer data ownership to the existing array wrapper, if still alive
             if (PyFieldArray* curArray = cached_array(entry.index))
             {
-                curArray->take_ownership(std::move(std::get<std::vector<FieldContainer>>(field.fieldValue)));
+                curArray->take_ownership(std::move(mb->GetVarFields()[entryField->index]));
             }
 
             // Copy value (minor part of constructor overhead - not worth optimizing).
-            field.fieldValue = std::vector<FieldContainer>(fieldArrayVal->dataPtr, fieldArrayVal->dataPtr + fieldArrayVal->length);
+            mb->GetVarFields()[entryField->index] = *fieldArrayVal->dataPtr;
             break;
         }
         default:
             throw nb::attribute_error(
-                ("Modification of attributes with the \"" + std::string(FieldTypeToString(field.fieldDef->type)) + "\" type is not yet supported.")
+                ("Modification of attributes with the \"" + std::string(FieldTypeToString(entryField->type)) + "\" type is not yet supported.")
                     .c_str());
         }
     }
@@ -536,63 +561,4 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
     }
     // Invalidate the to_shallow_dict cache so the new value is visible to future reads.
     cached_values_.clear();
-}
-
-PYCOMMON_EXPORT std::vector<FieldContainer> PyField::BuildDefaultFields(const std::vector<BaseField::Ptr>& fieldDefs)
-{
-    std::vector<FieldContainer> fields;
-    fields.reserve(fieldDefs.size());
-
-    for (const auto& fieldDef : fieldDefs)
-    {
-        switch (fieldDef->type)
-        {
-        case FIELD_TYPE::FIELD_ARRAY: {
-            fields.emplace_back(std::vector<FieldContainer>{}, fieldDef);
-            break;
-        }
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            const auto* arrayDef = dynamic_cast<const ArrayField*>(fieldDef.get());
-            const size_t arrayLength = arrayDef ? arrayDef->arrayLength : 0;
-            std::vector<FieldContainer> arrayValues;
-            arrayValues.reserve(arrayLength);
-            for (size_t i = 0; i < arrayLength; ++i) { arrayValues.emplace_back(MakeDefaultScalarValue(fieldDef->dataType.name), fieldDef); }
-            fields.emplace_back(std::move(arrayValues), fieldDef);
-            break;
-        }
-        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            fields.emplace_back(std::vector<FieldContainer>{}, fieldDef);
-            break;
-        }
-        case FIELD_TYPE::STRING: {
-            fields.emplace_back(std::string{}, fieldDef);
-            break;
-        }
-        case FIELD_TYPE::ENUM: {
-            // int32_t to satisfy FieldContainer::Validate() in debug builds.
-            fields.emplace_back(int32_t{0}, fieldDef);
-            break;
-        }
-        default: {
-            fields.emplace_back(MakeDefaultScalarValue(fieldDef->dataType.name), fieldDef);
-            break;
-        }
-        }
-    }
-
-    return fields;
-}
-
-PYCOMMON_EXPORT std::vector<FieldContainer> PyField::BuildDefaultFields(const ::novatel::edie::BaseField* fieldDef)
-{
-    if (const auto* arrField = dynamic_cast<const FieldArrayField*>(fieldDef)) { return BuildDefaultFields(arrField->fields); }
-    return {};
-}
-
-PYCOMMON_EXPORT std::vector<FieldContainer> PyField::BuildDefaultFields(const ::novatel::edie::MessageDefinition* msgDef, uint32_t crc)
-{
-    if (msgDef == nullptr) { return {}; }
-    auto it = msgDef->fields.find(crc);
-    if (it == msgDef->fields.end()) { return {}; }
-    return BuildDefaultFields(it->second);
 }
