@@ -489,6 +489,8 @@ struct FieldInfo
     using ConstPtr = std::shared_ptr<const FieldInfo>;
 };
 
+FieldInfo::ConstPtr BuildFieldInfo(std::vector<BaseField::Ptr> fields, std::string messageFamily = "");
+
 //-----------------------------------------------------------------------
 //! \struct FieldArrayField
 //! \brief Struct containing elements of field array fields in the UI DB.
