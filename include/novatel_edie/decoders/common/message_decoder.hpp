@@ -272,10 +272,7 @@ class FixedFieldRegion
     template <typename T> void SetFieldValue(const size_t startIndex_, const T* values_, size_t n = 1)
     {
         static_assert(std::is_trivially_copyable_v<T>, "SetFieldValue only supports trivially copyable types");
-        if (startIndex_ + (n * sizeof(T)) > byteRegion.size())
-        {
-            throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion");
-        }
+        if (startIndex_ + (n * sizeof(T)) > byteRegion.size()) { throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion"); }
         std::memcpy(byteRegion.data() + startIndex_, values_, n * sizeof(T));
     }
 
@@ -322,10 +319,7 @@ class FixedFieldRegion
     // ---------------------------------------------------------------------------
     void SetFieldValue(const size_t startIndex_, std::string&& value_)
     {
-        if (startIndex_ + value_.size() > byteRegion.size())
-        {
-            throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion");
-        }
+        if (startIndex_ + value_.size() > byteRegion.size()) { throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion"); }
         std::memcpy(byteRegion.data() + startIndex_, value_.data(), value_.size());
     }
 };
@@ -786,9 +780,12 @@ class MessageBody
             if (field_.index >= varFields.size()) { throw std::runtime_error("GetFieldSize(): var field index out of range"); }
 
             return std::visit(
-                [&field_](const auto& value) -> size_t {
+                [](const auto& value) -> size_t {
                     using T = std::decay_t<decltype(value)>;
-                    if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, FlatFieldArray> || is_specialization_of_v<T, std::vector>) { return value.size(); }
+                    if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, FlatFieldArray> || is_specialization_of_v<T, std::vector>)
+                    {
+                        return value.size();
+                    }
                     else { throw std::runtime_error("GetFieldSize(): scalar values are not valid var field payloads"); }
                 },
                 varFields[field_.index]);
@@ -850,10 +847,7 @@ class MessageBody
     {
         static_assert(std::is_trivially_copyable_v<T>, "SetFieldValue only supports trivially copyable types");
 
-        if (values_ == nullptr)
-        {
-            throw std::runtime_error("SetFieldValue(): source pointer is null");
-        }
+        if (values_ == nullptr) { throw std::runtime_error("SetFieldValue(): source pointer is null"); }
 
         if constexpr (Fixed) { fixedFields.SetFieldValue(startIndex_, values_, n); }
         else
@@ -938,15 +932,15 @@ class MessageBody
         {
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]]; // TODO: is RESPONSE_STR always std::string?
-        case FIELD_TYPE::STRING:
-            SetFieldValue<false>(fieldDef_.index, std::forward<T>(value_));
-            break;
+        case FIELD_TYPE::STRING: SetFieldValue<false>(fieldDef_.index, std::forward<T>(value_)); break;
         case FIELD_TYPE::FIELD_ARRAY:
-            if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, NestedFieldArray>) { varFields[fieldDef_.index] = std::forward<T>(value_); }
+            if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, NestedFieldArray>)
+            {
+                varFields[fieldDef_.index] = std::forward<T>(value_);
+            }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
             break;
-        default:
-            SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
+        default: SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
         }
     }
 
