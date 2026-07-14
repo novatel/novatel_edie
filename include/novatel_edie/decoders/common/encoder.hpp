@@ -379,12 +379,7 @@ template <typename Derived> class EncoderBase
                                 throw std::runtime_error("Expected field definition of type FieldArrayField for FIELD_ARRAY field");
                             }
                             maxBytes = fieldArrayFieldDef->fieldSize;
-
-                            if constexpr (std::is_same_v<ValueType, FlatFieldArray>)
-                            {
-                                count = fieldVector.size() / fieldArrayFieldDef->fieldInfo->fixedFieldBytes;
-                            }
-                            else { count = fieldVector.size(); }
+                            count = fieldVector.size();
                         }
                         else if constexpr (std::is_same_v<ValueType, std::string> || is_specialization_of_v<ValueType, std::vector>)
                         {
