@@ -269,7 +269,6 @@ class PyFieldArray
 
     // Database info
     FieldArrayField::ConstPtr fieldDef;
-    FieldInfo::ConstPtr fieldInfo;
     py_common::PyMessageDatabase::ConstPtr parentDb;
 
     // PyField constructs field-array wrappers and adjusts their fieldDef/data when

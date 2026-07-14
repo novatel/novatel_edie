@@ -355,19 +355,29 @@ PYCOMMON_EXPORT void PyFieldArray::setitem(ssize_t signedIndex, nb::object value
     std::visit(
         [&](auto&& arrayData) {
             using T = std::decay_t<decltype(arrayData)>;
-            if constexpr (std::is_same_v<T, NestedFieldArray>)
+            if constexpr (std::is_same_v<T, NestedFieldArray> || std::is_same_v<T, FlatFieldArray>)
             {
                 if (index >= arrayData.size()) { throw nb::index_error(); }
 
-                // Let the old element wrapper (if still alive) take ownership of its prior data.
-                if (PyField* existingFieldVal = cached_element(index)) { existingFieldVal->take_ownership(std::move(arrayData[index])); }
+                if constexpr (std::is_same_v<T, NestedFieldArray>)
+                {
+                    // Let the old element wrapper (if still alive) take ownership of its prior data.
+                    if (PyField* existingFieldVal = cached_element(index)) { existingFieldVal->take_ownership(std::move(arrayData[index])); }
+                    arrayData[index] = *source;
+                }
+                else
+                {
+                    if (source->GetVarFields().size() > 0) { throw nb::type_error("FlatFieldArray elements cannot contain variable-length fields."); }
+                    // Copy existing data out of flat byte region into a new MessageBody for the old element wrapper (if still alive) to take ownership of.
+                    if (PyField* existingFieldVal = cached_element(index)) {
+                        auto existingMb = MessageBody(fieldDef->fieldInfo->fixedFieldBytes, 0);
+                        existingMb.SetFieldValue<true>(0, arrayData.data() + (index * fieldDef->fieldInfo->fixedFieldBytes), fieldDef->fieldInfo->fixedFieldBytes);
+                        existingFieldVal->take_ownership(std::move(existingMb));
+                    }
+                    // Copy fixed MessageBody data into the existing FlatFieldArray field
+                    arrayData.SetFieldValue(index, 0, source->GetFixedFields().data(), source->GetFixedFields().size());
+                }
                 cache[index].reset();
-
-                arrayData[index] = *source;
-            }
-            else if constexpr (std::is_same_v<T, FlatFieldArray>)
-            {
-                throw nb::type_error("Assigning FieldArray elements is not supported for flat field-array storage.");
             }
             else { throw nb::type_error("FieldArray contains unsupported storage type."); }
         },
@@ -396,7 +406,6 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
     if (fieldArrayDef == nullptr) { throw nb::type_error("Only regular fields can appear within a FieldArray!"); }
     if (values.size() > fieldArrayDef->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
     fieldDef = std::move(fieldArrayDef);
-    fieldInfo = candidate->fieldInfo;
     parentDb = candidate->parentDb;
     cache.resize(values.size());
     // Always use NestedFieldArray for simplicity. Probably not worth the extra complexity to use FlatFieldArray here.
@@ -532,6 +541,8 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
             if (fieldArrayVal->fieldDef == nullptr) { fieldArrayVal->fieldDef = fieldArrayDef; }
             if (fieldArrayVal->fieldDef != fieldArrayDef) { throw nb::type_error("FieldArray contains elements of the wrong type!"); }
             auto* mb = GetMessageBody();
+            // Note: mb should never be nullptr here as FIELD_ARRAY cannot appear in FlatFieldArray
+            if (mb == nullptr) { throw nb::type_error("FIELD_ARRAY assignment requires a MessageBody to be present."); }
             // Transfer data ownership to the existing array wrapper, if still alive
             if (PyFieldArray* curArray = cached_array(entry.index))
             {
@@ -540,6 +551,7 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
 
             // Copy value (minor part of constructor overhead - not worth optimizing).
             mb->GetVarFields()[entryField->index] = *fieldArrayVal->dataPtr;
+            cachedArrays_[entry.index].reset();
             break;
         }
         default:

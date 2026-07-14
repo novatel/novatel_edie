@@ -14,7 +14,7 @@ import pytest
 
 import novatel_edie.oem as oem
 from novatel_edie import ENCODE_FORMAT
-from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, RANGE, PASSCOM1
+from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, RANGE, PASSCOM1, RANGE_obs_Field
 from novatel_edie.oem.enums import SolStatus, SolType, Datum
 
 
@@ -159,6 +159,71 @@ class TestVariableLengthArray:
         m.buffer = value
         # Assert
         assert m.buffer == exp_value
+
+
+class TestFieldArray:
+    """FieldArray setter on a real message (RANGE)."""
+
+    def test_set_field_array(self):
+        r = RANGE()
+        # Arrange
+        r.obs = [
+            RANGE_obs_Field(sv_prn=1, psr=1000.0, adr=2000.0, dop=10.0, C_No=30.0),
+            RANGE_obs_Field(sv_prn=2, psr=1100.0, adr=2100.0, dop=11.0, C_No=31.0),
+            RANGE_obs_Field(sv_prn=3, psr=1200.0, adr=2200.0, dop=12.0, C_No=32.0)
+        ]
+        # Assert
+        assert len(r.obs) == 3
+        assert r.obs[0].sv_prn == 1
+        assert r.obs[1].psr == pytest.approx(1100.0)
+        assert r.obs[2].C_No == pytest.approx(32.0)
+
+    def test_get_flat_field_array(self):
+        r = RANGE()
+        # Arrange
+        r.obs = [
+            RANGE_obs_Field(sv_prn=1, psr=1000.0, adr=2000.0, dop=10.0, C_No=30.0),
+            RANGE_obs_Field(sv_prn=2, psr=1100.0, adr=2100.0, dop=11.0, C_No=31.0),
+            RANGE_obs_Field(sv_prn=3, psr=1200.0, adr=2200.0, dop=12.0, C_No=32.0)
+        ]
+        # Act
+        parser = oem.Parser()
+        parser.write(r.encode(ENCODE_FORMAT.BINARY).message)
+        msg = parser.read()
+        # Assert
+        assert isinstance(msg, RANGE)
+        assert len(msg.obs) == 3
+        assert msg.obs[0].sv_prn == 1
+        assert msg.obs[1].psr == pytest.approx(1100.0)
+        assert msg.obs[2].C_No == pytest.approx(32.0)
+
+    def test_set_flat_field_array_element(self):
+        r = RANGE()
+        # Arrange
+        r.obs = [
+            RANGE_obs_Field(sv_prn=1, psr=1000.0, adr=2000.0, dop=10.0, C_No=30.0),
+            RANGE_obs_Field(sv_prn=2, psr=1100.0, adr=2100.0, dop=11.0, C_No=31.0),
+            RANGE_obs_Field(sv_prn=3, psr=1200.0, adr=2200.0, dop=12.0, C_No=32.0)
+        ]
+        # Act
+        parser = oem.Parser()
+        parser.write(r.encode(ENCODE_FORMAT.BINARY).message)
+        msg = parser.read() # RANGE.obs is parsed as a FlatFieldArray
+        old_field = msg.obs[1]
+        msg.obs[1] = RANGE_obs_Field(sv_prn=4, psr=1300.0, adr=2300.0, dop=13.0, C_No=33.0)
+        # Assert
+        assert isinstance(msg, RANGE)
+        assert len(msg.obs) == 3
+        assert msg.obs[1].sv_prn == 4
+        assert msg.obs[1].psr == pytest.approx(1300.0)
+        assert msg.obs[1].adr == pytest.approx(2300.0)
+        assert msg.obs[1].dop == pytest.approx(13.0)
+        assert msg.obs[1].C_No == pytest.approx(33.0)
+        assert old_field.sv_prn == 2
+        assert old_field.psr == pytest.approx(1100.0)
+        assert old_field.adr == pytest.approx(2100.0)
+        assert old_field.dop == pytest.approx(11.0)
+        assert old_field.C_No == pytest.approx(31.0)
 
 
 class TestArrayValidation:
