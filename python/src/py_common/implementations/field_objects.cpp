@@ -425,13 +425,7 @@ void PyField::set_field_value(size_t ind_, T* val_, size_t n_)
         else
         {
             auto parentFieldArray = nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage));
-            std::visit([&](auto&& v) {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, FlatFieldArray>)
-                {
-                    v.SetFieldValue(myFieldIndex, ind_, val_, n_);
-                }
-            }, *parentFieldArray->dataPtr);
+            std::get<FlatFieldArray>(*parentFieldArray->dataPtr).SetFieldValue(myFieldIndex, ind_, val_, n_);
         }
     }
     else { throw std::runtime_error("set_field_value(): unsupported storage type for field access"); }
