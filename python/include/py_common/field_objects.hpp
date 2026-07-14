@@ -62,8 +62,8 @@ struct PyField
     // FieldArray subfield constructor
     explicit PyField(size_t index_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
                      py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parentField_)
-                : storage(std::move(parentField_)), fieldDef(std::static_pointer_cast<const BaseField>(fieldDef_)), myFieldIndex(index_),
-                    fieldInfo(fieldDef_ ? fieldDef_->fieldInfo : nullptr), parentDb(std::move(parentDb_))
+                : storage(std::move(parentField_)), fieldDef(std::static_pointer_cast<const BaseField>(fieldDef_)),
+                    fieldInfo(fieldDef_ ? fieldDef_->fieldInfo : nullptr), myFieldIndex(index_), parentDb(std::move(parentDb_))
     {
                 fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(std::static_pointer_cast<const BaseField>(fieldDef_).get()) : nullptr;
                 cachedArrays_.resize(fieldInfo ? fieldInfo->messageOrderedFields.size() : 0);
