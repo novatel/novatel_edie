@@ -225,7 +225,7 @@ FieldInfo::ConstPtr BuildFieldInfo(std::vector<BaseField::Ptr> fields, std::stri
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: varFields++; break;
         default: throw std::runtime_error("Unknown field type encountered while building FieldInfo.");
         }
-        constFields.push_back(std::move(f));
+        constFields.push_back(f);
     }
 
     auto fieldInfo = std::make_shared<FieldInfo>();
