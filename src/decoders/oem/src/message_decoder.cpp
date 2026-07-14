@@ -244,7 +244,7 @@ novatel::edie::MessageDefinition::ConstPtr MessageDecoder::GetMessageDefinition(
         SimpleDataType responseIdDataType;
         responseIdDataType.description = "Response as numerical id";
         responseIdDataType.length = 4;
-        responseIdDataType.name = DATA_TYPE::UINT;
+        responseIdDataType.name = DATA_TYPE::INT;
 
         auto responseIdField = std::make_shared<EnumField>();
         responseIdField->name = "response_id";

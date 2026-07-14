@@ -557,7 +557,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             // Ensure we get the whole response (skip over delimiters in responses)
             tokenLength = strcspn(*ppcLogBuf_, responseDelimiters.data());
             std::string_view sResponse(*ppcLogBuf_, tokenLength);
-            if (sResponse == "OK") { clMessageBody_.SetFieldValue<true>(field->index, 1); }
+            if (sResponse == "OK") { clMessageBody_.SetFieldValue<true>(field->index, static_cast<int32_t>(1)); }
             // Note: This won't match responses with format specifiers in them (%d, %s, etc.), they will be given id=0
             else
             {
