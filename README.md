@@ -254,9 +254,9 @@ Run the resulting executable with the following command: `rxconfig_handler.exe <
 There are a few ways to access a message's fields after decoding.
 The following examples show how to access the "latitude" field of a BESTPOS message:
 
-#### Approach 1: Search by definition with type template (recommended)
+#### Approach 1: Get value with type template (recommended)
 
-Use `MessageBody::GetFieldValue<typename T>(const BaseField& field_)` to get the value of `field_`.
+Use `MessageBody::GetFieldValue<T>(const BaseField& field_)` to get the value of `field_`.
 
 **✅ Advantages:**
 - Mostly type safe (will throw a runtime error if you attempt to extract the wrong type)
@@ -273,31 +273,26 @@ MessageBody stMessage;
 eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
 
 // Get a reference to a field definition
-const auto it = std::find_if(stMessage.fieldInfo.begin(), stMessage.fieldInfo.end()
-    [](const auto& def) {
-        return def->name == "latitude";
-    });
-if (it == stMessage.fieldInfo.end()) { return; }
-const auto& latDef = *it;
+const auto& latDef = stMessage.GetFieldInfo()->GetFieldDefByName("latitude");
+if (!latDef) { throw std::runtime_error("Could not find latitude definition!"); }
 
 if (eDecoderStatus == STATUS::SUCCESS) {
     if (stMetaData.usMessageId == 42 /*BESTPOS*/) {
-        auto latVal = stMessage.GetFieldValue<double>(latDef);
+        auto latVal = stMessage.GetFieldValue<double>(*latDef);
     }
 }
 ``````
 
-#### Approach 2: Search by name (convenient but slower)
+#### Approach 2: Get value variant (convenient but slower)
 
-Use `MessageBody::GetFieldValueVariant(FieldValueVariant& val_, const std::string& fieldName_)` to get the value of the field with name `fieldName_` and wrap it in the variant `val_`. Returned `bool` indicates whether a field with the given name was found.
+Use `MessageBody::GetFieldValueVariant(const BaseField& field_)` to get the value of `field_` wrapped in a `std::variant`.
 
 **✅ Advantages:**
-- Mostly type safe (will throw a runtime error if you attempt to `std::get` the wrong type from `val_`)
+- Mostly type safe (will throw a `std::bad_variant_access` exception if you attempt to `std::get` the wrong type from `val_`)
 - Do not need to know the field type at compile time; concrete field value can be extracted via `std::visit` or `std::get`
 
 **⚠️ Disadvantages:**
 - Need to construct and copy value to `FieldValueVariant` (slight overhead)
-- Field definition is looked up by name (more overhead)
 
 
 **Example:**
@@ -306,13 +301,14 @@ Use `MessageBody::GetFieldValueVariant(FieldValueVariant& val_, const std::strin
 MessageBody stMessage;
 eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
 
+// Get a reference to a field definition
+const auto& latDef = stMessage.GetFieldInfo()->GetFieldDefByName("latitude");
+if (!latDef) { throw std::runtime_error("Could not find latitude definition!"); }
+
 if (eDecoderStatus == STATUS::SUCCESS) {
     if (stMetaData.usMessageId == 42 /*BESTPOS*/) {
-        FieldValueVariant latVariant;
-        if (stMessage.GetFieldValueVariant(latVariant, "latitude"))
-        {
-            auto latVal = std::get<double>(latVariant);
-        }
+        FieldValueVariant latVariant = stMessage.GetFieldValueVariant(*latDef);
+        double latValue = std::get<double>(latVariant);
     }
 }
 ``````

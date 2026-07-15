@@ -418,6 +418,8 @@ class FlatFieldArray
         fields = FixedFieldRegion(sz_ * fieldInfo->fixedFieldBytes);
     }
 
+    const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
+
     // ---------------------------------------------------------------------------
     //! \brief Get the number of fixed-length fields in the FlatFieldArray.
     // ---------------------------------------------------------------------------
@@ -711,22 +713,6 @@ class MessageBody
     std::vector<FieldValueVariant>& GetVarFields() { return varFields; }
     const std::vector<FieldValueVariant>& GetVarFields() const { return varFields; }
     const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field definition by name.
-    //!
-    //! \param[in] fieldName_ The name of the field definition to retrieve.
-    //! \return A constant pointer to the field definition if found, nullptr otherwise.
-    // ---------------------------------------------------------------------------
-    BaseField::ConstPtr GetFieldDefByName(const std::string& fieldName_) const
-    {
-        if (fieldInfo == nullptr) { throw std::runtime_error("GetFieldValue(): message definition not set"); }
-        const auto& fields = fieldInfo->messageOrderedFields;
-        const auto it =
-            std::find_if(fields.begin(), fields.end(), [&fieldName_](const BaseField::ConstPtr& fieldDef) { return fieldDef->name == fieldName_; });
-        if (it == fields.end()) { return nullptr; }
-        return *it;
-    }
 
     // ---------------------------------------------------------------------------
     //! \brief Get a field value as a specified type.
@@ -1446,7 +1432,7 @@ class MessageDecoderBase
         }
 
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
-        if (auto arrLengthRefDef = clMessageBody_.GetFieldDefByName(arrayDef.arrayLengthRef))
+        if (auto arrLengthRefDef = clMessageBody_.GetFieldInfo()->GetFieldDefByName(arrayDef.arrayLengthRef))
         {
             auto fieldValue = clMessageBody_.GetFieldValueVariant(*arrLengthRefDef);
             const auto arraySize = std::visit(
