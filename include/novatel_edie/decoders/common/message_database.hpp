@@ -749,6 +749,11 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
+        if (pDbMetadata != nullptr && other_.pDbMetadata != nullptr && !pDbMetadata->messageFamily.empty() &&
+            !other_.pDbMetadata->messageFamily.empty() && pDbMetadata->messageFamily != other_.pDbMetadata->messageFamily)
+        {
+            throw std::runtime_error("Cannot merge MessageDatabases with different message families.");
+        }
         std::thread enumThread([this, &other_]() { AppendEnumerations(other_.vEnumDefinitions); });
         std::thread messageThread([this, &other_]() { AppendMessages(other_.vMessageDefinitions); });
 

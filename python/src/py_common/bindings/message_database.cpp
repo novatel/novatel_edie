@@ -172,6 +172,7 @@ void py_common::init_common_message_database(nb::module_& m)
                 self.dataType.length = static_cast<uint16_t>(DataTypeSize(value));
             })
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
+        .def_ro("index", &BaseField::index)
         .def("__eq__", [](const BaseField& self, const BaseField& other) { return self == other; })
         .def("__repr__", [](const BaseField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;

@@ -111,7 +111,20 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vec
     ThrowIfLocked();
     std::vector<MessageDefinition::ConstPtr> owned;
     owned.reserve(vMessageDefinitions_.size());
-    for (const auto& msgDef : vMessageDefinitions_) { owned.push_back(std::make_shared<MessageDefinition>(*msgDef)); }
+    for (const auto& msgDef : vMessageDefinitions_)
+    {
+        MessageDefinition::Ptr copy = std::make_shared<MessageDefinition>(*msgDef);
+
+        // Rebuild FieldInfo to ensure fixed-length field indices match our message family
+        std::vector<BaseField::Ptr> fieldCopies;
+        for (const auto& [crc, fields] : msgDef->fieldInfo)
+        {
+            std::vector<BaseField::Ptr> fieldCopyVec;
+            for (const auto& f : fields->messageOrderedFields) { fieldCopyVec.push_back(f->clone()); }
+            copy->fieldInfo[crc] = BuildFieldInfo(std::move(fieldCopyVec), core_->GetDbMetadata() ? core_->GetDbMetadata()->messageFamily : "");
+        }
+        owned.push_back(copy);
+    }
     core_->AppendMessages(owned);
     AppendMessageTypes(owned);
 }

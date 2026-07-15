@@ -463,3 +463,34 @@ class TestDatabaseActions:
         assert len(deprecation_records) == 1
         assert deprecation_records[0].levelno == logging.WARNING
         assert "fork" in deprecation_records[0].message
+
+    def test_append_message_recalculate_alignment(self, json_db: MessageDatabase):
+        # Arrange
+        oem_db = json_db.fork()
+        generic_db = MessageDatabase(message_family="")
+        test_msg = MessageDefinition(
+            id='test_msg', log_id=0, name='test_msg', latest_message_crc=0,
+            fields={0: [
+                FieldDefinition(name='short', type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.SHORT),
+                FieldDefinition(name='int', type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.INT)
+            ]}
+        )
+
+        # Act
+        oem_db.append_messages([test_msg])
+        generic_db.append_messages([test_msg])
+
+        # Assert
+        retrieved_msg_oem = oem_db.get_msg_def('test_msg')
+        assert retrieved_msg_oem is not None
+        assert retrieved_msg_oem.fields[0][0].name == 'short'
+        assert retrieved_msg_oem.fields[0][1].name == 'int'
+        assert retrieved_msg_oem.fields[0][0].index == 0
+        assert retrieved_msg_oem.fields[0][1].index == 4 # OEM alignment
+
+        retrieved_msg_generic = generic_db.get_msg_def('test_msg')
+        assert retrieved_msg_generic is not None
+        assert retrieved_msg_generic.fields[0][0].name == 'short'
+        assert retrieved_msg_generic.fields[0][1].name == 'int'
+        assert retrieved_msg_generic.fields[0][0].index == 0
+        assert retrieved_msg_generic.fields[0][1].index == 2 # No alignment
