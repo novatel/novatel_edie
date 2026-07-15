@@ -255,30 +255,10 @@ template <bool Fixed>
 void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, MessageBody& clMessageBody_,
                                            size_t n)
 {
-    switch (pstMessageDataType_.dataType.name)
-    {
-    case DATA_TYPE::BOOL: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const bool*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint8_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::CHAR: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int8_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::USHORT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint16_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::SHORT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int16_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::UINT: [[fallthrough]];
-    case DATA_TYPE::SATELLITEID: [[fallthrough]];
-    case DATA_TYPE::ULONG: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint32_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int32_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::ULONGLONG:
-        clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint64_t*>(*ppucLogBuf_), n);
-        break;
-    case DATA_TYPE::LONGLONG:
-        clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int64_t*>(*ppucLogBuf_), n);
-        break;
-    case DATA_TYPE::FLOAT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const float*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::DOUBLE: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const double*>(*ppucLogBuf_), n); break;
-    default: throw std::runtime_error("DecodeBinaryField(): Unknown field type\n");
-    }
-
+    SimpleTypeVisitor(pstMessageDataType_, [&](auto valuePtr) {
+        using T = std::decay_t<decltype(valuePtr)>;
+        clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const T*>(*ppucLogBuf_), n);
+    });
     *ppucLogBuf_ += pstMessageDataType_.dataType.length * n;
 }
 
