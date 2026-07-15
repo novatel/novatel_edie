@@ -126,7 +126,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, MessageBody& st
     uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
     stInterMessage_ = MessageBody(0, 1);
     stInterMessage_.SetFieldInfo(pclMyMsgDb != nullptr ? pclMyMsgDb->GetMsgDef(stRxConfigMetaData_.usMessageId) : nullptr,
-                                 std::optional<uint32_t>(stRxConfigMetaData_.uiMessageCrc));
+                                 stRxConfigMetaData_.uiMessageCrc);
     if (stInterMessage_.GetFieldInfo() == nullptr) { return STATUS::NO_DEFINITION; }
 
     // Determine how many bytes to copy from raw message data to the embedded message data.
@@ -135,7 +135,9 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, MessageBody& st
     {
     case HEADER_FORMAT::ABB_ASCII: {
         // Fix embedded header indentation
-        ConsumeAbbrevFormatting(reinterpret_cast<const char**>(&pucTempMessagePointer));
+        const auto* pcTempBuffer = reinterpret_cast<const char*>(pucTempMessagePointer);
+        ConsumeAbbrevFormatting(&pcTempBuffer);
+        pucTempMessagePointer = reinterpret_cast<const unsigned char*>(pcTempBuffer);
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC));
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - (pucTempMessagePointer - pucMessage_);
         break;

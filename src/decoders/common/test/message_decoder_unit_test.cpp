@@ -520,6 +520,61 @@ TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorTraversesFieldValuesIn
     EXPECT_EQ(it, body.end());
 }
 
+TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessageAndFieldArray)
+{
+    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto f1 = std::make_shared<BaseField>("str", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
+
+    auto f0Nested = std::make_shared<BaseField>(*f0);
+    auto f1Nested = std::make_shared<BaseField>(*f1);
+    const auto faFieldInfo = BuildFieldInfo({f0Nested, f1Nested});
+    auto f2 = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, faFieldInfo);
+
+    const auto fieldInfo = BuildFieldInfo({f0, f1, f2});
+    constexpr uint32_t kMsgCrc = 0x11223344U;
+    auto msgDef = std::make_shared<MessageDefinition>();
+    msgDef->logID = 777U;
+    msgDef->name = "TESTMSG";
+    msgDef->fieldInfo.emplace(kMsgCrc, fieldInfo);
+    msgDef->latestMessageCrc = kMsgCrc;
+
+    auto db = std::make_shared<MessageDatabase>(std::vector<MessageDefinition::ConstPtr>{msgDef}, std::vector<EnumDefinition::ConstPtr>{});
+    MessageDecoderBase decoder("OEM", db);
+
+    const std::string payload = "1234,ok,1,5678,nested";
+    MetaDataBase meta;
+    meta.eFormat = HEADER_FORMAT::ASCII;
+    meta.usMessageId = static_cast<uint16_t>(msgDef->logID);
+    meta.uiMessageCrc = kMsgCrc;
+    meta.uiHeaderLength = 0;
+    meta.uiLength = static_cast<uint32_t>(payload.size());
+    meta.messageName = msgDef->name;
+
+    MessageBody decoded;
+    const STATUS status = decoder.Decode(reinterpret_cast<const unsigned char*>(payload.data()), decoded, meta);
+    ASSERT_EQ(status, STATUS::SUCCESS);
+
+    auto it = decoded.begin();
+    EXPECT_EQ(std::get<uint32_t>(*it), 1234U);
+    ++it;
+    EXPECT_EQ(std::get<std::string>(*it), "ok");
+    ++it;
+
+    const auto nestedArray = std::get<NestedFieldArray>(*it);
+    ASSERT_EQ(nestedArray.size(), 1U);
+
+    const MessageBody& nestedBody = nestedArray.front();
+    auto nestedIt = nestedBody.begin();
+    EXPECT_EQ(std::get<uint32_t>(*nestedIt), 5678U);
+    ++nestedIt;
+    EXPECT_EQ(std::get<std::string>(*nestedIt), "nested");
+    ++nestedIt;
+    EXPECT_EQ(nestedIt, nestedBody.end());
+
+    ++it;
+    EXPECT_EQ(it, decoded.end());
+}
+
 TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorRequiresFieldInfo)
 {
     MessageBody body;

@@ -257,25 +257,21 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_,
 {
     switch (pstMessageDataType_.dataType.name)
     {
-    case DATA_TYPE::BOOL: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const bool*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::BOOL: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, static_cast<bool>(**ppucLogBuf_), n); break;
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint8_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::CHAR: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int8_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::USHORT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint16_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::SHORT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int16_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::UCHAR: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, static_cast<uint8_t>(**ppucLogBuf_), n); break;
+    case DATA_TYPE::CHAR: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, static_cast<int8_t>(**ppucLogBuf_), n); break;
+    case DATA_TYPE::USHORT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, LoadValueFromBuffer<uint16_t>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::SHORT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, LoadValueFromBuffer<int16_t>(*ppucLogBuf_), n); break;
     case DATA_TYPE::UINT: [[fallthrough]];
     case DATA_TYPE::SATELLITEID: [[fallthrough]];
-    case DATA_TYPE::ULONG: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint32_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::ULONG: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, LoadValueFromBuffer<uint32_t>(*ppucLogBuf_), n); break;
     case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int32_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::ULONGLONG:
-        clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint64_t*>(*ppucLogBuf_), n);
-        break;
-    case DATA_TYPE::LONGLONG:
-        clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int64_t*>(*ppucLogBuf_), n);
-        break;
-    case DATA_TYPE::FLOAT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const float*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::DOUBLE: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const double*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::LONG: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, LoadValueFromBuffer<int32_t>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::ULONGLONG: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, LoadValueFromBuffer<uint64_t>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::LONGLONG: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, LoadValueFromBuffer<int64_t>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::FLOAT: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, LoadValueFromBuffer<float>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::DOUBLE: clMessageBody_.SetFieldValue<Fixed>(pstMessageDataType_.index, LoadValueFromBuffer<double>(*ppucLogBuf_), n); break;
     default: throw std::runtime_error("DecodeBinaryField(): Unknown field type\n");
     }
 
@@ -366,6 +362,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                         fMyAlignmentFunc(fieldTypeLength, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
                     vFieldArrayContainer[i] =
                         MessageBody(subFieldDefinitions->fieldInfo->fixedFieldBytes, subFieldDefinitions->fieldInfo->varFieldCount);
+                    vFieldArrayContainer[i].SetFieldInfo(subFieldDefinitions->fieldInfo);
                     STATUS eStatus = DecodeBinary(*subFieldDefinitions->fieldInfo, ppucLogBuf_, vFieldArrayContainer[i],
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
@@ -692,6 +689,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             {
                 pvFieldArrayContainer[i] =
                     MessageBody(subFieldDefinitions->fieldInfo->fixedFieldBytes, subFieldDefinitions->fieldInfo->varFieldCount);
+                pvFieldArrayContainer[i].SetFieldInfo(subFieldDefinitions->fieldInfo);
                 STATUS eStatus = DecodeAscii<Abbreviated>(*subFieldDefinitions->fieldInfo, ppcLogBuf_, pvFieldArrayContainer[i], pcBufEnd_);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
@@ -892,6 +890,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
             {
                 vFieldArrayContainer.emplace_back(subFieldDefinitions->fieldInfo->fixedFieldBytes, subFieldDefinitions->fieldInfo->varFieldCount);
                 auto& stSubMessageBody = vFieldArrayContainer.back();
+                stSubMessageBody.SetFieldInfo(subFieldDefinitions->fieldInfo);
 
                 // Recursively decode the subfields
                 STATUS eStatus = DecodeJson(*subFieldDefinitions->fieldInfo, element, stSubMessageBody);
@@ -959,17 +958,19 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, MessageBody& stInte
     switch (stMetaData_.eFormat)
     {
     case HEADER_FORMAT::ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ASCII: //
-        return DecodeAscii<false>(msgFieldInfo, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_,
-                                  stMetaData_.uiLength > stMetaData_.uiHeaderLength
-                                      ? reinterpret_cast<const char*>(pucTempInData) + stMetaData_.uiLength - stMetaData_.uiHeaderLength
-                                      : nullptr);
+    case HEADER_FORMAT::SHORT_ASCII: {
+        const auto* pcTempInData = reinterpret_cast<const char*>(pucTempInData);
+        return DecodeAscii<false>(msgFieldInfo, &pcTempInData, stInterMessage_,
+                                  stMetaData_.uiLength > stMetaData_.uiHeaderLength ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
+                                                                                    : nullptr);
+    }
     case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ABB_ASCII: //
-        return DecodeAscii<true>(msgFieldInfo, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_,
-                                 stMetaData_.uiLength > stMetaData_.uiHeaderLength
-                                     ? reinterpret_cast<const char*>(pucTempInData) + stMetaData_.uiLength - stMetaData_.uiHeaderLength
-                                     : nullptr);
+    case HEADER_FORMAT::SHORT_ABB_ASCII: {
+        const auto* pcTempInData = reinterpret_cast<const char*>(pucTempInData);
+        return DecodeAscii<true>(msgFieldInfo, &pcTempInData, stInterMessage_,
+                                 stMetaData_.uiLength > stMetaData_.uiHeaderLength ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
+                                                                                   : nullptr);
+    }
     case HEADER_FORMAT::BINARY: [[fallthrough]];
     case HEADER_FORMAT::SHORT_BINARY:
         if (msgFieldInfo.varFieldCount == 0)

@@ -398,14 +398,8 @@ class FlatFieldArray
 
     static void CheckFieldInfo(FieldInfo::ConstPtr fieldInfo_)
     {
-        if (fieldInfo_ == nullptr)
-        {
-            throw std::runtime_error("FlatFieldArray(): fieldInfo must not be null");
-        }
-        if (fieldInfo_->varFieldCount > 0)
-        {
-            throw std::runtime_error("FlatFieldArray(): fieldInfo must not have variable fields");
-        }
+        if (fieldInfo_ == nullptr) { throw std::runtime_error("FlatFieldArray(): fieldInfo must not be null"); }
+        if (fieldInfo_->varFieldCount > 0) { throw std::runtime_error("FlatFieldArray(): fieldInfo must not have variable fields"); }
     }
 
   public:
@@ -1101,9 +1095,11 @@ class MessageBody
         {
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]]; // TODO: is RESPONSE_STR always std::string?
-        case FIELD_TYPE::STRING: 
-            if constexpr (std::is_same_v<T, std::string> || is_specialization_of_v<T, std::vector> && !std::is_same_v<T, NestedFieldArray>) {
-                SetFieldValue<false>(fieldDef_.index, std::forward<T>(value_)); break;
+        case FIELD_TYPE::STRING:
+            if constexpr (std::is_same_v<T, std::string> || (is_specialization_of_v<T, std::vector> && !std::is_same_v<T, NestedFieldArray>))
+            {
+                SetFieldValue<false>(fieldDef_.index, std::forward<T>(value_));
+                break;
             }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for VARIABLE_LENGTH_ARRAY, RESPONSE_STR, or STRING"); }
             break;
@@ -1115,7 +1111,10 @@ class MessageBody
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
             break;
         default:
-            if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>) { SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_)); }
+            if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>)
+            {
+                SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
+            }
             else { throw std::runtime_error("SetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization"); }
         }
     }
