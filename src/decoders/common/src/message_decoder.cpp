@@ -262,6 +262,10 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_,
     *ppucLogBuf_ += pstMessageDataType_.dataType.length * n;
 }
 
+// explicit template instantiations
+template void MessageDecoderBase::DecodeBinaryField<true>(const BaseField&, const unsigned char**, MessageBody&, size_t);
+template void MessageDecoderBase::DecodeBinaryField<false>(const BaseField&, const unsigned char**, MessageBody&, size_t);
+
 // -------------------------------------------------------------------------------------------------------
 STATUS
 MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, MessageBody& clMessageBody_,
