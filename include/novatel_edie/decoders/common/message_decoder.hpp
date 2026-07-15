@@ -713,6 +713,22 @@ class MessageBody
     const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
 
     // ---------------------------------------------------------------------------
+    //! \brief Get a field definition by name.
+    //!
+    //! \param[in] fieldName_ The name of the field definition to retrieve.
+    //! \return A constant pointer to the field definition if found, nullptr otherwise.
+    // ---------------------------------------------------------------------------
+    BaseField::ConstPtr GetFieldDefByName(const std::string& fieldName_) const
+    {
+        if (fieldInfo == nullptr) { throw std::runtime_error("GetFieldValue(): message definition not set"); }
+        const auto& fields = fieldInfo->messageOrderedFields;
+        const auto it =
+            std::find_if(fields.begin(), fields.end(), [&fieldName_](const BaseField::ConstPtr& fieldDef) { return fieldDef->name == fieldName_; });
+        if (it == fields.end()) { return nullptr; }
+        return *it;
+    }
+
+    // ---------------------------------------------------------------------------
     //! \brief Get a field value as a specified type.
     //!
     //! \tparam T The type to extract from the field value variant.
@@ -826,39 +842,6 @@ class MessageBody
     {
         if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return LoadVariant(field_, fixedFields.data() + field_.index); }
         return GetFieldValueVariant(static_cast<const BaseField&>(field_));
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field value by field name.
-    //!
-    //! \param[in, out] val_ A reference to a FieldValueVariant to store the retrieved value.
-    //! \param[in] fieldName_ The name of the field to retrieve.
-    //! \return true if the field was found and val_ was set, false otherwise.
-    // ---------------------------------------------------------------------------
-    bool GetFieldValueVariant(FieldValueVariant& val_, const std::string& fieldName_) const
-    {
-        if (fieldInfo == nullptr) { throw std::runtime_error("GetFieldValue(): message definition not set"); }
-        const auto& fields = fieldInfo->messageOrderedFields;
-        const auto it =
-            std::find_if(fields.begin(), fields.end(), [&fieldName_](const BaseField::ConstPtr& fieldDef) { return fieldDef->name == fieldName_; });
-        if (it == fields.end()) { return false; }
-        val_ = GetFieldValueVariant(**it);
-        return true;
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field value by field name.
-    //!
-    //! \param[in] fieldName_ The name of the field to retrieve.
-    //! \return A FieldValueVariant containing the field value.
-    //! \throws std::runtime_error if the field name is not found in the message
-    //!     definition or the definition is not set.
-    // ---------------------------------------------------------------------------
-    FieldValueVariant GetFieldValueVariant(const std::string& fieldName_) const
-    {
-        FieldValueVariant val;
-        if (!GetFieldValueVariant(val, fieldName_)) { throw std::runtime_error("GetFieldValue(): field name not found in message definition"); }
-        return val;
     }
 
     // ---------------------------------------------------------------------------
@@ -1463,9 +1446,9 @@ class MessageDecoderBase
         }
 
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
-        FieldValueVariant fieldValue;
-        if (clMessageBody_.GetFieldValueVariant(fieldValue, arrayDef.arrayLengthRef))
+        if (auto arrLengthRefDef = clMessageBody_.GetFieldDefByName(arrayDef.arrayLengthRef))
         {
+            auto fieldValue = clMessageBody_.GetFieldValueVariant(*arrLengthRefDef);
             const auto arraySize = std::visit(
                 [](const auto& value) -> std::optional<uint32_t> {
                     using T = std::decay_t<decltype(value)>;
