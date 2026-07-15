@@ -422,3 +422,107 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     ASSERT_NEAR(std::get<float>(vIntermediateFormat.GetFieldValueVariant(*MsgDefFields[12])), 2.54F, 0.001F);
     ASSERT_NEAR(std::get<double>(vIntermediateFormat.GetFieldValueVariant(*MsgDefFields[13])), 5.44061788e3, 0.001);
 }
+
+TEST(MessageDecoderContainerTypesTest, FixedFieldRegionSimpleFieldRoundTripAndBounds)
+{
+    FixedFieldRegion fields(sizeof(uint32_t));
+    BaseField simpleField("simple", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    simpleField.index = 0;
+
+    const uint32_t inValue = 0xAABBCCDDU;
+    fields.SetFieldValue(0, inValue);
+    EXPECT_EQ(fields.GetFieldValue<uint32_t>(simpleField), inValue);
+
+    EXPECT_THROW(fields.SetFieldValue(sizeof(uint16_t), inValue), std::runtime_error);
+}
+
+TEST(MessageDecoderContainerTypesTest, FixedFieldRegionArrayElementAccess)
+{
+    FixedFieldRegion fields(3 * sizeof(uint32_t));
+    ArrayField arrayField("arr", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%u", DATA_TYPE::UINT, 3);
+    arrayField.index = 0;
+
+    const uint32_t values[3] = {10U, 20U, 30U};
+    fields.SetFieldValue(0, values, 3);
+
+    EXPECT_EQ(fields.GetFieldValue<uint32_t>(0, arrayField), values[0]);
+    EXPECT_EQ(fields.GetFieldValue<uint32_t>(1, arrayField), values[1]);
+    EXPECT_EQ(fields.GetFieldValue<uint32_t>(2, arrayField), values[2]);
+    EXPECT_THROW(fields.GetFieldValue<uint32_t>(3, arrayField), std::runtime_error);
+}
+
+TEST(MessageDecoderContainerTypesTest, FlatFieldArrayIteratorBuildsExpectedMessageBodyPerField)
+{
+    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto f1 = std::make_shared<BaseField>("i16", FIELD_TYPE::SIMPLE, "%hd", DATA_TYPE::SHORT);
+
+    const auto fieldInfo = BuildFieldInfo({f0, f1});
+    FlatFieldArray fieldArray(2, fieldInfo);
+
+    fieldArray.SetFieldValue<uint32_t>(0, *f0, 11U);
+    fieldArray.SetFieldValue<int16_t>(0, *f1, static_cast<int16_t>(-7));
+    fieldArray.SetFieldValue<uint32_t>(1, *f0, 22U);
+    fieldArray.SetFieldValue<int16_t>(1, *f1, static_cast<int16_t>(9));
+
+    auto it = fieldArray.begin();
+    const MessageBody row0 = *it;
+    EXPECT_EQ(row0.GetFieldInfo(), fieldInfo);
+    EXPECT_EQ(row0.GetFieldValue<uint32_t>(*f0), 11U);
+    EXPECT_EQ(row0.GetFieldValue<int16_t>(*f1), static_cast<int16_t>(-7));
+
+    ++it;
+    const MessageBody row1 = *it;
+    EXPECT_EQ(row1.GetFieldInfo(), fieldInfo);
+    EXPECT_EQ(row1.GetFieldValue<uint32_t>(*f0), 22U);
+    EXPECT_EQ(row1.GetFieldValue<int16_t>(*f1), static_cast<int16_t>(9));
+}
+
+TEST(MessageDecoderContainerTypesTest, FlatFieldArrayIteratorEndDereferenceThrows)
+{
+    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto fieldInfo = BuildFieldInfo({f0});
+    FlatFieldArray fieldArray(1, fieldInfo);
+
+    auto it = fieldArray.end();
+    EXPECT_THROW(*it, std::runtime_error);
+}
+
+TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorTraversesFieldValuesInDefinitionOrder)
+{
+    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto f1 = std::make_shared<BaseField>("str", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
+
+    auto f0Copy = std::make_shared<BaseField>(*f0);
+    auto f1Copy = std::make_shared<BaseField>(*f1);
+    auto faFieldInfo = BuildFieldInfo({f0Copy, f1Copy});
+    auto f2 = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, faFieldInfo);
+
+    const auto fieldInfo = BuildFieldInfo({f0, f1, f2});
+    MessageBody body(fieldInfo);
+    body.SetFieldValue(*f0, 1234U);
+    body.SetFieldValue(*f1, std::string("ok"));
+    MessageBody nestedBody(faFieldInfo);
+    nestedBody.SetFieldValue(*f0Copy, 5678U);
+    nestedBody.SetFieldValue(*f1Copy, std::string("nested"));
+    body.SetFieldValue(*f2, NestedFieldArray{nestedBody});
+
+    auto it = body.begin();
+    EXPECT_EQ(std::get<uint32_t>(*it), 1234U);
+    ++it;
+    EXPECT_EQ(std::get<std::string>(*it), "ok");
+    ++it;
+    const auto nestedArray = std::get<NestedFieldArray>(*it);
+    EXPECT_EQ(nestedArray.size(), 1U);
+    const auto& nestedBodyValue = nestedArray[0];
+    EXPECT_EQ(nestedBodyValue.GetFieldValue<uint32_t>(*f0Copy), 5678U);
+    EXPECT_EQ(nestedBodyValue.GetFieldValue<std::string>(*f1Copy), "nested");
+    ++it;
+    EXPECT_EQ(it, body.end());
+}
+
+TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorRequiresFieldInfo)
+{
+    MessageBody body;
+    EXPECT_THROW(body.begin(), std::runtime_error);
+    EXPECT_THROW(body.end(), std::runtime_error);
+}
