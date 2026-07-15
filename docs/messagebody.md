@@ -7,16 +7,16 @@
 A `MessageBody` stores the decoded contents of a message. It holds:
 - A **fixed-size region** for fields with known byte size
 - A **variable-size region** for fields whose size can vary, e.g. strings and field arrays
-- A pointer to the message's **definition** and the **CRC** used for decoding
+- A pointer to an object describing the message's **fields**
 
 ## Field storage model
 
-### Fixed region: `std::vector<std::byte>`
+### Fixed region: `FixedFieldRegion`
 
 ![Fixed region layout](fixed.png)
 
-- Stores all primitive fields and fixed-length arrays
-- Layout matches the binary message format, including alignment constraints
+- A thin wrapper around `std::vector<std::byte>`
+- Stores all primitive fields and fixed-length arrays in raw binary form, including alignment constraints
 - Fields that are separated by variable-length data in the message definition are "squashed" together in the fixed region
 
 ### Variable region: `std::vector<FieldValueVariant>`
@@ -27,13 +27,13 @@ A `MessageBody` stores the decoded contents of a message. It holds:
 
 #### Field arrays
 
-- Stored as `std::vector<std::byte>` if every field has fixed size
-- Stored as `std::vector<MessageBody>` otherwise
+- Stored as `FlatFieldArray` if every field has fixed size
+- Stored as `NestedFieldArray = std::vector<MessageBody>` otherwise
 
 ### Reading fields
 
-- `MessageBody::GetFieldValue` can be used to get the value of most fields by either their definition or their name
-- `MessageBody::GetValueFromFlatFieldArray` can be used to get the value of a field within the `std::vector<std::byte>` of a flat field array
+- `MessageBody::GetFieldValue` and `FlatFieldArray::GetFieldValue` can be used to get the value of most fields by their definition
+- `MessageBody::GetFieldValueVariant` wraps a field's value in a variant for programming convenience
 
 ### Writing fields
 
