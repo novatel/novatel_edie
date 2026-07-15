@@ -222,7 +222,10 @@ FieldInfo::ConstPtr BuildFieldInfo(std::vector<BaseField::Ptr> fields, std::stri
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
-        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: varFields++; break;
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            f->index = varFields;
+            varFields++;
+            break;
         default: throw std::runtime_error("Unknown field type encountered while building FieldInfo.");
         }
         constFields.push_back(f);

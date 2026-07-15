@@ -122,6 +122,17 @@ template <typename T> class TypedBuffer
     const_iterator end() const { return const_iterator(data, sz); }
 };
 
+// ---------------------------------------------------------------------------
+//! \brief A visitor that calls the given function with a type tag corresponding
+//!     to the data type of the given BaseField.
+//!
+//! \details This function is useful for performing type-specific operations on
+//!     fields without knowing their types at compile time and without wrapping
+//!     the field values in a variant.
+//!
+//! \param[in] fd_ The BaseField whose data type is to be visited.
+//! \param[in] visitor The function to call with the type tag.
+// ---------------------------------------------------------------------------
 template <typename Fn> inline void SimpleTypeVisitor(const BaseField& fd_, Fn&& visitor)
 {
     if (fd_.type == FIELD_TYPE::ENUM)
@@ -157,6 +168,16 @@ template <typename Fn> inline void SimpleTypeVisitor(const BaseField& fd_, Fn&& 
     }
 }
 
+// ---------------------------------------------------------------------------
+//! \brief Check that the given type T matches the data type of the given BaseField,
+//!     and if it does, load a value of type T from the given byte buffer.
+//!
+//! \tparam T The type to check against the BaseField's data type.
+//! \param[in] fd_ The BaseField whose data type is to be checked.
+//! \param[in] fieldPtr_ A pointer to the byte buffer from which to load the value.
+//! \return The value of type T loaded from the byte buffer.
+//! \throws std::runtime_error if T does not match the BaseField's data type
+// ---------------------------------------------------------------------------
 template <typename T> inline T CheckAndLoadType(const BaseField& fd_, const std::byte* fieldPtr_)
 {
     SimpleTypeVisitor(fd_, [&](auto&& arg) {
@@ -184,19 +205,21 @@ class FixedFieldRegion
 
     FixedFieldRegion(size_t sz_) : byteRegion(sz_) {}
 
-    // ---------------------------------------------------------------------------
-    //! \brief Resize the FixedFieldRegion.
-    //!
-    //! \param[in] sz_ The new size of the fixed field region in bytes.
-    // ---------------------------------------------------------------------------
-    void resize(size_t sz_) { byteRegion.resize(sz_); }
-
     size_t size() const { return byteRegion.size(); }
 
     const std::byte* data() const { return byteRegion.data(); }
 
     void Resize(size_t sz_) { byteRegion.resize(sz_); }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value as a specified type at a given offset.
+    //!
+    //! \tparam T The type to extract from the field.
+    //! \param[in] field_ The definition of the field to retrieve.
+    //! \param[in] baseIndex_ The offset from the field's index in the byte region
+    //!     to retrieve (used to index into flat field arrays).
+    //! \return The field value as T.
+    // ---------------------------------------------------------------------------
     template <typename T> T GetFieldValue(const BaseField& field_, size_t baseIndex_ = 0) const
     {
         static_assert(std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>,
@@ -208,6 +231,10 @@ class FixedFieldRegion
             {
                 const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
                 if (arrayField == nullptr) { throw std::runtime_error("GetFieldValue<T>(): missing fixed array metadata"); }
+                if (baseIndex_ + field_.index + (arrayField->arrayLength * field_.dataType.length) > byteRegion.size())
+                {
+                    throw std::runtime_error("GetFieldValue<T>(): buffer overflow in FixedFieldRegion");
+                }
                 SimpleTypeVisitor(field_, [&](auto&& arg) {
                     if constexpr (!std::is_same_v<T, TypedBuffer<std::decay_t<decltype(arg)>>>)
                     {
@@ -221,6 +248,10 @@ class FixedFieldRegion
         case FIELD_TYPE::RESPONSE_ID: [[fallthrough]];
         case FIELD_TYPE::ENUM: [[fallthrough]];
         case FIELD_TYPE::SIMPLE:
+            if (baseIndex_ + field_.index + field_.dataType.length > byteRegion.size())
+            {
+                throw std::runtime_error("GetFieldValue<T>(): buffer overflow in FixedFieldRegion");
+            }
             if constexpr (is_specialization_of_v<T, TypedBuffer>)
             {
                 throw std::runtime_error("GetFieldValue<T>(): T must not be TypedBuffer<E> for SIMPLE or ENUM fields");
@@ -230,10 +261,25 @@ class FixedFieldRegion
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get an element of an array field as a specified type at a given offset.
+    //!     Avoids an additional dynamic_cast for fixed-length array fields.
+    //!
+    //! \tparam T The type to extract from the field.
+    //! \param[in] elemIndex_ The index of the element in the array field.
+    //! \param[in] field_ The definition of the field to retrieve.
+    //! \param[in] baseIndex_ The offset from the field's index in the byte region
+    //!     to retrieve (used to index into flat field arrays).
+    //! \return The field value as T.
+    // ---------------------------------------------------------------------------
     template <typename T> T GetFieldValue(size_t elemIndex_, const ArrayField& field_, size_t baseIndex_ = 0) const
     {
         static_assert(std::is_trivially_copyable_v<T>, "GetFieldValue only supports trivially copyable types");
         if (elemIndex_ >= field_.arrayLength) { throw std::runtime_error("GetFieldValue<T>(): index out of bounds for fixed-length array field"); }
+        if (baseIndex_ + field_.index + (field_.dataType.length * field_.arrayLength) > byteRegion.size())
+        {
+            throw std::runtime_error("GetFieldValue<T>(): buffer overflow in FixedFieldRegion");
+        }
         if (field_.type != FIELD_TYPE::FIXED_LENGTH_ARRAY)
         {
             throw std::runtime_error("GetFieldValue<T>(): this overload is only for fixed-length array fields");
@@ -246,6 +292,18 @@ class FixedFieldRegion
         else { return CheckAndLoadType<T>(field_, byteRegion.data() + baseIndex_ + field_.index + (elemIndex_ * sizeof(T))); }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get an element of an array field as a specified type at a given offset.
+    //!     If the field is not an array, then the element index must be zero and the
+    //!     single field value is returned as T.
+    //!
+    //! \tparam T The type to extract from the field.
+    //! \param[in] elemIndex_ The index of the element in the array field.
+    //! \param[in] field_ The definition of the field to retrieve.
+    //! \param[in] baseIndex_ The offset from the field's index in the byte region
+    //!     to retrieve (used to index into flat field arrays).
+    //! \return The field value as T.
+    // ---------------------------------------------------------------------------
     template <typename T> T GetFieldValue(size_t elemIndex_, const BaseField& field_, size_t baseIndex_ = 0) const
     {
         static_assert(std::is_trivially_copyable_v<T>, "GetFieldValue only supports trivially copyable types");
@@ -295,7 +353,7 @@ class FixedFieldRegion
     //!
     //! \tparam T The element type (must be trivially copyable and not bool).
     //! \param[in] startIndex_ The index in the byte region.
-    //! \param[in] values_ Rvalue reference to vector of values to move.
+    //! \param[in] values_ Rvalue reference to vector of values to copy.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
     template <typename T> void SetFieldValue(const size_t startIndex_, std::vector<T>&& values_)
@@ -314,7 +372,7 @@ class FixedFieldRegion
     //! \brief Set field values from a string.
     //!
     //! \param[in] startIndex_ The index in the byte region.
-    //! \param[in] value_ Rvalue reference to string to move.
+    //! \param[in] value_ Rvalue reference to string to copy.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
     void SetFieldValue(const size_t startIndex_, std::string&& value_)
@@ -327,6 +385,10 @@ class FixedFieldRegion
 // ---------------------------------------------------------------------------
 //! \class FlatFieldArray
 //! \brief A field array containing only fixed-length fields.
+//!
+//! \details This class is a thin wrapper around FixedFieldRegion that pairs the
+//!     byte buffer with field definitions. It also handles indexing into the
+//!     buffer using the fixed field size defined in the FieldInfo.
 // ---------------------------------------------------------------------------
 class FlatFieldArray
 {
@@ -334,19 +396,49 @@ class FlatFieldArray
     FixedFieldRegion fields;
     FieldInfo::ConstPtr fieldInfo;
 
-  public:
-    FlatFieldArray(std::vector<std::byte>&& data_, FieldInfo::ConstPtr fieldInfo_) : fields(std::move(data_)), fieldInfo(std::move(fieldInfo_)) {}
-
-    FlatFieldArray(size_t sz_, FieldInfo::ConstPtr fieldInfo_) : fields(sz_), fieldInfo(std::move(fieldInfo_))
+    static void CheckFieldInfo(FieldInfo::ConstPtr fieldInfo_)
     {
-        if (fieldInfo != nullptr && fieldInfo->varFieldCount > 0)
+        if (fieldInfo_ == nullptr)
+        {
+            throw std::runtime_error("FlatFieldArray(): fieldInfo must not be null");
+        }
+        if (fieldInfo_->varFieldCount > 0)
         {
             throw std::runtime_error("FlatFieldArray(): fieldInfo must not have variable fields");
         }
     }
 
-    size_t size() const { return fields.size() / fieldInfo->fixedFieldBytes; }
+  public:
+    FlatFieldArray(std::vector<std::byte>&& data_, FieldInfo::ConstPtr fieldInfo_) : fields(std::move(data_)), fieldInfo(std::move(fieldInfo_))
+    {
+        CheckFieldInfo(fieldInfo);
+        if (fields.size() % fieldInfo->fixedFieldBytes != 0)
+        {
+            throw std::runtime_error("FlatFieldArray(): data size must be a multiple of fixed field bytes");
+        }
+    }
 
+    FlatFieldArray(size_t sz_, FieldInfo::ConstPtr fieldInfo_) : fieldInfo(std::move(fieldInfo_))
+    {
+        CheckFieldInfo(fieldInfo);
+        fields = FixedFieldRegion(sz_ * fieldInfo->fixedFieldBytes);
+    }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get the number of fixed-length fields in the FlatFieldArray.
+    // ---------------------------------------------------------------------------
+    size_t size() const
+    {
+        if (!fieldInfo || fieldInfo->fixedFieldBytes == 0)
+        {
+            throw std::runtime_error("FlatFieldArray::size(): fieldInfo is null or has zero fixed field bytes");
+        }
+        return fields.size() / fieldInfo->fixedFieldBytes;
+    }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get the byte size of the FixedFieldRegion in the FlatFieldArray.
+    // ---------------------------------------------------------------------------
     size_t ByteSize() const { return fields.size(); }
 
     const std::byte* data() const { return fields.data(); }
@@ -358,6 +450,14 @@ class FlatFieldArray
     // ---------------------------------------------------------------------------
     void Resize(size_t sz_) { fields.Resize(sz_); }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value at the given index as a specified type.
+    //!
+    //! \tparam T The type to extract from the field.
+    //! \param[in] field_ The definition of the field to retrieve.
+    //! \param[in] index_ The index of the field in the field array.
+    //! \return The field value as T.
+    // ---------------------------------------------------------------------------
     template <typename T> T GetFieldValue(const BaseField& field_, size_t index_) const
     {
         return fields.GetFieldValue<T>(field_, index_ * fieldInfo->fixedFieldBytes);
@@ -432,18 +532,45 @@ class FlatFieldArray
     }
 
     // ---------------------------------------------------------------------------
-    //! \brief Set field values from a string.
+    //! \brief Set field from a given value.
     //!
     //! \tparam T The value type (must be trivially copyable).
     //! \param[in] fieldIndex_ The index of the field.
     //! \param[in] fd_ The BaseField definition of the field.
-    //! \param[in] value_ Rvalue reference to value to move.
+    //! \param[in] value_ Rvalue reference to value to forward.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
     template <typename T> void SetFieldValue(const size_t fieldIndex_, const BaseField& fd_, T&& value_)
     {
         fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + fd_.index, std::forward<T>(value_));
     }
+
+    struct const_iterator
+    {
+        using value_type = MessageBody;
+        using reference = value_type;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::forward_iterator_tag;
+
+        const FlatFieldArray* fieldArray;
+        size_t index;
+
+        const_iterator(const FlatFieldArray* fieldArray_, size_t index_ = 0) : fieldArray(fieldArray_), index(index_) {}
+
+        reference operator*() const;
+
+        const_iterator& operator++()
+        {
+            index++;
+            return *this;
+        }
+
+        bool operator==(const const_iterator& other) const { return fieldArray == other.fieldArray && index == other.index; }
+        bool operator!=(const const_iterator& other) const { return !(*this == other); }
+    };
+
+    const_iterator begin() const { return const_iterator(this); }
+    const_iterator end() const { return const_iterator(this, size()); }
 };
 
 using FieldValueVariant =
@@ -493,20 +620,28 @@ class MessageBody
     // ---------------------------------------------------------------------------
     MessageBody(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_) {}
 
-    MessageBody(const MessageBody& other) : fixedFields(other.fixedFields), varFields(other.varFields), fieldInfo(other.fieldInfo) {}
-
-    MessageBody& operator=(const MessageBody& other) = default;
-
+    // ---------------------------------------------------------------------------
+    //! \brief Construct a MessageBody with pre-constructed fixed and variable regions.
+    //!
+    //! \param[in] fixedFields_ The FixedFieldRegion containing the fixed-length fields.
+    //! \param[in] varFields_ The vector of FieldValueVariant containing the variable-length fields.
+    // ---------------------------------------------------------------------------
     MessageBody(FixedFieldRegion&& fixedFields_, std::vector<FieldValueVariant>&& varFields_)
         : fixedFields(std::move(fixedFields_)), varFields(std::move(varFields_))
     {
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Construct a MessageBody from a FieldInfo object, initializing each
+    //!     field with the default value of its type.
+    //!
+    //! \param[in] fieldInfo_ The FieldInfo object containing the message's fields
+    // ---------------------------------------------------------------------------
     MessageBody(FieldInfo::ConstPtr fieldInfo_) : fieldInfo(std::move(fieldInfo_))
     {
         if (fieldInfo)
         {
-            fixedFields.resize(fieldInfo->fixedFieldBytes);
+            fixedFields.Resize(fieldInfo->fixedFieldBytes);
             varFields.resize(fieldInfo->varFieldCount);
 
             for (const auto& fieldDef : fieldInfo->messageOrderedFields)
@@ -557,6 +692,12 @@ class MessageBody
     }
 
     // ---------------------------------------------------------------------------
+    //! Copy constructor and assignment operator
+    // ---------------------------------------------------------------------------
+    MessageBody(const MessageBody& other) : fixedFields(other.fixedFields), varFields(other.varFields), fieldInfo(other.fieldInfo) {}
+    MessageBody& operator=(const MessageBody& other) = default;
+
+    // ---------------------------------------------------------------------------
     //! \brief Resize the memory regions of the MessageBody.
     //!
     //! \param[in] fixedFieldSize_ The new size in bytes for the fixed fields
@@ -564,7 +705,7 @@ class MessageBody
     // ---------------------------------------------------------------------------
     void Resize(size_t fixedFieldSize_, size_t varFieldCount_)
     {
-        fixedFields.resize(fixedFieldSize_);
+        fixedFields.Resize(fixedFieldSize_);
         varFields.resize(varFieldCount_);
     }
 
@@ -578,7 +719,7 @@ class MessageBody
     const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
 
     // ---------------------------------------------------------------------------
-    //! \brief Get a field value as a specific type.
+    //! \brief Get a field value as a specified type.
     //!
     //! \tparam T The type to extract from the field value variant.
     //! \param[in] field_ The definition of the field to retrieve.
@@ -591,7 +732,7 @@ class MessageBody
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
             if constexpr (is_specialization_of_v<T, std::vector>) { return std::get<T>(varFields[field_.index]); }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for VARIABLE_LENGTH_ARRAY"); }
-        case FIELD_TYPE::RESPONSE_STR: [[fallthrough]]; // TODO: is RESPONSE_STR always std::string?
+        case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
         case FIELD_TYPE::STRING:
             if constexpr (std::is_same_v<T, std::string>) { return std::get<std::string>(varFields[field_.index]); }
             else { throw std::runtime_error("GetFieldValue<T>(): non-string type provided for string field"); }
@@ -604,6 +745,20 @@ class MessageBody
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a value as a specified type at the specified index. If the
+    //!     field is an array type, the index specifies which element in the array
+    //!     to retrieve. If the field is not an array type, the index must be zero
+    //!     and the single value of the field will be returned.
+    //!
+    //! \note This overload is needed with the current design of the encoder, as
+    //!     the ASCII/JSON field map functions are called both for simple fields and
+    //!     for individual elements of array fields.
+    //!
+    //! \tparam T The type to extract from the field.
+    //! \param[in] field_ The definition of the field to retrieve.
+    //! \return The field value as T.
+    // ---------------------------------------------------------------------------
     template <typename T> T GetFieldValue(size_t index_, const BaseField& field_) const
     {
         if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return fixedFields.GetFieldValue<T>(index_, field_); }
@@ -627,6 +782,15 @@ class MessageBody
         throw std::runtime_error("GetFieldValue<T>(): field must be an array type or index must be zero");
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a value as a specified type at the specified index in the given
+    //!     array field. Avoids an unnecessary dynamic cast in
+    //!     GetFieldValue(size_t, const BaseField&) for FIXED_LENGTH_ARRAY fields.
+    //!
+    //! \tparam T The type to extract from the field.
+    //! \param[in] field_ The definition of the field to retrieve.
+    //! \return The field value as T.
+    // ---------------------------------------------------------------------------
     template <typename T> T GetFieldValue(size_t index_, const ArrayField& field_) const
     {
         if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return fixedFields.GetFieldValue<T>(index_, field_); }
@@ -796,6 +960,11 @@ class MessageBody
     // ---------------------------------------------------------------------------
     //! \brief Set the field info used by this message body.
     //!
+    //! \note This method does not initialize the storage regions in any way. If
+    //!     there were values already set in the message body, they will remain
+    //!     unchanged. This method also does not default initialize field; it only
+    //!     resizes the storage regions.
+    //!
     //! \param[in] fieldInfo_ The field info pointer.
     // ---------------------------------------------------------------------------
     void SetFieldInfo(FieldInfo::ConstPtr fieldInfo_)
@@ -921,18 +1090,23 @@ class MessageBody
     // ---------------------------------------------------------------------------
     //! \brief Set field values using field definition.
     //!
-    //! \tparam Fixed True for fixed fields, false for variable-length fields.
+    //! \tparam T The value type.
     //! \param[in] fieldDef_ The definition of the field to set.
-    //! \param[in] value_ Rvalue reference to value to move.
+    //! \param[in] value_ Rvalue reference to value to forward.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
     template <typename T> void SetFieldValue(const BaseField& fieldDef_, T&& value_)
     {
         switch (fieldDef_.type)
         {
-        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]]; // TODO: is RESPONSE_STR always std::string?
-        case FIELD_TYPE::STRING: SetFieldValue<false>(fieldDef_.index, std::forward<T>(value_)); break;
+        case FIELD_TYPE::STRING: 
+            if constexpr (std::is_same_v<T, std::string> || is_specialization_of_v<T, std::vector> && !std::is_same_v<T, NestedFieldArray>) {
+                SetFieldValue<false>(fieldDef_.index, std::forward<T>(value_)); break;
+            }
+            else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for VARIABLE_LENGTH_ARRAY, RESPONSE_STR, or STRING"); }
+            break;
         case FIELD_TYPE::FIELD_ARRAY:
             if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, NestedFieldArray>)
             {
@@ -940,14 +1114,16 @@ class MessageBody
             }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
             break;
-        default: SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
+        default:
+            if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>) { SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_)); }
+            else { throw std::runtime_error("SetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization"); }
         }
     }
 
     // ---------------------------------------------------------------------------
     //! \brief Set a single field element offset by the specified index.
     //!
-    //! \details This function is needed because ASCII/JSON field map functions are
+    //! \note This function is needed because decoder ASCII/JSON field map functions are
     //!     called for both standalone fields and individual array elements. SetFieldValue
     //!     should only be used to set the value of a complete field, as it does no
     //!     bounds checking for individual array elements and it cannot set individual
@@ -1050,7 +1226,7 @@ class MessageBody
                     {
                         throw std::runtime_error("WriteFieldToBuffer(): scalar values are not valid var field payloads");
                     }
-                    else if constexpr (is_specialization_of_v<T, std::vector>)
+                    else if constexpr (is_specialization_of_v<T, std::vector> && !std::is_same_v<T, NestedFieldArray>)
                     {
                         return copyBytes(reinterpret_cast<const std::byte*>(value.data()), sizeof(typename T::value_type) * value.size());
                     }
@@ -1099,15 +1275,11 @@ class MessageBody
         using iterator_category = std::forward_iterator_tag;
 
         const MessageBody* messageBody;
-        const std::vector<BaseField::ConstPtr>* fields;
         size_t index;
 
-        const_iterator(const MessageBody* messageBody_, const std::vector<BaseField::ConstPtr>* fields_, size_t index_ = 0)
-            : messageBody(messageBody_), fields(fields_), index(index_)
-        {
-        }
+        const_iterator(const MessageBody* messageBody_, size_t index_ = 0) : messageBody(messageBody_), index(index_) {}
 
-        reference operator*() const { return messageBody->GetFieldValueVariant(*(*fields)[index]); }
+        reference operator*() const { return messageBody->GetFieldValueVariant(*messageBody->fieldInfo->messageOrderedFields[index]); }
 
         const_iterator& operator++()
         {
@@ -1115,31 +1287,36 @@ class MessageBody
             return *this;
         }
 
-        const_iterator operator--()
-        {
-            index--;
-            return *this;
-        }
-
-        bool operator==(const const_iterator& other) const
-        {
-            return messageBody == other.messageBody && fields == other.fields && index == other.index;
-        }
+        bool operator==(const const_iterator& other) const { return messageBody == other.messageBody && index == other.index; }
         bool operator!=(const const_iterator& other) const { return !(*this == other); }
     };
 
     const_iterator begin() const
     {
-        if (fieldInfo == nullptr) { throw std::runtime_error("begin(): field definition not set"); }
-        return const_iterator(this, &fieldInfo->messageOrderedFields);
+        if (fieldInfo == nullptr) { throw std::runtime_error("begin(): field definitions not set"); }
+        return const_iterator(this);
     }
 
     const_iterator end() const
     {
-        if (fieldInfo == nullptr) { throw std::runtime_error("end(): field definition not set"); }
-        return const_iterator(this, &fieldInfo->messageOrderedFields, fieldInfo->messageOrderedFields.size());
+        if (fieldInfo == nullptr) { throw std::runtime_error("end(): field definitions not set"); }
+        return const_iterator(this, fieldInfo->messageOrderedFields.size());
     }
 };
+
+inline FlatFieldArray::const_iterator::reference FlatFieldArray::const_iterator::operator*() const
+{
+    if (fieldArray == nullptr) { throw std::runtime_error("FlatFieldArray::const_iterator::operator*(): iterator is not bound"); }
+
+    const auto rowCount = fieldArray->size();
+    if (index >= rowCount) { throw std::runtime_error("FlatFieldArray::const_iterator::operator*(): index out of bounds"); }
+
+    MessageBody messageBody(fieldArray->fieldInfo->fixedFieldBytes, 0);
+    const size_t baseIndex = index * fieldArray->fieldInfo->fixedFieldBytes;
+    messageBody.GetFixedFields().SetFieldValue(0, fieldArray->fields.data() + baseIndex, fieldArray->fieldInfo->fixedFieldBytes);
+    messageBody.SetFieldInfo(fieldArray->fieldInfo);
+    return messageBody;
+}
 
 //============================================================================
 //! \class MessageDecoderBase
