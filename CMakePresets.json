@@ -13,7 +13,8 @@
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "installDir": "${sourceDir}/out/install/${presetName}",
             "cacheVariables": {
-                "CONAN_INSTALL_BUILD_CONFIGURATIONS": "Release;Debug"
+                "CONAN_INSTALL_BUILD_CONFIGURATIONS": "Release;Debug",
+                "BUILD_BENCHMARKS": "ON"
             }
         },
         {
