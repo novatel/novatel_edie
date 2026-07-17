@@ -602,6 +602,15 @@ class FlatFieldArray
     }
 };
 
+// FieldValueVariant is the return/interchange type produced by GetFieldValueVariant and the
+// LoadVariant helpers. Its alternatives fall into four logical groups:
+//   1. Scalars           - transient results loaded from fixedFields bytes (never stored in varFields).
+//   2. TypedBuffer<T>    - non-owning views over fixed-length array bytes (also not stored in varFields).
+//   3. std::vector<T>    - owning storage for VARIABLE_LENGTH_ARRAY fields (stored in varFields).
+//   4. Runtime-shaped    - std::string / FlatFieldArray / NestedFieldArray: the data-dependent shapes
+//                          whose runtime extent the schema (Field) cannot predict.
+// Groups 1-3 carry a compile-time element type that is always recoverable from the field's DATA_TYPE;
+// only group 4 requires a true storage discriminant.
 using FieldValueVariant =
     std::variant<bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double, TypedBuffer<bool>,
                  TypedBuffer<int8_t>, TypedBuffer<uint8_t>, TypedBuffer<int16_t>, TypedBuffer<uint16_t>, TypedBuffer<int32_t>, TypedBuffer<uint32_t>,
@@ -609,18 +618,25 @@ using FieldValueVariant =
                  std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>,
                  std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::string, FlatFieldArray, NestedFieldArray>;
 
-inline FieldValueVariant LoadVariant(const BaseField& fd_, const std::byte* fieldPtr_)
+//! Shared implementation for the LoadVariant overloads: select the concrete element type from the
+//! schema via SimpleTypeVisitor and let the caller-supplied loader build the variant payload.
+template <typename Field, typename Loader> inline FieldValueVariant LoadVariantImpl(const Field& fd_, Loader&& loader_)
 {
     FieldValueVariant result;
-    SimpleTypeVisitor(fd_, [&](auto&& arg) { result = LoadValueFromBuffer<std::decay_t<decltype(arg)>>(fieldPtr_); });
+    SimpleTypeVisitor(fd_, [&](auto&& arg) { result = loader_(std::decay_t<decltype(arg)>{}); });
     return result;
 }
 
+//! Load a scalar field's bytes into a FieldValueVariant, selecting the concrete type from the schema.
+inline FieldValueVariant LoadVariant(const BaseField& fd_, const std::byte* fieldPtr_)
+{
+    return LoadVariantImpl(fd_, [&](auto tag) { return LoadValueFromBuffer<decltype(tag)>(fieldPtr_); });
+}
+
+//! Build a non-owning TypedBuffer view over a fixed-length array field, selecting the element type from the schema.
 inline FieldValueVariant LoadVariant(const ArrayField& fd_, const std::byte* fieldPtr_)
 {
-    FieldValueVariant result;
-    SimpleTypeVisitor(fd_, [&](auto&& arg) { result = TypedBuffer<std::decay_t<decltype(arg)>>{fieldPtr_, fd_.arrayLength}; });
-    return result;
+    return LoadVariantImpl(fd_, [&](auto tag) { return TypedBuffer<decltype(tag)>{fieldPtr_, fd_.arrayLength}; });
 }
 
 // ---------------------------------------------------------------------------
