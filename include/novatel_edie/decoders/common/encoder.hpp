@@ -490,8 +490,7 @@ template <typename Derived> class EncoderBase
     }
 
     template <bool Abbreviated>
-    [[nodiscard]] bool EncodePrimitiveAsciiField(const BaseField& fieldDefRef_, const MessageBody& mb_, char** ppcOutBuf_,
-                                                 uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool EncodeAsciiField(const BaseField& fieldDefRef_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         constexpr char separator = Abbreviated ? Derived::separatorAbbAscii : Derived::separatorAscii;
 
@@ -552,7 +551,7 @@ template <typename Derived> class EncoderBase
             }
             else if (!FieldToAscii(fieldDefRef_, mb_, ppcOutBuf_, uiBytesLeft_, 0)) { return false; }
             return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator);
-        default: throw std::runtime_error("EncodePrimitiveAsciiField(): unsupported field type");
+        default: throw std::runtime_error("EncodeAsciiField(): unsupported field type");
         }
         return true;
     }
@@ -672,7 +671,7 @@ template <typename Derived> class EncoderBase
             case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
             case FIELD_TYPE::ENUM: [[fallthrough]];
             case FIELD_TYPE::SIMPLE:
-                if (!EncodePrimitiveAsciiField<Abbreviated>(fieldDefRef, clMessageBody_, ppcOutBuf_, uiBytesLeft_)) { return false; }
+                if (!EncodeAsciiField<Abbreviated>(fieldDefRef, clMessageBody_, ppcOutBuf_, uiBytesLeft_)) { return false; }
                 break;
             case FIELD_TYPE::RESPONSE_ID: break; // RESPONSE_ID is not included in ASCII output
             default: throw std::runtime_error("EncodeAsciiBody(): unsupported field type");
@@ -681,8 +680,7 @@ template <typename Derived> class EncoderBase
         return true;
     }
 
-    [[nodiscard]] bool EncodePrimitiveJsonField(const BaseField& fieldDefRef_, const MessageBody& mb_, char** ppcOutBuf_,
-                                                uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool EncodeJsonField(const BaseField& fieldDefRef_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDefRef_.name), "\": ")) { return false; }
 
@@ -750,7 +748,7 @@ template <typename Derived> class EncoderBase
             }
             else if (!FieldToAscii<true>(fieldDefRef_, mb_, ppcOutBuf_, uiBytesLeft_, 0)) { return false; }
             return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',');
-        default: throw std::runtime_error("EncodePrimitiveAsciiField(): unsupported field type");
+        default: throw std::runtime_error("EncodeAsciiField(): unsupported field type");
         }
         return true;
     }
@@ -825,7 +823,7 @@ template <typename Derived> class EncoderBase
             case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
             case FIELD_TYPE::ENUM: [[fallthrough]];
             case FIELD_TYPE::SIMPLE:
-                if (!EncodePrimitiveJsonField(fieldDefRef, clMessageBody_, ppcOutBuf_, uiBytesLeft_)) { return false; }
+                if (!EncodeJsonField(fieldDefRef, clMessageBody_, ppcOutBuf_, uiBytesLeft_)) { return false; }
                 break;
             default: throw std::runtime_error("EncodeJsonBody(): unsupported field type");
             }
