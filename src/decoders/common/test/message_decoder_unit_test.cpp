@@ -431,7 +431,7 @@ TEST(MessageDecoderContainerTypesTest, FixedFieldRegionSimpleFieldRoundTripAndBo
 
     const uint32_t inValue = 0xAABBCCDDU;
     fields.SetFieldValue(0, inValue);
-    EXPECT_EQ(fields.GetFieldValue<uint32_t>(simpleField), inValue);
+    EXPECT_EQ(LoadFixedField<uint32_t>(fields, simpleField), inValue);
 
     EXPECT_THROW(fields.SetFieldValue(sizeof(uint16_t), inValue), std::runtime_error);
 }
@@ -445,10 +445,10 @@ TEST(MessageDecoderContainerTypesTest, FixedFieldRegionArrayElementAccess)
     const uint32_t values[3] = {10U, 20U, 30U};
     fields.SetFieldValue(0, values, 3);
 
-    EXPECT_EQ(fields.GetFieldValue<uint32_t>(0, arrayField), values[0]);
-    EXPECT_EQ(fields.GetFieldValue<uint32_t>(1, arrayField), values[1]);
-    EXPECT_EQ(fields.GetFieldValue<uint32_t>(2, arrayField), values[2]);
-    EXPECT_THROW(fields.GetFieldValue<uint32_t>(3, arrayField), std::runtime_error);
+    EXPECT_EQ(LoadFixedFieldElement<uint32_t>(fields, 0, arrayField), values[0]);
+    EXPECT_EQ(LoadFixedFieldElement<uint32_t>(fields, 1, arrayField), values[1]);
+    EXPECT_EQ(LoadFixedFieldElement<uint32_t>(fields, 2, arrayField), values[2]);
+    EXPECT_THROW(LoadFixedFieldElement<uint32_t>(fields, 3, arrayField), std::runtime_error);
 }
 
 TEST(MessageDecoderContainerTypesTest, FlatFieldArrayIteratorBuildsExpectedMessageBodyPerField)
@@ -465,14 +465,12 @@ TEST(MessageDecoderContainerTypesTest, FlatFieldArrayIteratorBuildsExpectedMessa
     fieldArray.SetFieldValue<int16_t>(1, *f1, static_cast<int16_t>(9));
 
     auto it = fieldArray.begin();
-    const MessageBody row0 = *it;
-    EXPECT_EQ(row0.GetFieldInfo(), fieldInfo);
+    const FixedRecordView row0 = *it;
     EXPECT_EQ(row0.GetFieldValue<uint32_t>(*f0), 11U);
     EXPECT_EQ(row0.GetFieldValue<int16_t>(*f1), static_cast<int16_t>(-7));
 
     ++it;
-    const MessageBody row1 = *it;
-    EXPECT_EQ(row1.GetFieldInfo(), fieldInfo);
+    const FixedRecordView row1 = *it;
     EXPECT_EQ(row1.GetFieldValue<uint32_t>(*f0), 22U);
     EXPECT_EQ(row1.GetFieldValue<int16_t>(*f1), static_cast<int16_t>(9));
 }

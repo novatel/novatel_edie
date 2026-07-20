@@ -186,10 +186,7 @@ template <typename T> inline void AssertFixedFieldType(const BaseField& fd_)
                 throw std::runtime_error("GetFieldValue<T>(): type T does not match field data type");
             }
         }
-        else if constexpr (!std::is_same_v<T, ArgT>)
-        {
-            throw std::runtime_error("GetFieldValue<T>(): type T does not match field data type");
-        }
+        else if constexpr (!std::is_same_v<T, ArgT>) { throw std::runtime_error("GetFieldValue<T>(): type T does not match field data type"); }
     });
 }
 #endif
@@ -236,21 +233,15 @@ class FixedFieldRegion
     //! \brief Whether this region borrows external memory (read-only view).
     [[nodiscard]] bool IsView() const { return viewData != nullptr; }
 
+    size_t size() const { return viewData != nullptr ? viewSize : byteRegion.size(); }
+
+    const std::byte* data() const { return viewData != nullptr ? viewData : byteRegion.data(); }
+
     // ---------------------------------------------------------------------------
     //! \brief Resize the FixedFieldRegion.
     //!
     //! \param[in] sz_ The new size of the fixed field region in bytes.
     // ---------------------------------------------------------------------------
-    void resize(size_t sz_)
-    {
-        assert(!IsView() && "resize() is not permitted on a non-owning FixedFieldRegion view");
-        byteRegion.resize(sz_);
-    }
-
-    size_t size() const { return viewData != nullptr ? viewSize : byteRegion.size(); }
-
-    const std::byte* data() const { return viewData != nullptr ? viewData : byteRegion.data(); }
-
     void Resize(size_t sz_)
     {
         assert(!IsView() && "Resize() is not permitted on a non-owning FixedFieldRegion view");
@@ -259,11 +250,6 @@ class FixedFieldRegion
 
     // ---------------------------------------------------------------------------
     //! \brief Load a trivially-copyable value of type T from a raw byte offset.
-    //!
-    //! FixedFieldRegion is pure byte storage: it knows only offsets and byte
-    //! counts, not message definitions. Field/schema interpretation lives in
-    //! the LoadFixedField/LoadFixedFieldElement free helpers. The memcpy is
-    //! required because the region may contain unaligned values.
     //!
     //! \tparam T The trivially-copyable type to read.
     //! \param[in] byteOffset_ The byte offset into the region to read from.
@@ -651,7 +637,7 @@ class FlatFieldArray
 
     struct const_iterator
     {
-        using value_type = MessageBody;
+        using value_type = FixedRecordView;
         using reference = value_type;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
@@ -661,7 +647,7 @@ class FlatFieldArray
 
         const_iterator(const FlatFieldArray* fieldArray_, size_t index_ = 0) : fieldArray(fieldArray_), index(index_) {}
 
-        reference operator*() const;
+        reference operator*() const { return (*fieldArray)[index]; }
 
         const_iterator& operator++()
         {
@@ -849,13 +835,6 @@ class MessageBody
     const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
 
     // ---------------------------------------------------------------------------
-    //! \brief Get a field value as a specified type.
-    //!
-    //! \tparam T The type to extract from the field value variant.
-    //! \param[in] field_ The definition of the field to retrieve.
-    //! \return The field value as T.
-    // ---------------------------------------------------------------------------
-    // ---------------------------------------------------------------------------
     //! \brief Get a field value as a specific type.
     //!
     //! Single unified accessor. The requested type T selects the interpretation:
@@ -881,13 +860,19 @@ class MessageBody
             else if constexpr (std::is_same_v<T, bool>)
             {
                 const auto& vec = std::get<std::vector<uint8_t>>(varFields[field_.index]);
-                if (elementIndex_ >= vec.size()) { throw std::runtime_error("GetFieldValue<T>(): index out of bounds for variable-length array field"); }
+                if (elementIndex_ >= vec.size())
+                {
+                    throw std::runtime_error("GetFieldValue<T>(): index out of bounds for variable-length array field");
+                }
                 return static_cast<bool>(vec[elementIndex_]);
             }
             else if constexpr (std::is_trivially_copyable_v<T>)
             {
                 const auto& vec = std::get<std::vector<T>>(varFields[field_.index]);
-                if (elementIndex_ >= vec.size()) { throw std::runtime_error("GetFieldValue<T>(): index out of bounds for variable-length array field"); }
+                if (elementIndex_ >= vec.size())
+                {
+                    throw std::runtime_error("GetFieldValue<T>(): index out of bounds for variable-length array field");
+                }
                 return vec[elementIndex_];
             }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for VARIABLE_LENGTH_ARRAY"); }
@@ -899,13 +884,12 @@ class MessageBody
             if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, NestedFieldArray>) { return std::get<T>(varFields[field_.index]); }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
         default:
-            if constexpr (is_specialization_of_v<T, TypedBuffer>) { return LoadFixedField<T>(fixedFields, field_); }
-            else if constexpr (std::is_trivially_copyable_v<T>)
+            if constexpr (std::is_trivially_copyable_v<T>)
             {
                 if (elementIndex_ != 0) { throw std::runtime_error("GetFieldValue<T>(): element index must be zero for scalar field"); }
                 return LoadScalarField<T>(fixedFields, field_);
             }
-            else { throw std::runtime_error("GetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization"); }
+            else { throw std::runtime_error("GetFieldValue<T>(): incorrect type T for given FIELD_TYPE"); }
         }
     }
 
@@ -1390,20 +1374,6 @@ class MessageBody
         return const_iterator(this, fieldInfo->messageOrderedFields.size());
     }
 };
-
-inline FlatFieldArray::const_iterator::reference FlatFieldArray::const_iterator::operator*() const
-{
-    if (fieldArray == nullptr) { throw std::runtime_error("FlatFieldArray::const_iterator::operator*(): iterator is not bound"); }
-
-    const auto rowCount = fieldArray->size();
-    if (index >= rowCount) { throw std::runtime_error("FlatFieldArray::const_iterator::operator*(): index out of bounds"); }
-
-    MessageBody messageBody(fieldArray->fieldInfo->fixedFieldBytes, 0);
-    const size_t baseIndex = index * fieldArray->fieldInfo->fixedFieldBytes;
-    messageBody.GetFixedFields().SetFieldValue(0, fieldArray->fields.data() + baseIndex, fieldArray->fieldInfo->fixedFieldBytes);
-    messageBody.SetFieldInfo(fieldArray->fieldInfo);
-    return messageBody;
-}
 
 //============================================================================
 //! \class MessageDecoderBase

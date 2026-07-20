@@ -485,7 +485,9 @@ template <typename Derived> class EncoderBase
             const auto v = mb_.GetFieldValue<double>(fd_, index);
             return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, v, FloatingPointFormat(fd_, v), fd_.precision);
         }
-        default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "WriteAsciiValue(): unknown type."); throw std::runtime_error("WriteAsciiValue(): unknown type.");
+        default:
+            SPDLOG_LOGGER_CRITICAL(pclMyLogger, "WriteAsciiValue(): unknown type.");
+            throw std::runtime_error("WriteAsciiValue(): unknown type.");
         }
     }
 
