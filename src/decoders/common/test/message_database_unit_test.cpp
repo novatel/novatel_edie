@@ -47,7 +47,7 @@ class MessageDatabaseTest : public testing::Test
             size_t offset = (ptr - start) % alignment;
             return offset == 0 ? 0 : alignment - offset;
         });
-        
+
         f0 = std::make_shared<BaseField>("short", FIELD_TYPE::SIMPLE, "%hu", DATA_TYPE::USHORT);
         f1 = std::make_shared<BaseField>("int", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::INT);
     }

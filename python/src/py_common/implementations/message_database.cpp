@@ -94,10 +94,9 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
 {
     ThrowIfLocked();
     other_->Lock();
-    core_->AppendEnumerations(other_->core_->EnumDefinitions());
+    core_->Merge(*other_->core_);
     AppendEnumTypes(other_->core_->EnumDefinitions());
-    core_->AppendMessages(other_->core_->MessageDefinitions());
-    AppendMessageTypes(other_->core_->MessageDefinitions());
+    AppendMessageTypes(core_->MessageDefinitions());
 }
 
 // Why clone on the way in:
@@ -109,24 +108,8 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
 {
     ThrowIfLocked();
-    std::vector<MessageDefinition::ConstPtr> owned;
-    owned.reserve(vMessageDefinitions_.size());
-    for (const auto& msgDef : vMessageDefinitions_)
-    {
-        MessageDefinition::Ptr copy = std::make_shared<MessageDefinition>(*msgDef);
-
-        // Rebuild FieldInfo to ensure fixed-length field indices match our message family
-        std::vector<BaseField::Ptr> fieldCopies;
-        for (const auto& [crc, fields] : msgDef->fieldInfo)
-        {
-            std::vector<BaseField::Ptr> fieldCopyVec;
-            for (const auto& f : fields->messageOrderedFields) { fieldCopyVec.push_back(f->clone()); }
-            copy->fieldInfo[crc] = BuildFieldInfo(std::move(fieldCopyVec), core_->GetDbMetadata() ? core_->GetDbMetadata()->messageFamily : "");
-        }
-        owned.push_back(copy);
-    }
-    core_->AppendMessages(owned);
-    AppendMessageTypes(owned);
+    core_->AppendMessages(vMessageDefinitions_);
+    AppendMessageTypes(core_->MessageDefinitions());
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)

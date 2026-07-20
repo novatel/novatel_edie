@@ -233,10 +233,10 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(
             "__init__",
             [](FieldArrayField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, uint32_t array_length,
-               std::vector<BaseField::Ptr> fields, std::string messageFamily) {
+               std::vector<BaseField::Ptr> fields) {
                 try
                 {
-                    auto fieldInfo = BuildFieldInfo(std::move(fields), messageFamily);
+                    auto fieldInfo = BuildFieldInfo(std::move(fields));
                     new (t) FieldArrayField(std::move(name), type, std::move(conversion), data_type, array_length, std::move(fieldInfo)); // NOLINT(*.NewDeleteLeaks)
                 }
                 catch (const std::exception& e)
@@ -245,7 +245,7 @@ void py_common::init_common_message_database(nb::module_& m)
                 }
             },
             "name"_a = std::string{}, "type"_a = FIELD_TYPE::FIELD_ARRAY, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
-            "array_length"_a = uint32_t{0}, "fields"_a = std::vector<std::shared_ptr<BaseField>>{}, "messageFamily"_a = std::string{})
+            "array_length"_a = uint32_t{0}, "fields"_a = std::vector<std::shared_ptr<BaseField>>{})
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_prop_rw(
             "fields",
@@ -253,12 +253,11 @@ void py_common::init_common_message_database(nb::module_& m)
                 if (!self.fieldInfo) { self.fieldInfo = std::make_shared<FieldInfo>(); }
                 return self.fieldInfo->messageOrderedFields;
             },
-            [](FieldArrayField& self, std::vector<BaseField::Ptr> fields, std::string messageFamily) {
+            [](FieldArrayField& self, std::vector<BaseField::Ptr> fields) {
                 FieldArrayField rebuilt(self.name, self.type, self.conversion, self.dataType.name, self.arrayLength,
-                                        BuildFieldInfo(std::move(fields), messageFamily));
+                                        BuildFieldInfo(std::move(fields)));
                 self = std::move(rebuilt);
             },
-            "fields"_a, "messageFamily"_a = std::string{},
             nb::rv_policy::reference_internal)
         .def("__repr__", [](const FieldArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
@@ -273,11 +272,11 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(
             "__init__",
             [](MessageDefinition* t, std::string id, uint32_t log_id, std::string name, std::string description, uint32_t latest_message_crc,
-               std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields, std::string messageFamily) {
+               std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields) {
                 try
                 {
                     std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfoMap;
-                    for (auto& [crc, defs] : fields) { fieldInfoMap[crc] = BuildFieldInfo(std::move(defs), messageFamily); }
+                    for (auto& [crc, defs] : fields) { fieldInfoMap[crc] = BuildFieldInfo(std::move(defs)); }
                     new (t) MessageDefinition(std::move(id), log_id, std::move(name), std::move(description), latest_message_crc,
                                               std::move(fieldInfoMap)); // NOLINT(*.NewDeleteLeaks)
                 }
@@ -287,8 +286,7 @@ void py_common::init_common_message_database(nb::module_& m)
                 }
             },
             "id"_a = std::string{}, "log_id"_a = uint32_t{0}, "name"_a = std::string{}, "description"_a = std::string{},
-            "latest_message_crc"_a = uint32_t{0}, "fields"_a = std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>{},
-            "messageFamily"_a = std::string{})
+            "latest_message_crc"_a = uint32_t{0}, "fields"_a = std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>{})
         .def_rw("id", &MessageDefinition::_id)
         .def_rw("log_id", &MessageDefinition::logID)
         .def_rw("name", &MessageDefinition::name)
@@ -300,12 +298,11 @@ void py_common::init_common_message_database(nb::module_& m)
                 for (const auto& [id, info] : self.fieldInfo) { py_map[nb::cast(id)] = nb::cast(info->messageOrderedFields); }
                 return py_map;
             },
-            [](MessageDefinition& self, std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields, std::string messageFamily) {
+            [](MessageDefinition& self, std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields) {
                 std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfoMap;
-                for (auto& [crc, defs] : fields) { fieldInfoMap[crc] = BuildFieldInfo(std::move(defs), messageFamily); }
+                for (auto& [crc, defs] : fields) { fieldInfoMap[crc] = BuildFieldInfo(std::move(defs)); }
                 self.fieldInfo = std::move(fieldInfoMap);
-            },
-            "fields"_a, "messageFamily"_a = std::string{})
+            })
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)
         .def("__eq__", [](const MessageDefinition& self, const MessageDefinition& other) { return self == other; })
         .def("__repr__", [](nb::handle_t<MessageDefinition> self) {
