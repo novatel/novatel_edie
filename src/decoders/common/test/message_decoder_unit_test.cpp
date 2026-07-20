@@ -448,7 +448,7 @@ TEST(MessageDecoderContainerTypesTest, FixedFieldRegionArrayElementAccess)
     EXPECT_EQ(LoadFixedFieldElement<uint32_t>(fields, 0, arrayField), values[0]);
     EXPECT_EQ(LoadFixedFieldElement<uint32_t>(fields, 1, arrayField), values[1]);
     EXPECT_EQ(LoadFixedFieldElement<uint32_t>(fields, 2, arrayField), values[2]);
-    EXPECT_THROW(LoadFixedFieldElement<uint32_t>(fields, 3, arrayField), std::runtime_error);
+    EXPECT_THROW((void)LoadFixedFieldElement<uint32_t>(fields, 3, arrayField), std::runtime_error);
 }
 
 TEST(MessageDecoderContainerTypesTest, FlatFieldArrayIteratorBuildsExpectedMessageBodyPerField)

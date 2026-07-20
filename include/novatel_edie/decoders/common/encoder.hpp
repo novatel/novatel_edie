@@ -712,8 +712,6 @@ template <typename Derived> class EncoderBase
             return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', enumString, "\",");
         }
 
-        const auto it = jsonFieldMap.find(fieldDefRef_.conversionHash);
-
         switch (fieldDefRef_.type)
         {
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];

@@ -499,6 +499,16 @@ struct FieldInfo
         return *it;
     }
 
+    [[nodiscard]] std::shared_ptr<FieldInfo> clone() const
+    {
+        auto copy = std::make_shared<FieldInfo>();
+        copy->fixedFieldBytes = fixedFieldBytes;
+        copy->varFieldCount = varFieldCount;
+        copy->messageOrderedFields.reserve(messageOrderedFields.size());
+        for (const auto& f : messageOrderedFields) { copy->messageOrderedFields.push_back(f ? f->clone() : nullptr); }
+        return copy;
+    }
+
     using Ptr = std::shared_ptr<FieldInfo>;
     using ConstPtr = std::shared_ptr<const FieldInfo>;
 };
@@ -542,13 +552,7 @@ struct FieldArrayField : ArrayField
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override
     {
         auto copy = std::make_shared<FieldArrayField>(*this);
-        auto copiedFieldInfo = std::make_shared<FieldInfo>();
-        copiedFieldInfo->fixedFieldBytes = fieldInfo->fixedFieldBytes;
-        copiedFieldInfo->varFieldCount = fieldInfo->varFieldCount;
-        auto& copiedFields = copiedFieldInfo->messageOrderedFields;
-        copiedFields.reserve(fieldInfo->messageOrderedFields.size());
-        for (const auto& sub : fieldInfo->messageOrderedFields) { copiedFields.push_back(sub ? sub->clone() : nullptr); }
-        copy->fieldInfo = std::move(copiedFieldInfo);
+        copy->fieldInfo = fieldInfo->clone();
         return copy;
     }
 
@@ -661,16 +665,7 @@ struct MessageDefinition
     MessageDefinition(const MessageDefinition& other)
         : _id(other._id), logID(other.logID), name(other.name), description(other.description), latestMessageCrc(other.latestMessageCrc)
     {
-        for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo)
-        {
-            auto copiedFieldInfo = std::make_shared<FieldInfo>();
-            copiedFieldInfo->fixedFieldBytes = otherFieldInfoPtr->fixedFieldBytes;
-            copiedFieldInfo->varFieldCount = otherFieldInfoPtr->varFieldCount;
-            auto& copyVec = copiedFieldInfo->messageOrderedFields;
-            copyVec.reserve(otherFieldInfoPtr->messageOrderedFields.size());
-            for (const auto& f : otherFieldInfoPtr->messageOrderedFields) { copyVec.push_back(f ? f->clone() : nullptr); }
-            fieldInfo[crc] = std::move(copiedFieldInfo);
-        }
+        for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo) { fieldInfo[crc] = otherFieldInfoPtr->clone(); }
     }
 
     MessageDefinition& operator=(const MessageDefinition& other)
@@ -682,16 +677,7 @@ struct MessageDefinition
         description = other.description;
         latestMessageCrc = other.latestMessageCrc;
         fieldInfo.clear();
-        for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo)
-        {
-            auto copiedFieldInfo = std::make_shared<FieldInfo>();
-            copiedFieldInfo->fixedFieldBytes = otherFieldInfoPtr->fixedFieldBytes;
-            copiedFieldInfo->varFieldCount = otherFieldInfoPtr->varFieldCount;
-            auto& copyVec = copiedFieldInfo->messageOrderedFields;
-            copyVec.reserve(otherFieldInfoPtr->messageOrderedFields.size());
-            for (const auto& f : otherFieldInfoPtr->messageOrderedFields) { copyVec.push_back(f ? f->clone() : nullptr); }
-            fieldInfo[crc] = std::move(copiedFieldInfo);
-        }
+        for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo) { fieldInfo[crc] = otherFieldInfoPtr->clone(); }
         return *this;
     }
 
