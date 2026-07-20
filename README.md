@@ -254,7 +254,7 @@ Run the resulting executable with the following command: `rxconfig_handler.exe <
 There are a few ways to access a message's fields after decoding.
 The following examples show how to access the "latitude" field of a BESTPOS message:
 
-#### Approach 1: Get value with type template (recommended)
+#### Approach 1: Get value with templated type (recommended)
 
 Use `MessageBody::GetFieldValue<T>(const BaseField& field_)` to get the value of `field_`.
 
@@ -269,12 +269,15 @@ Use `MessageBody::GetFieldValue<T>(const BaseField& field_)` to get the value of
 **Example:**
 
 ```cpp
-MessageBody stMessage;
-eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
+const auto db = LoadJsonDbFile("database/database.json");
+const auto& bestposDef = db.GetMsgDef("BESTPOS");
 
 // Get a reference to a field definition
-const auto& latDef = stMessage.GetFieldInfo()->GetFieldDefByName("latitude");
+const auto& latDef = bestposDef->fieldInfo.at(bestposDef->latestMessageCrc)->GetFieldDefByName("latitude");
 if (!latDef) { throw std::runtime_error("Could not find latitude definition!"); }
+
+MessageBody stMessage;
+eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
 
 if (eDecoderStatus == STATUS::SUCCESS) {
     if (stMetaData.usMessageId == 42 /*BESTPOS*/) {
@@ -298,12 +301,7 @@ Use `MessageBody::GetFieldValueVariant(const BaseField& field_)` to get the valu
 **Example:**
 
 ```cpp
-MessageBody stMessage;
-eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
-
-// Get a reference to a field definition
-const auto& latDef = stMessage.GetFieldInfo()->GetFieldDefByName("latitude");
-if (!latDef) { throw std::runtime_error("Could not find latitude definition!"); }
+...
 
 if (eDecoderStatus == STATUS::SUCCESS) {
     if (stMetaData.usMessageId == 42 /*BESTPOS*/) {
@@ -337,9 +335,6 @@ This will generate a header file called `novatel_message_definitions.hpp` in you
 ```cpp
 #include "novatel_message_definitions.hpp" // TODO: insert correct relative path here
 ...
-IntermediateHeader stHeader;
-double latitude;
-eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
 
 if (eDecoderStatus == STATUS::SUCCESS)
 {
@@ -350,6 +345,23 @@ if (eDecoderStatus == STATUS::SUCCESS)
         struct BESTPOS bestposLog;
         std::memcpy(&bestposLog, pucFrameBuffer, sizeof(struct BESTPOS));
         latitude = bestposLog->latitude;
+    }
+}
+``````
+
+#### Iterating over fields
+
+`MessageBody` also provides an interface for iterating over field (definition, value) pairs.
+
+**Example:**
+
+```cpp
+for (const auto& [def, val] : stMessage)
+{
+    if (def->name == "latitude")
+    {
+        double latVal = std::get<double>(val);
+        ...
     }
 }
 ``````
