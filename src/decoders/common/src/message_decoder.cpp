@@ -284,9 +284,9 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         case FIELD_TYPE::ENUM:
             switch (field->dataType.length)
             {
-            case 1: clMessageBody_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint8_t>(*ppucLogBuf_), 1); break;
-            case 2: clMessageBody_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint16_t>(*ppucLogBuf_), 1); break;
-            case 4: clMessageBody_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint32_t>(*ppucLogBuf_), 1); break;
+            case 1: clMessageBody_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint8_t>(*ppucLogBuf_)); break;
+            case 2: clMessageBody_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint16_t>(*ppucLogBuf_)); break;
+            case 4: clMessageBody_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint32_t>(*ppucLogBuf_)); break;
             default:
                 SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeBinary(): Invalid field length\n");
                 throw std::runtime_error("DecodeBinary(): Invalid field length\n");
@@ -509,9 +509,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             const int32_t enumValue = GetEnumValue(enumField->enumDef, sEnum);
             switch (enumField->dataType.length)
             {
-            case 1: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int8_t>(enumValue), 1); break;
-            case 2: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int16_t>(enumValue), 1); break;
-            default: clMessageBody_.SetFieldValue<true>(field->index, enumValue, 1); break;
+            case 1: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int8_t>(enumValue)); break;
+            case 2: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int16_t>(enumValue)); break;
+            default: clMessageBody_.SetFieldValue<true>(field->index, enumValue); break;
             }
             *ppcLogBuf_ += tokenLength + 1;
             break;
@@ -737,9 +737,9 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
 
                 switch (enumField->dataType.length)
                 {
-                case 1: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int8_t>(parsedEnumValue), 1); break;
-                case 2: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int16_t>(parsedEnumValue), 1); break;
-                default: clMessageBody_.SetFieldValue<true>(field->index, parsedEnumValue, 1); break;
+                case 1: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int8_t>(parsedEnumValue)); break;
+                case 2: clMessageBody_.SetFieldValue<true>(field->index, static_cast<int16_t>(parsedEnumValue)); break;
+                default: clMessageBody_.SetFieldValue<true>(field->index, parsedEnumValue); break;
                 }
             }
             break;

@@ -739,6 +739,11 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     //! \brief A constructor for the MessageDatabase class.
     //
+    //! \note This constructor does not recompute the FieldInfo of the given
+    //!     message definitions. The caller is responsible for ensuring that each
+    //!     definition's FieldInfo is valid for the given message family. (The
+    //!     JSON DB reader computes FieldInfo before using this constructor.)
+    //
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
     //! \param[in] pDbMetadata_ Database metadata
@@ -763,20 +768,15 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
-        if (pDbMetadata != nullptr && other_.pDbMetadata != nullptr && !pDbMetadata->messageFamily.empty() &&
-            !other_.pDbMetadata->messageFamily.empty() && pDbMetadata->messageFamily != other_.pDbMetadata->messageFamily)
-        {
-            throw std::runtime_error("Cannot merge MessageDatabases with different message families.");
-        }
-        std::thread enumThread([this, &other_]() { AppendEnumerations(other_.vEnumDefinitions); });
-        std::thread messageThread([this, &other_]() { AppendMessages(other_.vMessageDefinitions); });
-
-        enumThread.join();
-        messageThread.join();
+        AppendEnumerations(other_.vEnumDefinitions);
+        AppendMessages(other_.vMessageDefinitions);
     }
 
     //----------------------------------------------------------------------------
     //! \brief Append a list of message definitions to the database.
+    //
+    //! \note All of the given definitions are deep-copied into the database so
+    //!     their FieldInfo can be rebuilt without corrupting the source definitions.
     //
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //----------------------------------------------------------------------------
@@ -785,15 +785,23 @@ class MessageDatabase
         for (const auto& msgDef : vMessageDefinitions_)
         {
             RemoveMessage(msgDef->logID);
-            vMessageDefinitions.push_back(msgDef);
-            mMessageName[msgDef->name] = msgDef;
-            mMessageId[msgDef->logID] = msgDef;
 
-            for (const auto& item : msgDef->fieldInfo)
+            MessageDefinition::Ptr copy = std::make_shared<MessageDefinition>(*msgDef);
+
+            // Rebuild FieldInfo to ensure field indices match our message family
+            for (const auto& [crc, fields] : copy->fieldInfo)
             {
-                if (!item.second->messageOrderedFields.empty()) { MapMessageEnumFields(item.second->messageOrderedFields); }
+                // BaseFields were already deep-copied by the MessageDefinition copy constructor, but we need to
+                // cast off constness to rebuild field definitions with this DB's message family.
+                std::vector<BaseField::Ptr> fieldVec;
+                fieldVec.reserve(fields->messageOrderedFields.size());
+                for (const auto& f : fields->messageOrderedFields) { fieldVec.emplace_back(std::const_pointer_cast<BaseField>(f)); }
+                copy->fieldInfo[crc] = BuildFieldInfo(std::move(fieldVec), pDbMetadata ? pDbMetadata->messageFamily : "");
             }
+
+            vMessageDefinitions.push_back(copy);
         }
+        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -893,11 +901,14 @@ class MessageDatabase
 
     //----------------------------------------------------------------------------
     //! \brief Sets the message family on the DB metadata, creating it if absent.
+    //!     Rebuilds FieldInfo for every MessageDefinition in the database to ensure
+    //!     field indices match the new message family.
     //----------------------------------------------------------------------------
     void SetMessageFamily(const std::string& messageFamily_)
     {
         if (!pDbMetadata) { pDbMetadata = std::make_shared<DbMetadata>(); }
         pDbMetadata->messageFamily = messageFamily_;
+        AppendMessages(vMessageDefinitions); // Rebuild FieldInfo for all messages with the new message family
     }
 
     //----------------------------------------------------------------------------

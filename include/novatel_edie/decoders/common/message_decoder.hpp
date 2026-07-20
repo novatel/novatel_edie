@@ -492,12 +492,11 @@ class FlatFieldArray
     //! \param[in] fieldIndex_ The index of the field.
     //! \param[in] startIndex_ The index in the field's byte region.
     //! \param[in] value_ The value to set.
-    //! \param[in] n Number of values to copy (defaults to 1).
     // ---------------------------------------------------------------------------
     template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void SetFieldValue(const size_t fieldIndex_, const size_t startIndex_, const T& value_, size_t n = 1)
+    void SetFieldValue(const size_t fieldIndex_, const size_t startIndex_, const T& value_)
     {
-        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + startIndex_, &value_, n);
+        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + startIndex_, &value_);
     }
 
     // ---------------------------------------------------------------------------
@@ -575,6 +574,8 @@ using FieldValueVariant =
                  TypedBuffer<int64_t>, TypedBuffer<uint64_t>, TypedBuffer<float>, TypedBuffer<double>, std::vector<int8_t>, std::vector<int16_t>,
                  std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>,
                  std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::string, FlatFieldArray, NestedFieldArray>;
+
+using FieldValueEntry = std::pair<BaseField::ConstPtr, FieldValueVariant>;
 
 inline FieldValueVariant LoadVariant(const BaseField& fd_, const std::byte* fieldPtr_)
 {
@@ -1000,12 +1001,11 @@ class MessageBody
     //! \tparam T The value type (must not be a pointer).
     //! \param[in] startIndex_ The index in the target field storage.
     //! \param[in] value_ The value to set.
-    //! \param[in] n Number of values to copy (defaults to 1).
     // ---------------------------------------------------------------------------
     template <bool Fixed = true, typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void SetFieldValue(const size_t startIndex_, const T& value_, size_t n = 1)
+    void SetFieldValue(const size_t startIndex_, const T& value_)
     {
-        SetFieldValue<Fixed>(startIndex_, &value_, n);
+        SetFieldValue<Fixed>(startIndex_, &value_);
     }
 
     // ---------------------------------------------------------------------------
@@ -1237,7 +1237,7 @@ class MessageBody
 
     struct const_iterator
     {
-        using value_type = FieldValueVariant;
+        using value_type = FieldValueEntry;
         using reference = value_type;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
@@ -1247,7 +1247,11 @@ class MessageBody
 
         const_iterator(const MessageBody* messageBody_, size_t index_ = 0) : messageBody(messageBody_), index(index_) {}
 
-        reference operator*() const { return messageBody->GetFieldValueVariant(*messageBody->fieldInfo->messageOrderedFields[index]); }
+        reference operator*() const
+        {
+            const auto& fieldDef = messageBody->fieldInfo->messageOrderedFields[index];
+            return {fieldDef, messageBody->GetFieldValueVariant(*fieldDef)};
+        }
 
         const_iterator& operator++()
         {

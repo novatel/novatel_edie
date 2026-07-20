@@ -507,11 +507,17 @@ TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorTraversesFieldValuesIn
     body.SetFieldValue(*f2, NestedFieldArray{nestedBody});
 
     auto it = body.begin();
-    EXPECT_EQ(std::get<uint32_t>(*it), 1234U);
+    auto fieldValue = *it;
+    EXPECT_EQ(fieldValue.first, f0);
+    EXPECT_EQ(std::get<uint32_t>(fieldValue.second), 1234U);
     ++it;
-    EXPECT_EQ(std::get<std::string>(*it), "ok");
+    fieldValue = *it;
+    EXPECT_EQ(fieldValue.first, f1);
+    EXPECT_EQ(std::get<std::string>(fieldValue.second), "ok");
     ++it;
-    const auto nestedArray = std::get<NestedFieldArray>(*it);
+    fieldValue = *it;
+    EXPECT_EQ(fieldValue.first, f2);
+    const auto nestedArray = std::get<NestedFieldArray>(fieldValue.second);
     EXPECT_EQ(nestedArray.size(), 1U);
     const auto& nestedBodyValue = nestedArray[0];
     EXPECT_EQ(nestedBodyValue.GetFieldValue<uint32_t>(*f0Copy), 5678U);
@@ -555,19 +561,29 @@ TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessag
     ASSERT_EQ(status, STATUS::SUCCESS);
 
     auto it = decoded.begin();
-    EXPECT_EQ(std::get<uint32_t>(*it), 1234U);
+    auto fieldValue = *it;
+    EXPECT_EQ(fieldValue.first, f0);
+    EXPECT_EQ(std::get<uint32_t>(fieldValue.second), 1234U);
     ++it;
-    EXPECT_EQ(std::get<std::string>(*it), "ok");
+    fieldValue = *it;
+    EXPECT_EQ(fieldValue.first, f1);
+    EXPECT_EQ(std::get<std::string>(fieldValue.second), "ok");
     ++it;
 
-    const auto nestedArray = std::get<NestedFieldArray>(*it);
+    fieldValue = *it;
+    EXPECT_EQ(fieldValue.first, f2);
+    const auto nestedArray = std::get<NestedFieldArray>(fieldValue.second);
     ASSERT_EQ(nestedArray.size(), 1U);
 
     const MessageBody& nestedBody = nestedArray.front();
     auto nestedIt = nestedBody.begin();
-    EXPECT_EQ(std::get<uint32_t>(*nestedIt), 5678U);
+    auto nestedFieldValue = *nestedIt;
+    EXPECT_EQ(nestedFieldValue.first->name, f0Nested->name);
+    EXPECT_EQ(std::get<uint32_t>(nestedFieldValue.second), 5678U);
     ++nestedIt;
-    EXPECT_EQ(std::get<std::string>(*nestedIt), "nested");
+    nestedFieldValue = *nestedIt;
+    EXPECT_EQ(nestedFieldValue.first->name, f1Nested->name);
+    EXPECT_EQ(std::get<std::string>(nestedFieldValue.second), "nested");
     ++nestedIt;
     EXPECT_EQ(nestedIt, nestedBody.end());
 
