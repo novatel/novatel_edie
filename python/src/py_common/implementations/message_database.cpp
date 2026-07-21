@@ -99,12 +99,6 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
     AppendMessageTypes(core_->MessageDefinitions());
 }
 
-// Why clone on the way in:
-// MessageDatabase::AppendMessages writes through `EnumField::enumDef` via
-// MapMessageEnumFields; without an owned copy that mutation corrupts the
-// source database's shared field defs. Python is the only client that
-// legitimately reuses a def across databases, so the duplication is paid here
-// rather than inside the C++ AppendMessages.
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
 {
     ThrowIfLocked();
