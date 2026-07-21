@@ -1410,19 +1410,19 @@ class MessageDecoderBase
     std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>>
         jsonFieldMap;
 
-    [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& clMessageBody_,
+    [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                       uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
-    [[nodiscard]] STATUS DecodeAscii(const FieldInfo& vMsgDefFields_, const char** ppcLogBuf_, CompositeField& clMessageBody_,
+    [[nodiscard]] STATUS DecodeAscii(const FieldInfo& vMsgDefFields_, const char** ppcLogBuf_, CompositeField& clCompField_,
                                      const char* pcBufEnd = nullptr) const;
-    [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, CompositeField& clMessageBody_) const;
+    [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, CompositeField& clCompField_) const;
 
     template <bool Fixed = true>
-    static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clMessageBody_,
+    static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                   size_t n = 1);
-    void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, CompositeField& clMessageBody_,
+    void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, CompositeField& clCompField_,
                           size_t elementIndex_ = 0, bool fixed_ = true) const;
-    void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, CompositeField& clMessageBody_, size_t elementIndex_ = 0,
+    void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, CompositeField& clCompField_, size_t elementIndex_ = 0,
                          bool fixed_ = true) const;
 
     //----------------------------------------------------------------------------
@@ -1439,7 +1439,7 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <bool Fixed = true, typename T = int32_t, int R = 10>
-    static void ParseAndEmplace(CompositeField& clMessageBody_, const BaseField& field_, const char* token, size_t tokenLength,
+    static void ParseAndEmplace(CompositeField& clCompField_, const BaseField& field_, const char* token, size_t tokenLength,
                                 size_t elementIndex_ = 0)
     {
         T value;
@@ -1455,7 +1455,7 @@ class MessageDecoderBase
 
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
 
-        clMessageBody_.SetArrayElement<Fixed>(field_, elementIndex_, value);
+        clCompField_.SetArrayElement<Fixed>(field_, elementIndex_, value);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -1508,7 +1508,7 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     uint32_t GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
-                            const CompositeField& clMessageBody_) const
+                            const CompositeField& clCompField_) const
     {
         if (arrayDef.arrayLengthRef.empty())
         {
@@ -1526,9 +1526,9 @@ class MessageDecoderBase
         }
 
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
-        if (auto arrLengthRefDef = clMessageBody_.GetFieldInfo()->GetFieldDefByName(arrayDef.arrayLengthRef))
+        if (auto arrLengthRefDef = clCompField_.GetFieldInfo()->GetFieldDefByName(arrayDef.arrayLengthRef))
         {
-            auto fieldValue = clMessageBody_.GetFieldValueVariant(*arrLengthRefDef);
+            auto fieldValue = clCompField_.GetFieldValueVariant(*arrLengthRefDef);
             const auto arraySize = std::visit(
                 [](const auto& value) -> std::optional<uint32_t> {
                     using T = std::decay_t<decltype(value)>;

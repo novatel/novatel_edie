@@ -146,9 +146,9 @@ struct PyField
 
     // Take ownership of `fields` as this field's backing storage. Used to detach a
     // field from a parent array it was previously borrowing from.
-    void take_ownership(CompositeField&& mb_)
+    void take_ownership(CompositeField&& cf_)
     {
-        auto owned = std::make_unique<CompositeField>(std::move(mb_));
+        auto owned = std::make_unique<CompositeField>(std::move(cf_));
         fieldsPtr = owned.get();
         storage = std::move(owned);
     }
