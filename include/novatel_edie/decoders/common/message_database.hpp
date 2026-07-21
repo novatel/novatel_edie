@@ -894,7 +894,9 @@ class MessageDatabase
     {
         if (!pDbMetadata) { pDbMetadata = std::make_shared<DbMetadata>(); }
         pDbMetadata->messageFamily = messageFamily_;
-        AppendMessages(vMessageDefinitions); // Rebuild FieldInfo for all messages with the new message family
+        const auto previousMessageDefinitions = std::move(vMessageDefinitions);
+        vMessageDefinitions.clear();
+        AppendMessages(previousMessageDefinitions); // Rebuild FieldInfo for all messages with the new message family
     }
 
     //----------------------------------------------------------------------------

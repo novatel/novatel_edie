@@ -39,6 +39,7 @@ class MessageDatabaseTest : public testing::Test
     std::shared_ptr<BaseField> f0;
     std::shared_ptr<BaseField> f1;
     static constexpr uint32_t kMsgCrc = 0x11223344U;
+    static constexpr uint32_t kMsgCrc2 = 0x55667788U;
 
     void SetUp() override
     {
@@ -60,6 +61,42 @@ class MessageDatabaseTest : public testing::Test
         const auto fieldInfo = BuildFieldInfo({f0, f1});
         msgDef->fieldInfo.emplace(kMsgCrc, fieldInfo);
         msgDef->latestMessageCrc = kMsgCrc;
+        return msgDef;
+    }
+
+    static FieldInfo::ConstPtr CreateSimpleFieldInfo()
+    {
+        auto a = std::make_shared<BaseField>("short", FIELD_TYPE::SIMPLE, "%hu", DATA_TYPE::USHORT);
+        auto b = std::make_shared<BaseField>("int", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::INT);
+        return BuildFieldInfo({a, b});
+    }
+
+    static std::shared_ptr<MessageDefinition> CreateMultiCrcMessageDefinition(uint32_t logID, const std::string& name)
+    {
+        auto msgDef = std::make_shared<MessageDefinition>();
+        msgDef->logID = logID;
+        msgDef->name = name;
+        msgDef->fieldInfo.emplace(kMsgCrc, CreateSimpleFieldInfo());
+        msgDef->fieldInfo.emplace(kMsgCrc2, CreateSimpleFieldInfo());
+        msgDef->latestMessageCrc = kMsgCrc2;
+        return msgDef;
+    }
+
+    static std::shared_ptr<MessageDefinition> CreateComplexMultiCrcMessageDefinition(uint32_t logID, const std::string& name)
+    {
+        auto msgDef = std::make_shared<MessageDefinition>();
+        msgDef->logID = logID;
+        msgDef->name = name;
+        msgDef->fieldInfo.emplace(kMsgCrc, CreateSimpleFieldInfo());
+
+        auto parentField = std::make_shared<BaseField>("header", FIELD_TYPE::SIMPLE, "%hu", DATA_TYPE::USHORT);
+        auto nestedField0 = std::make_shared<BaseField>("nestedShort", FIELD_TYPE::SIMPLE, "%hu", DATA_TYPE::USHORT);
+        auto nestedField1 = std::make_shared<BaseField>("nestedInt", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::INT);
+        auto nestedInfo = BuildFieldInfo({nestedField0, nestedField1});
+        auto fieldArray = std::make_shared<FieldArrayField>("nestedArray", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, nestedInfo);
+
+        msgDef->fieldInfo.emplace(kMsgCrc2, BuildFieldInfo({parentField, fieldArray}));
+        msgDef->latestMessageCrc = kMsgCrc2;
         return msgDef;
     }
 };
@@ -156,4 +193,88 @@ TEST_F(MessageDatabaseTest, MessageDefinitionsCopiedOnMerge)
     ASSERT_EQ(retrievedFieldInfo.messageOrderedFields[1]->name, "int");
     ASSERT_EQ(retrievedFieldInfo.messageOrderedFields[1]->index, 4U);           // OEM alignment
     ASSERT_EQ(msgDef2->fieldInfo[kMsgCrc]->messageOrderedFields[1]->index, 2U); // Original message definition is unchanged
+}
+
+TEST_F(MessageDatabaseTest, SetMessageFamilyRebuildsAllMessagesAndAllCrcEntries)
+{
+    auto msgDef1 = CreateMultiCrcMessageDefinition(200U, "TESTMSG1");
+    auto msgDef2 = CreateMultiCrcMessageDefinition(201U, "TESTMSG2");
+    MessageDatabase db({msgDef1, msgDef2}, {});
+
+    ASSERT_EQ(db.GetMsgDef("TESTMSG1")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 2U);
+    ASSERT_EQ(db.GetMsgDef("TESTMSG1")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 2U);
+    ASSERT_EQ(db.GetMsgDef("TESTMSG2")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 2U);
+    ASSERT_EQ(db.GetMsgDef("TESTMSG2")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 2U);
+
+    db.SetMessageFamily("OEM");
+
+    ASSERT_EQ(db.GetMsgDef("TESTMSG1")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 4U);
+    ASSERT_EQ(db.GetMsgDef("TESTMSG1")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 4U);
+    ASSERT_EQ(db.GetMsgDef("TESTMSG2")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 4U);
+    ASSERT_EQ(db.GetMsgDef("TESTMSG2")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 4U);
+}
+
+TEST_F(MessageDatabaseTest, AppendMessagesReplacesExistingLogIdAndNameMappings)
+{
+    auto oldDef = CreateMessageDefinition(300U, "OLDMSG");
+    auto newDef = CreateMessageDefinition(300U, "NEWMSG");
+    MessageDatabase db({oldDef}, {});
+
+    db.AppendMessages({newDef});
+
+    ASSERT_EQ(db.MessageDefinitions().size(), 1U);
+    ASSERT_EQ(db.GetMsgDef("OLDMSG"), nullptr);
+    const auto replaced = db.GetMsgDef("NEWMSG");
+    ASSERT_NE(replaced, nullptr);
+    ASSERT_EQ(replaced->logID, 300U);
+    ASSERT_EQ(db.GetMsgDef(300)->name, "NEWMSG");
+}
+
+TEST_F(MessageDatabaseTest, AppendMessagesRebuildsEveryCrcAndPreservesSourceDefinition)
+{
+    auto source = CreateComplexMultiCrcMessageDefinition(400U, "SRCMSG");
+    MessageDatabase db({}, {});
+    db.SetMessageFamily("OEM");
+
+    db.AppendMessages({source});
+
+    const auto appended = db.GetMsgDef("SRCMSG");
+    ASSERT_NE(appended, nullptr);
+    ASSERT_EQ(appended->fieldInfo.begin()->second->messageOrderedFields[1]->index, 4U);
+
+    const auto& complexInfo = appended->GetMsgDefFromCrc(kMsgCrc2);
+    ASSERT_EQ(complexInfo.fixedFieldBytes, 2U);
+    ASSERT_EQ(complexInfo.varFieldCount, 1U);
+    ASSERT_EQ(complexInfo.messageOrderedFields.size(), 2U);
+    ASSERT_EQ(complexInfo.messageOrderedFields[1]->type, FIELD_TYPE::FIELD_ARRAY);
+
+    const auto appendedFieldArray = std::dynamic_pointer_cast<const FieldArrayField>(complexInfo.messageOrderedFields[1]);
+    const auto sourceFieldArray = std::dynamic_pointer_cast<const FieldArrayField>(source->GetMsgDefFromCrc(kMsgCrc2).messageOrderedFields[1]);
+    ASSERT_NE(appendedFieldArray, nullptr);
+    ASSERT_NE(sourceFieldArray, nullptr);
+    ASSERT_EQ(appendedFieldArray->fieldInfo->messageOrderedFields.size(), 2U);
+    ASSERT_NE(appendedFieldArray->fieldInfo->messageOrderedFields[0].get(), sourceFieldArray->fieldInfo->messageOrderedFields[0].get());
+}
+
+TEST_F(MessageDatabaseTest, MergeOverwritesConflictsUsingTargetFamilyAndPreservesSource)
+{
+    auto targetOriginal = CreateMessageDefinition(500U, "TARGET_ORIGINAL");
+    auto sourceReplacement = CreateMessageDefinition(500U, "SOURCE_REPLACEMENT");
+    auto sourceExtra = CreateMessageDefinition(501U, "SOURCE_EXTRA");
+
+    MessageDatabase targetDb({targetOriginal}, {});
+    targetDb.SetMessageFamily("OEM");
+
+    MessageDatabase sourceDb({sourceReplacement, sourceExtra}, {});
+    targetDb.Merge(sourceDb);
+
+    ASSERT_EQ(targetDb.MessageDefinitions().size(), 2U);
+    ASSERT_EQ(targetDb.GetMsgDef("TARGET_ORIGINAL"), nullptr);
+    ASSERT_NE(targetDb.GetMsgDef("SOURCE_REPLACEMENT"), nullptr);
+    ASSERT_NE(targetDb.GetMsgDef("SOURCE_EXTRA"), nullptr);
+    ASSERT_EQ(targetDb.GetMsgDef("SOURCE_REPLACEMENT")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 4U);
+    ASSERT_EQ(targetDb.GetMsgDef("SOURCE_EXTRA")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 4U);
+
+    ASSERT_EQ(sourceDb.GetMsgDef("SOURCE_REPLACEMENT")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 2U);
+    ASSERT_EQ(sourceDb.GetMsgDef("SOURCE_EXTRA")->fieldInfo.begin()->second->messageOrderedFields[1]->index, 2U);
 }

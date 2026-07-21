@@ -5,7 +5,7 @@ from pathlib import Path
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
-from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeConfigDeps
+from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeDeps
 from conan.tools.files import copy, rmdir
 
 required_conan_version = ">=2.4.0"
@@ -122,7 +122,7 @@ class NovatelEdieConan(ConanFile):
         # Deploy CMake information for dependencies
         # Experimental generator (fixes VS 2026 builds)
         # https://github.com/conan-io/conan/issues/20148#issuecomment-4912499844
-        deps = CMakeConfigDeps(self)
+        deps = CMakeDeps(self)
         deps.generate()
 
         # Deploy any shared libraries
