@@ -289,12 +289,6 @@ static void EncodeAbbrevAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FOR
 static void EncodeBinaryLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::BINARY>(state, bestposBinary); }
 static void EncodeJsonLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::JSON>(state, bestposBinary); }
 
-static void EncodeFlattenedBinaryRangeLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::FLATTENED_BINARY>(state, rangeAscii); }
-static void EncodeAsciiRangeLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::ASCII>(state, rangeAscii); }
-static void EncodeAbbrevAsciiRangeLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::ABBREV_ASCII>(state, rangeAscii); }
-static void EncodeBinaryRangeLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::BINARY>(state, rangeAscii); }
-static void EncodeJsonRangeLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::JSON>(state, rangeAscii); }
-
 static void DecompressRangeCmpGeneral(benchmark::State& state, uint32_t id, const char* compressedData)
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
@@ -344,11 +338,6 @@ BENCHMARK(EncodeAsciiLog);
 BENCHMARK(EncodeAbbrevAsciiLog);
 BENCHMARK(EncodeBinaryLog);
 BENCHMARK(EncodeJsonLog);
-BENCHMARK(EncodeFlattenedBinaryRangeLog);
-BENCHMARK(EncodeAsciiRangeLog);
-BENCHMARK(EncodeAbbrevAsciiRangeLog);
-BENCHMARK(EncodeBinaryRangeLog);
-BENCHMARK(EncodeJsonRangeLog);
 BENCHMARK(DecompressRangeCmp);
 BENCHMARK(DecompressRangeCmp2);
 BENCHMARK(DecompressRangeCmp4);
