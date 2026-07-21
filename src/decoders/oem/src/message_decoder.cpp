@@ -145,7 +145,7 @@ void MessageDecoder::InitOemFieldMaps()
         std::string_view sValue;
         if (clJsonField_.get(sValue) != simdjson::SUCCESS)
         {
-            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_.name + "'");
         }
         const auto value = static_cast<uint32_t>(std::bitset<8>(std::string(sValue)).to_ulong());
         if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
@@ -158,7 +158,7 @@ void MessageDecoder::InitOemFieldMaps()
         std::string_view sValue;
         if (clJsonField_.get(sValue) != simdjson::SUCCESS)
         {
-            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_.name + "'");
         }
         const auto value = pclMsgDb_.MsgNameToMsgId(std::string(sValue));
         if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
@@ -171,7 +171,7 @@ void MessageDecoder::InitOemFieldMaps()
         double dValue;
         if (clJsonField_.get(dValue) != simdjson::SUCCESS)
         {
-            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_.name + "'");
         }
         const auto value = static_cast<uint32_t>(std::llround(dValue * SEC_TO_MILLI_SEC));
         if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
@@ -184,7 +184,7 @@ void MessageDecoder::InitOemFieldMaps()
         std::string_view sTemp;
         if (clJsonField_.get(sTemp) != simdjson::SUCCESS)
         {
-            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_.name + "'");
         }
         size_t sDelimiter = sTemp.find_last_of('+');
         if (sDelimiter == std::string_view::npos) { sDelimiter = sTemp.find_last_of('-'); }
@@ -234,7 +234,7 @@ void MessageDecoder::InitOemFieldMaps()
         std::string_view sValue;
         if (clJsonField_.get(sValue) != simdjson::SUCCESS)
         {
-            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_.name + "'");
         }
         MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(sValue);
         const auto value = pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, 0, 1, 0) : 0;

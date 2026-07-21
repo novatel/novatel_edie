@@ -601,7 +601,6 @@ struct MessageDefinition
     uint32_t logID{0};
     std::string name;
     std::string description;
-    std::string messageStyle;
     std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfo; // map of crc keys to field info
     uint32_t latestMessageCrc{0};
 

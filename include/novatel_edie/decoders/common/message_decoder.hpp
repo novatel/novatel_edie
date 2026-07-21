@@ -1484,7 +1484,7 @@ class MessageDecoderBase
         IntermediateType intermediateValue;
         if (clJsonField_.get(intermediateValue) != simdjson::SUCCESS)
         {
-            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+            throw std::runtime_error("Failed to decode JSON field '" + field_.name + "'");
         }
         T value = static_cast<T>(intermediateValue);
         if (fixed_) { vIntermediate_.SetArrayElement<true>(field_, elementIndex_, value); }

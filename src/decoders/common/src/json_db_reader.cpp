@@ -71,9 +71,6 @@ std::string AsString(element el_) { return std::string(AsStringView(el_)); }
 //! Read an element as a string, mapping a JSON null to an empty string.
 std::string AsStringOrEmpty(element el_) { return el_.is_null() ? std::string() : AsString(el_); }
 
-//! Read an element as a string, mapping a JSON null to a given default value.
-std::string AsStringOrDefault(element el_, std::string_view default_) { return el_.is_null() ? std::string(default_) : AsString(el_); }
-
 //! Read a JSON integer known to be unsigned, accepting either simdjson tag.
 //! simdjson stores a number that fits in int64 as INT64 and a larger one as UINT64, and get<T>()
 //! is strict about that tag, so both cases must be tried. Throws if the value is not an integer or is negative.
@@ -94,34 +91,21 @@ std::string StringOr(element obj_, std::string_view key_, std::string_view defau
     return AsString(el);
 }
 
+using AlignFunction = std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>;
+
 // Forward declarations (parse functions are mutually recursive via field arrays).
 void ParseEnumDataType(element j_, EnumDataType& f_);
 void ParseSimpleDataType(element j_, SimpleDataType& f_);
 void ParseBaseField(element j_, BaseField& f_);
 void ParseEnumField(element j_, EnumField& f_);
 void ParseArrayField(element j_, ArrayField& fd_);
-void ParseFieldArrayField(element j_, FieldArrayField& fd_);
-void ParseMessageDefinition(element j_, MessageDefinition& md_);
+void ParseFieldArrayField(element j_, FieldArrayField& fd_, const AlignFunction& alignFn_);
 void ParseEnumDefinition(element j_, EnumDefinition& ed_);
 void ParseDbMetadata(element j_, DbMetadata& dbm_);
-uint32_t ParseFields(element j_, FieldInfo& vFields_);
-void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_);
-
-// Forward declaration of from_json
-void from_json(const json& j_, EnumDataType& f_);
-void from_json(const json& j_, SimpleDataType& f_);
-void from_json(const json& j_, BaseField& f_);
-void from_json(const json& j_, EnumField& f_);
-void from_json(const json& j_, ArrayField& fd_);
-void from_json(const json& j_, FieldArrayField& fd_);
-void from_json(const json& j_, EnumDefinition& ed_);
-void from_json(const json& j_, DbMetadata& dbm_);
-
-using AlignFunction = std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>;
 
 // Forward declaration of parse_fields and parse_enumerators
-uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& alignFn_ = MessageDatabase::NoAlign);
-void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
+uint32_t ParseFields(element j_, FieldInfo& vFields_, const AlignFunction& alignFn_ = MessageDatabase::NoAlign);
+void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_);
 
 //-----------------------------------------------------------------------
 void ParseEnumDataType(element j_, EnumDataType& f_)
@@ -197,11 +181,20 @@ void ParseFieldArrayField(element j_, FieldArrayField& fd_, const AlignFunction&
     fd_.arrayLengthFieldSize =
         j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsUint(arrayLengthFieldSize)) : 4;
 
-    fd_.fieldInfo = std::make_shared<FieldInfo>();
-    fd_.fieldSize = fd_.arrayLength * ParseFields(Member(j_, "fields"), fd_.fieldInfo, alignFn_);
+    FieldInfo stFieldInfo{};
+    fd_.fieldSize = fd_.arrayLength * ParseFields(Member(j_, "fields"), stFieldInfo, alignFn_);
+    fd_.fieldInfo = std::make_shared<FieldInfo>(std::move(stFieldInfo));
 
     element arrayLengthRef;
     if (j_["arrayLengthRef"].get(arrayLengthRef) == simdjson::SUCCESS) { fd_.arrayLengthRef = AsStringOrEmpty(arrayLengthRef); }
+}
+
+//-----------------------------------------------------------------------
+void ParseEnumDefinition(element j_, EnumDefinition& ed_)
+{
+    std::vector<EnumDataType> enumerators;
+    ParseEnumerators(Member(j_, "enumerators"), enumerators);
+    ed_ = EnumDefinition(AsString(Member(j_, "_id")), AsString(Member(j_, "name")), std::move(enumerators));
 }
 
 //-----------------------------------------------------------------------
@@ -315,14 +308,15 @@ std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot
         md->name = AsString(Member(j_, "name"));
         md->description = AsStringOrEmpty(Member(j_, "description"));
         md->latestMessageCrc = std::stoul(AsString(Member(j_, "latestMsgDefCrc")));
-        md->messageStyle = AsStringOrDefault(Member(j_, "messageStyle"), "OEM4_MESSAGE_STYLE");
 
         object fields;
         if (Member(j_, "fields").get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON object"); }
         for (auto field : fields)
         {
             uint32_t defCrc = std::stoul(std::string(field.key));
-            ParseFields(field.value, md->fieldInfo[defCrc], alignFn_);
+            FieldInfo stFieldInfo{};
+            ParseFields(field.value, stFieldInfo, alignFn_);
+            md->fieldInfo[defCrc] = std::make_shared<FieldInfo>(std::move(stFieldInfo));
         }
         res.emplace_back(std::move(md));
     }
