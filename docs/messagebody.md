@@ -1,10 +1,10 @@
-# MessageBody data structure
+# CompositeField data structure
 
-![MessageBody object layout](messagebody.png)
+![CompositeField object layout](compositefield.png)
 
 ## Overview
 
-A `MessageBody` stores the decoded contents of a message. It holds:
+A `CompositeField` stores the decoded contents of a message. It holds:
 - A **fixed-size region** for fields with known byte size
 - A **variable-size region** for fields whose size can vary, e.g. strings and field arrays
 - A pointer to an object describing the message's **fields**
@@ -28,18 +28,18 @@ A `MessageBody` stores the decoded contents of a message. It holds:
 #### Field arrays
 
 - Stored as `FlatFieldArray` if every field has fixed size
-- Stored as `NestedFieldArray = std::vector<MessageBody>` otherwise
+- Stored as `NestedFieldArray = std::vector<CompositeField>` otherwise
 
 ### Reading fields
 
-- `MessageBody::GetFieldValue` and `FlatFieldArray::GetFieldValue` can be used to get the value of most fields by their definition
-- `MessageBody::GetFieldValueVariant` wraps a field's value in a variant for programming convenience
+- `CompositeField::GetFieldValue` and `FlatFieldArray::GetFieldValue` can be used to get the value of most fields by their definition
+- `CompositeField::GetFieldValueVariant` wraps a field's value in a variant for programming convenience
 
 ### Writing fields
 
-- `MessageBody::SetFieldValue` can be used to set the value of most fields by their definition
-- `MessageBody::SetArrayElement` can be used to set the values of individual elements of FIXED_LENGTH_ARRAYs/VARIABLE_LENGTH_ARRAYs
-- Use `MessageBody::GetFixedFields`/`MessageBody::GetVarFields` to obtain references to the fixed/variable regions, respectively
+- `CompositeField::SetFieldValue` can be used to set the value of most fields by their definition
+- `CompositeField::SetArrayElement` can be used to set the values of individual elements of FIXED_LENGTH_ARRAYs/VARIABLE_LENGTH_ARRAYs
+- Use `CompositeField::GetFixedFields`/`CompositeField::GetVarFields` to obtain references to the fixed/variable regions, respectively
 
 ### Fixed field copy optimization
 
