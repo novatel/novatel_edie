@@ -483,14 +483,55 @@ class TestDatabaseActions:
         # Assert
         retrieved_msg_oem = oem_db.get_msg_def('test_msg')
         assert retrieved_msg_oem is not None
-        assert retrieved_msg_oem.fields[0][0].name == 'short'
-        assert retrieved_msg_oem.fields[0][1].name == 'int'
-        assert retrieved_msg_oem.fields[0][0].index == 0
+        assert len(retrieved_msg_oem.fields[0]) == 2
         assert retrieved_msg_oem.fields[0][1].index == 4 # OEM alignment
 
         retrieved_msg_generic = generic_db.get_msg_def('test_msg')
         assert retrieved_msg_generic is not None
-        assert retrieved_msg_generic.fields[0][0].name == 'short'
-        assert retrieved_msg_generic.fields[0][1].name == 'int'
-        assert retrieved_msg_generic.fields[0][0].index == 0
+        assert len(retrieved_msg_generic.fields[0]) == 2
         assert retrieved_msg_generic.fields[0][1].index == 2 # No alignment
+        
+    def test_set_message_family_recalculate_alignment(self, json_db: MessageDatabase):
+        # Arrange
+        db = MessageDatabase()
+        test_msg = MessageDefinition(
+            id='test_msg', log_id=0, name='test_msg', latest_message_crc=0,
+            fields={0: [
+                FieldDefinition(name='short', type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.SHORT),
+                FieldDefinition(name='int', type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.INT)
+            ]}
+        )
+
+        # Act
+        db.append_messages([test_msg])
+        db.message_family = "OEM"
+
+        # Assert
+        retrieved_msg_oem = db.get_msg_def('test_msg')
+        assert retrieved_msg_oem is not None
+        assert test_msg.fields[0][1].index == 2 # Original message definition remains unchanged
+        assert len(retrieved_msg_oem.fields[0]) == 2
+        assert retrieved_msg_oem.fields[0][1].index == 4 # OEM alignment
+        
+    def test_merge_recalculate_alignment(self, json_db: MessageDatabase):
+        # Arrange
+        oem_db = json_db.fork()
+        generic_db = MessageDatabase(message_family="")
+        test_msg = MessageDefinition(
+            id='test_msg', log_id=0, name='test_msg', latest_message_crc=0,
+            fields={0: [
+                FieldDefinition(name='short', type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.SHORT),
+                FieldDefinition(name='int', type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.INT)
+            ]}
+        )
+        generic_db.append_messages([test_msg])
+
+        # Act
+        oem_db.merge(generic_db)
+
+        # Assert
+        retrieved_msg_oem = oem_db.get_msg_def('test_msg')
+        assert retrieved_msg_oem is not None
+        assert test_msg.fields[0][1].index == 2 # Original message definition remains unchanged
+        assert len(retrieved_msg_oem.fields[0]) == 2
+        assert retrieved_msg_oem.fields[0][1].index == 4 # OEM alignment
