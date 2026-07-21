@@ -177,7 +177,7 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
         const unsigned char* dataPtr = data;
         MetaDataStruct metaData;
         IntermediateHeader header;
-        MessageBody message;
+        CompositeField message;
 
         (void)headerDecoder.Decode(dataPtr, header, metaData);
         dataPtr += metaData.uiHeaderLength;
@@ -264,7 +264,7 @@ template <ENCODE_FORMAT Format, size_t N> static void EncodeLog(benchmark::State
     MetaDataStruct metaData;
     MessageDataStruct messageData;
     IntermediateHeader header;
-    MessageBody message;
+    CompositeField message;
 
     const unsigned char* tempPtr = data;
 

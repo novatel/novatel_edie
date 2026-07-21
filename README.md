@@ -256,7 +256,7 @@ The following examples show how to access the "latitude" field of a BESTPOS mess
 
 #### Approach 1: Get value with templated type (recommended)
 
-Use `MessageBody::GetFieldValue<T>(const BaseField& field_)` to get the value of `field_`.
+Use `CompositeField::GetFieldValue<T>(const BaseField& field_)` to get the value of `field_`.
 
 **✅ Advantages:**
 - Mostly type safe (will throw a runtime error if you attempt to extract the wrong type)
@@ -276,7 +276,7 @@ const auto& bestposDef = db.GetMsgDef("BESTPOS");
 const auto& latDef = bestposDef->fieldInfo.at(bestposDef->latestMessageCrc)->GetFieldDefByName("latitude");
 if (!latDef) { throw std::runtime_error("Could not find latitude definition!"); }
 
-MessageBody stMessage;
+CompositeField stMessage;
 eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
 
 if (eDecoderStatus == STATUS::SUCCESS) {
@@ -288,7 +288,7 @@ if (eDecoderStatus == STATUS::SUCCESS) {
 
 #### Approach 2: Get value variant (convenient but slower)
 
-Use `MessageBody::GetFieldValueVariant(const BaseField& field_)` to get the value of `field_` wrapped in a `std::variant`.
+Use `CompositeField::GetFieldValueVariant(const BaseField& field_)` to get the value of `field_` wrapped in a `std::variant`.
 
 **✅ Advantages:**
 - Mostly type safe (will throw a `std::bad_variant_access` exception if you attempt to `std::get` the wrong type from `val_`)
@@ -351,7 +351,7 @@ if (eDecoderStatus == STATUS::SUCCESS)
 
 #### Iterating over fields
 
-`MessageBody` also provides an interface for iterating over field (definition, value) pairs.
+`CompositeField` also provides an interface for iterating over field (definition, value) pairs.
 
 **Example:**
 

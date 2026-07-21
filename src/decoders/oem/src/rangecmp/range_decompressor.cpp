@@ -747,7 +747,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
 
     MessageDataStruct stMessageData;
     IntermediateHeader stHeader;
-    MessageBody stMessage;
+    CompositeField stMessage;
 
     unsigned char* pucTempMessagePointer = pucBuffer_;
     STATUS eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stHeader, stMetaData_);

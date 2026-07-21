@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     auto eEncoderStatus = STATUS::UNKNOWN;
 
     IntermediateHeader stHeader;
-    MessageBody stMessage;
+    CompositeField stMessage;
 
     MetaDataBase* stMetaDataPtr;
     MessageDataStruct stMessageData;

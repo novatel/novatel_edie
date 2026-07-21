@@ -267,7 +267,7 @@ template <typename ParserT, typename FilterT, typename MetaDataT, typename Inter
     //! if requested in the ParserConfigStruct given to SetConfig().
     //!   STREAM_EMPTY: There are no more bytes to parse in the file provided.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeaderT& header_, MessageBody& stMessage_,
+    [[nodiscard]] STATUS ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeaderT& header_, CompositeField& stMessage_,
                                           MetaDataT& stMetaData_)
     {
         return HandleRead([this](auto&&... params) { return clMyParser.ReadIntermediate(std::forward<decltype(params)>(params)...); }, stMessageData_,

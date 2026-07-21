@@ -42,12 +42,12 @@ class MessageDecoderTypesTest : public ::testing::Test
       public:
         DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoderBase("OEM", std::move(pclMessageDb_)) {}
 
-        STATUS TestDecodeAscii(const FieldInfo& FieldInfo_, const char** ppcLogBuf_, MessageBody& vIntermediateFormat_)
+        STATUS TestDecodeAscii(const FieldInfo& FieldInfo_, const char** ppcLogBuf_, CompositeField& vIntermediateFormat_)
         {
             return DecodeAscii<false>(FieldInfo_, ppcLogBuf_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const FieldInfo& FieldInfo_, const unsigned char** ppucLogBuf_, MessageBody& vIntermediateFormat_)
+        STATUS TestDecodeBinary(const FieldInfo& FieldInfo_, const unsigned char** ppucLogBuf_, CompositeField& vIntermediateFormat_)
         {
             return DecodeBinary(FieldInfo_, ppucLogBuf_, vIntermediateFormat_, 0); // 0 for message length since it's not used in these tests
         }
@@ -64,7 +64,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
             for (size_t sz = 0; sz < vstrTestInput.size(); ++sz)
             {
-                MessageBody vIntermediateFormat_(DataTypeSize(D), 0);
+                CompositeField vIntermediateFormat_(DataTypeSize(D), 0);
 
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
@@ -86,7 +86,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
         template <typename T, DATA_TYPE D> void InvalidSizeSimpleASCIIHelper(std::string_view strTestInput)
         {
-            MessageBody vIntermediateFormat(DataTypeSize(D) + 2, 0);
+            CompositeField vIntermediateFormat(DataTypeSize(D) + 2, 0);
 
             auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 2, D);
             const char* tempStr = strTestInput.data();
@@ -103,7 +103,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
             for (size_t sz = 0; sz < vvucTestInput.size(); ++sz)
             {
-                MessageBody vIntermediateFormat_(DataTypeSize(D), 0);
+                CompositeField vIntermediateFormat_(DataTypeSize(D), 0);
 
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
@@ -230,7 +230,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
 TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("CHAR_1", FIELD_TYPE::SIMPLE, "%c", DATA_TYPE::CHAR));
-    MessageBody vIntermediateFormat_(1, 0);
+    CompositeField vIntermediateFormat_(1, 0);
 
     const auto* testInput = "4";
     FieldInfo fieldInfo;
@@ -243,7 +243,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("B_True", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::BOOL));
-    MessageBody vIntermediateFormat_(4, 0);
+    CompositeField vIntermediateFormat_(4, 0);
 
     const auto* testInput = "TRUE";
     FieldInfo fieldInfo;
@@ -285,7 +285,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
     MsgDefFields.emplace_back(e1);
     MsgDefFields.emplace_back(e2);
 
-    MessageBody vIntermediateFormat(12, 0);
+    CompositeField vIntermediateFormat(12, 0);
 
     const auto* testInput = "UNKNOWN,APPROXIMATE,SATTIME";
 
@@ -301,7 +301,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN));
-    MessageBody vIntermediateFormat(0, 1);
+    CompositeField vIntermediateFormat(0, 1);
 
     std::vector<const char*> testInputs = {"SOL_COMPUTED,WAAS"};
     std::vector<const char*> testTargets = {"SOL_COMPUTED","WAAS"};
@@ -320,7 +320,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%d", DATA_TYPE::UNKNOWN));
-    MessageBody vIntermediateFormat_;
+    CompositeField vIntermediateFormat_;
 
     const auto* testInput = "garbage";
 
@@ -351,7 +351,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::UNKNOWN));
-    MessageBody vIntermediateFormat_(1, 0);
+    CompositeField vIntermediateFormat_(1, 0);
 
     const unsigned char* testInput = nullptr;
 
@@ -364,7 +364,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%d", DATA_TYPE::UNKNOWN));
-    MessageBody vIntermediateFormat_(1, 0);
+    CompositeField vIntermediateFormat_(1, 0);
 
     const unsigned char* testInput = nullptr;
 
@@ -399,7 +399,7 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     addSimpleField("%f", 4, DATA_TYPE::FLOAT);
     addSimpleField("%lf", 8, DATA_TYPE::DOUBLE);
 
-    MessageBody vIntermediateFormat(offset, 0);
+    CompositeField vIntermediateFormat(offset, 0);
 
     const auto* testInput = "TRUE,63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
 
@@ -496,13 +496,13 @@ TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorTraversesFieldValuesIn
     auto f2 = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, faFieldInfo);
 
     const auto fieldInfo = BuildFieldInfo({f0, f1, f2});
-    MessageBody body(fieldInfo);
+    CompositeField body(fieldInfo);
     body.SetFieldValue(*f0, 1234U);
     body.SetFieldValue(*f1, std::string("ok"));
-    MessageBody nestedBody(faFieldInfo);
+    CompositeField nestedBody(faFieldInfo);
     nestedBody.SetFieldValue(*f0Copy, 5678U);
     nestedBody.SetFieldValue(*f1Copy, std::string("nested"));
-    body.SetFieldValue(*f2, NestedFieldArray{nestedBody});
+    body.SetFieldValue(*f2, CompositeFieldArray{nestedBody});
 
     auto it = body.begin();
     auto fieldValue = *it;
@@ -515,7 +515,7 @@ TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorTraversesFieldValuesIn
     ++it;
     fieldValue = *it;
     EXPECT_EQ(fieldValue.first, f2);
-    const auto nestedArray = std::get<NestedFieldArray>(fieldValue.second);
+    const auto nestedArray = std::get<CompositeFieldArray>(fieldValue.second);
     EXPECT_EQ(nestedArray.size(), 1U);
     const auto& nestedBodyValue = nestedArray[0];
     EXPECT_EQ(nestedBodyValue.GetFieldValue<uint32_t>(*f0Copy), 5678U);
@@ -554,7 +554,7 @@ TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessag
     meta.uiLength = static_cast<uint32_t>(payload.size());
     meta.messageName = msgDef->name;
 
-    MessageBody decoded;
+    CompositeField decoded;
     const STATUS status = decoder.Decode(reinterpret_cast<const unsigned char*>(payload.data()), decoded, meta);
     ASSERT_EQ(status, STATUS::SUCCESS);
 
@@ -570,10 +570,10 @@ TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessag
 
     fieldValue = *it;
     EXPECT_EQ(fieldValue.first, f2);
-    const auto nestedArray = std::get<NestedFieldArray>(fieldValue.second);
+    const auto nestedArray = std::get<CompositeFieldArray>(fieldValue.second);
     ASSERT_EQ(nestedArray.size(), 1U);
 
-    const MessageBody& nestedBody = nestedArray.front();
+    const CompositeField& nestedBody = nestedArray.front();
     auto nestedIt = nestedBody.begin();
     auto nestedFieldValue = *nestedIt;
     EXPECT_EQ(nestedFieldValue.first->name, f0Nested->name);
@@ -591,7 +591,7 @@ TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessag
 
 TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorRequiresFieldInfo)
 {
-    MessageBody body;
+    CompositeField body;
     EXPECT_THROW(body.begin(), std::runtime_error);
     EXPECT_THROW(body.end(), std::runtime_error);
 }

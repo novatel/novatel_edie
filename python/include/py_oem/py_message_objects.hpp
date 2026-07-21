@@ -236,13 +236,13 @@ struct PyEncodableField : public py_common::PyField
         return messageDef->name;
     }
 
-    explicit PyEncodableField(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_,
+    explicit PyEncodableField(CompositeField fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_,
                               const MessageDefinition* messageDef_, uint32_t messageCrc_)
         : PyField(std::move(fields_), messageDef_, messageCrc_, std::move(database_)), header(std::move(header_)), messageDef(messageDef_),
           messageCrc(messageCrc_) {};
 
     // Default-construct an encodable field from a (db, def, crc) tuple.
-    // Field value defaults are set in the MessageBody(FieldInfo::ConstPtr) constructor.
+    // Field value defaults are set in the CompositeField(FieldInfo::ConstPtr) constructor.
     explicit PyEncodableField(py_common::PyMessageDatabase::ConstPtr database_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
         : PyField(messageDef_, messageCrc_, std::move(database_)), messageDef(messageDef_), messageCrc(messageCrc_) {};
 
@@ -260,7 +260,7 @@ struct PyEncodableField : public py_common::PyField
 //============================================================================
 struct PyMessage : public PyEncodableField
 {
-    explicit PyMessage(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
+    explicit PyMessage(CompositeField fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
                        const MessageDefinition* messageDef_, uint32_t messageCrc_)
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_) {};
 
@@ -271,7 +271,7 @@ struct PyMessage : public PyEncodableField
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header);
 
-nb::object create_message_instance(PyHeader& header, MessageBody&& message_fields, oem::MetaDataStruct& metadata,
+nb::object create_message_instance(PyHeader& header, CompositeField&& message_fields, oem::MetaDataStruct& metadata,
                                    py_common::PyMessageDatabase::ConstPtr database);
 
 //============================================================================
@@ -284,7 +284,7 @@ nb::object create_message_instance(PyHeader& header, MessageBody&& message_field
 struct PyResponse : public PyEncodableField
 {
     bool complete;
-    explicit PyResponse(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_,
+    explicit PyResponse(CompositeField fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_,
                         const MessageDefinition* messageDef_, uint32_t messageCrc_)
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_), complete(complete_) {};
 

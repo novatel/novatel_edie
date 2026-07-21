@@ -2210,7 +2210,7 @@ class DecodeEncodeTest : public ::testing::Test
                                 uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
     {
         IntermediateHeader stHeader;
-        MessageBody stMessage;
+        CompositeField stMessage;
 
         unsigned char* pucTempPtr = pucMessageBuffer_;
         STATUS eStatus = pclMyHeaderDecoder->Decode(pucTempPtr, stHeader, stMetaData_);
@@ -3119,7 +3119,7 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     MessageDataStruct stMessageData;
 
     IntermediateHeader stHeader;
-    MessageBody stMessage;
+    CompositeField stMessage;
     stHeader.ucMessageType = static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE);
     auto messageDefinition = std::make_shared<MessageDefinition>();
     messageDefinition->fieldInfo[0] = std::make_shared<FieldInfo>();;
@@ -4252,7 +4252,7 @@ class NovatelTypesTest : public ::testing::Test
       public:
         DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoder(pclMessageDb_) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_, MessageBody& vIntermediateFormat_)
+        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_, CompositeField& vIntermediateFormat_)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
             vIntermediateFormat_.GetFixedFields() = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
@@ -4260,7 +4260,7 @@ class NovatelTypesTest : public ::testing::Test
             return DecodeAscii<false>(fieldInfo, ppcLogBuf_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const unsigned char** ppucLogBuf_, MessageBody& vIntermediateFormat_)
+        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& vIntermediateFormat_)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
             vIntermediateFormat_.GetFixedFields() = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
@@ -4291,7 +4291,7 @@ class NovatelTypesTest : public ::testing::Test
         EncoderTester(MessageDatabase::Ptr pclMessageDb_) : Encoder(pclMessageDb_) {}
         ~EncoderTester() override = default;
 
-        bool TestEncodeBinaryBody(const MessageBody& stInterMessage_, const std::vector<BaseField::Ptr>& msgDefFields_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
+        bool TestEncodeBinaryBody(const CompositeField& stInterMessage_, const std::vector<BaseField::Ptr>& msgDefFields_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(msgDefFields_);
             return EncodeBinaryBody<false>(stInterMessage_, fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytes);
@@ -4371,7 +4371,7 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec2", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec3", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec4", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
-    MessageBody vIntermediateFormat_;
+    CompositeField vIntermediateFormat_;
 
     const auto* testInput = "-1.000,0.000,604800.000,4294967295.000";
 

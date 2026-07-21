@@ -313,8 +313,8 @@ struct BaseField
     bool isCsv{false};                // cached; Ascii encoding of this field is comma-separated,
                                       // true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
-    size_t index{0}; // if fixed, this is the byte offset of the field in MessageBody.fixedFields
-                     // if variable, this is the index of the field in MessageBody.variableFields
+    size_t index{0}; // if fixed, this is the byte offset of the field in CompositeField.fixedFields
+                     // if variable, this is the index of the field in CompositeField.variableFields
 
     BaseField() = default;
 

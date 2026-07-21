@@ -121,7 +121,7 @@ nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHea
     return message_pyinst;
 }
 
-nb::object py_oem::create_message_instance(py_oem::PyHeader& header, MessageBody&& message_fields, MetaDataStruct& metadata,
+nb::object py_oem::create_message_instance(py_oem::PyHeader& header, CompositeField&& message_fields, MetaDataStruct& metadata,
                                            py_common::PyMessageDatabase::ConstPtr database)
 {
 

@@ -20,7 +20,7 @@ nb::object py_oem::PyFileParser::PyRead()
     static oem::MetaDataStruct metadata;
     static MessageDataStruct message_data;
     py_oem::PyHeader header;
-    MessageBody message_fields;
+    CompositeField message_fields;
 
     STATUS status = ReadIntermediate(message_data, header, message_fields, metadata);
 
@@ -45,7 +45,7 @@ nb::object py_oem::PyFileParser::PyConvert(ENCODE_FORMAT fmt)
     static oem::MetaDataStruct metadata;
     static MessageDataStruct message_data;
     static py_oem::PyHeader header;
-    static MessageBody message_fields;
+    static CompositeField message_fields;
 
     SetEncodeFormat(fmt);
 

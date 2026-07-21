@@ -272,18 +272,19 @@ template <typename BufferType, typename... Args>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> std::function<bool(const BaseField&, const MessageBody&, char**, uint32_t&, const MessageDatabase&, size_t)> BasicIntMapEntry()
+template <typename T>
+std::function<bool(const BaseField&, const CompositeField&, char**, uint32_t&, const MessageDatabase&, size_t)> BasicIntMapEntry()
 {
-    return [](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, const MessageDatabase&, size_t index) {
+    return [](const BaseField& fd_, const CompositeField& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, const MessageDatabase&, size_t index) {
         return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, mb_.GetFieldValue<T>(fd_, index));
     };
 }
 
 // -------------------------------------------------------------------------------------------------------
 template <typename T>
-std::function<bool(const BaseField&, const MessageBody&, char**, uint32_t&, const MessageDatabase&, size_t)> BasicHexMapEntry(uint32_t width)
+std::function<bool(const BaseField&, const CompositeField&, char**, uint32_t&, const MessageDatabase&, size_t)> BasicHexMapEntry(uint32_t width)
 {
-    return [width](const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, const MessageDatabase&, size_t index) {
+    return [width](const BaseField& fd_, const CompositeField& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, const MessageDatabase&, size_t index) {
         return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, mb_.GetFieldValue<T>(fd_, index), width);
     };
 }
@@ -306,7 +307,7 @@ template <typename Derived> class EncoderBase
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
-    using AsciiConverter = std::function<bool(const BaseField&, const MessageBody&, char**, uint32_t&, const MessageDatabase&, size_t index)>;
+    using AsciiConverter = std::function<bool(const BaseField&, const CompositeField&, char**, uint32_t&, const MessageDatabase&, size_t index)>;
 
     // TODO: ASCII and JSON could probably share the same map.
     std::unordered_map<uint64_t, AsciiConverter> asciiFieldMap;
@@ -327,7 +328,7 @@ template <typename Derived> class EncoderBase
     virtual bool AddStringFieldPadding([[maybe_unused]] unsigned char** ptr, [[maybe_unused]] uint32_t& uiBytesLeft_) const { return true; }
 
     template <bool Flatten>
-    [[nodiscard]] bool EncodeBinaryBody(const MessageBody& stInterMessage_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
+    [[nodiscard]] bool EncodeBinaryBody(const CompositeField& stInterMessage_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
                                         unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
     {
         const auto alignPtr = [this](uint16_t fieldTypeLength_, const unsigned char* startBuf, unsigned char** ppucOutBuf_,
@@ -371,7 +372,7 @@ template <typename Derived> class EncoderBase
                         using ValueType = std::decay_t<decltype(fieldVector)>;
                         size_t maxBytes = 0;
                         size_t count = 0;
-                        if constexpr (std::is_same_v<ValueType, FlatFieldArray> || std::is_same_v<ValueType, NestedFieldArray>)
+                        if constexpr (std::is_same_v<ValueType, FlatFieldArray> || std::is_same_v<ValueType, CompositeFieldArray>)
                         {
                             fieldArrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
                             if (!fieldArrayFieldDef)
@@ -412,7 +413,7 @@ template <typename Derived> class EncoderBase
                         const unsigned char* startPos = *ppucOutBuf_;
 
                         // Variable-length FIELD_ARRAY
-                        if constexpr (std::is_same_v<ValueType, NestedFieldArray>)
+                        if constexpr (std::is_same_v<ValueType, CompositeFieldArray>)
                         {
                             for (const auto& element : fieldVector)
                             {
@@ -454,7 +455,7 @@ template <typename Derived> class EncoderBase
     }
 
     template <bool Json = false>
-    [[nodiscard]] bool WriteAsciiValue(const BaseField& fd_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, size_t index) const
+    [[nodiscard]] bool WriteAsciiValue(const BaseField& fd_, const CompositeField& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, size_t index) const
     {
         switch (fd_.dataType.name)
         {
@@ -506,8 +507,9 @@ template <typename Derived> class EncoderBase
     //! \param[in] index The element index (0 for scalars).
     // ---------------------------------------------------------------------------
     template <bool Json = false>
-    [[nodiscard]] bool WriteAsciiElement(const BaseField& fd_, const MessageBody& mb_, const std::unordered_map<uint64_t, AsciiConverter>& fieldMap_,
-                                         size_t index, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool WriteAsciiElement(const BaseField& fd_, const CompositeField& mb_,
+                                         const std::unordered_map<uint64_t, AsciiConverter>& fieldMap_, size_t index, char** ppcOutBuf_,
+                                         uint32_t& uiBytesLeft_) const
     {
         const auto it = fieldMap_.find(fd_.conversionHash);
         if (it != fieldMap_.end()) { return (it->second)(fd_, mb_, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb, index); }
@@ -515,7 +517,7 @@ template <typename Derived> class EncoderBase
     }
 
     template <bool Abbreviated>
-    [[nodiscard]] bool EncodeAsciiField(const BaseField& fieldDefRef_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool EncodeAsciiField(const BaseField& fieldDefRef_, const CompositeField& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         constexpr char separator = Abbreviated ? Derived::separatorAbbAscii : Derived::separatorAscii;
 
@@ -572,7 +574,7 @@ template <typename Derived> class EncoderBase
     }
 
     template <bool Abbreviated>
-    [[nodiscard]] bool EncodeAsciiBody(const MessageBody& clMessageBody_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
+    [[nodiscard]] bool EncodeAsciiBody(const CompositeField& clMessageBody_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
                                        char** ppcOutBuf_, uint32_t& uiBytesLeft_, const uint32_t uiIndents_ = 1) const
     {
         constexpr char separator = Abbreviated ? Derived::separatorAbbAscii : Derived::separatorAscii;
@@ -632,7 +634,7 @@ template <typename Derived> class EncoderBase
                     [&](auto&& fa) -> bool {
                         using FieldArrayType = std::decay_t<decltype(fa)>;
                         const auto& subfieldDefs = fieldArrayDef->fieldInfo->messageOrderedFields;
-                        if constexpr (std::is_same_v<FieldArrayType, FlatFieldArray> || std::is_same_v<FieldArrayType, NestedFieldArray>)
+                        if constexpr (std::is_same_v<FieldArrayType, FlatFieldArray> || std::is_same_v<FieldArrayType, CompositeFieldArray>)
                         {
                             for (size_t i = 0; i < count; i++)
                             {
@@ -640,7 +642,7 @@ template <typename Derived> class EncoderBase
                                 {
                                     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
                                 }
-                                if constexpr (std::is_same_v<FieldArrayType, NestedFieldArray>)
+                                if constexpr (std::is_same_v<FieldArrayType, CompositeFieldArray>)
                                 {
                                     if (!EncodeAsciiBody<Abbreviated>(fa[i], subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1))
                                     {
@@ -652,9 +654,9 @@ template <typename Derived> class EncoderBase
                                     const auto fixedFieldBytes = fieldArrayDef->fieldInfo->fixedFieldBytes;
                                     const auto* elementStart = fa.data() + (i * fixedFieldBytes);
                                     // Borrow the row's bytes in place instead of copying them into a
-                                    // temporary MessageBody: the parent flat array owns the storage and
+                                    // temporary CompositeField: the parent flat array owns the storage and
                                     // outlives this sub-encode.
-                                    const MessageBody mb = MessageBody::ViewFixedFields(elementStart, fixedFieldBytes);
+                                    const CompositeField mb = CompositeField::ViewFixedFields(elementStart, fixedFieldBytes);
                                     if (!EncodeAsciiBody<Abbreviated>(mb, subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1)) { return false; }
                                 }
                                 else { throw std::runtime_error("Unexpected field array type in EncodeAsciiBody"); }
@@ -696,7 +698,7 @@ template <typename Derived> class EncoderBase
         return true;
     }
 
-    [[nodiscard]] bool EncodeJsonField(const BaseField& fieldDefRef_, const MessageBody& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool EncodeJsonField(const BaseField& fieldDefRef_, const CompositeField& mb_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDefRef_.name), "\": ")) { return false; }
 
@@ -759,8 +761,8 @@ template <typename Derived> class EncoderBase
         return true;
     }
 
-    [[nodiscard]] bool EncodeJsonBody(const MessageBody& clMessageBody_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_, char** ppcOutBuf_,
-                                      uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool EncodeJsonBody(const CompositeField& clMessageBody_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
+                                      char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '{')) { return false; }
 
@@ -786,7 +788,7 @@ template <typename Derived> class EncoderBase
                             using FieldArrayType = std::decay_t<decltype(fa)>;
                             for (size_t i = 0; i < count; i++)
                             {
-                                if constexpr (std::is_same_v<FieldArrayType, NestedFieldArray>)
+                                if constexpr (std::is_same_v<FieldArrayType, CompositeFieldArray>)
                                 {
                                     if (!EncodeJsonBody(fa[i], arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
                                     {
@@ -798,9 +800,9 @@ template <typename Derived> class EncoderBase
                                     const auto fixedFieldBytes = arrayFieldDef->fieldInfo->fixedFieldBytes;
                                     const auto* elementStart = fa.data() + (i * fixedFieldBytes);
                                     // Borrow the row's bytes in place instead of copying them into a
-                                    // temporary MessageBody: the parent flat array owns the storage and
+                                    // temporary CompositeField: the parent flat array owns the storage and
                                     // outlives this sub-encode.
-                                    const MessageBody mb = MessageBody::ViewFixedFields(elementStart, fixedFieldBytes);
+                                    const CompositeField mb = CompositeField::ViewFixedFields(elementStart, fixedFieldBytes);
                                     if (!EncodeJsonBody(mb, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
                                     {
                                         return false;

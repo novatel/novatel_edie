@@ -58,8 +58,8 @@ template <template <typename...> class Template, typename... Args> struct is_spe
 
 template <typename T, template <typename...> class Template> inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
 
-class MessageBody;
-using NestedFieldArray = std::vector<MessageBody>;
+class CompositeField;
+using CompositeFieldArray = std::vector<CompositeField>;
 
 // ---------------------------------------------------------------------------
 //! \class TypedBuffer
@@ -335,7 +335,7 @@ class FixedFieldRegion
 //!     from raw byte storage, without re-dispatching on field type.
 //!
 //! This is the innermost scalar read: callers that have already determined the
-//! field is scalar (e.g. MessageBody::GetFieldValue's default branch) route
+//! field is scalar (e.g. CompositeField::GetFieldValue's default branch) route
 //! here to avoid re-switching on field_.type.
 //!
 //! \tparam T The value type (trivially copyable, never a TypedBuffer<E>).
@@ -668,7 +668,7 @@ using FieldValueVariant =
                  TypedBuffer<int8_t>, TypedBuffer<uint8_t>, TypedBuffer<int16_t>, TypedBuffer<uint16_t>, TypedBuffer<int32_t>, TypedBuffer<uint32_t>,
                  TypedBuffer<int64_t>, TypedBuffer<uint64_t>, TypedBuffer<float>, TypedBuffer<double>, std::vector<int8_t>, std::vector<int16_t>,
                  std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>,
-                 std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::string, FlatFieldArray, NestedFieldArray>;
+                 std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::string, FlatFieldArray, CompositeFieldArray>;
 
 using FieldValueEntry = std::pair<BaseField::ConstPtr, FieldValueVariant>;
 
@@ -694,11 +694,11 @@ inline FieldValueVariant LoadVariant(const ArrayField& fd_, const std::byte* fie
 }
 
 // ---------------------------------------------------------------------------
-//! \class MessageBody
+//! \class CompositeField
 //! \brief An object representing the body of a message, containing both
 //!     fixed-length and variable-length fields.
 // ---------------------------------------------------------------------------
-class MessageBody
+class CompositeField
 {
   private:
     FixedFieldRegion fixedFields;
@@ -709,29 +709,29 @@ class MessageBody
     // ---------------------------------------------------------------------------
     //! \brief Default constructor.
     // ---------------------------------------------------------------------------
-    MessageBody() = default;
+    CompositeField() = default;
 
     // ---------------------------------------------------------------------------
-    //! \brief Construct a MessageBody with pre-allocated fixed and variable field storage.
+    //! \brief Construct a CompositeField with pre-allocated fixed and variable field storage.
     //!
     //! \param[in] fixedFieldSize_ The size in bytes for the fixed fields buffer.
     //! \param[in] varFieldCount_ The number of variable field slots to allocate.
     // ---------------------------------------------------------------------------
-    MessageBody(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_) {}
+    CompositeField(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_) {}
 
     // ---------------------------------------------------------------------------
-    //! \brief Construct a MessageBody with pre-constructed fixed and variable regions.
+    //! \brief Construct a CompositeField with pre-constructed fixed and variable regions.
     //!
     //! \param[in] fixedFields_ The FixedFieldRegion containing the fixed-length fields.
     //! \param[in] varFields_ The vector of FieldValueVariant containing the variable-length fields.
     // ---------------------------------------------------------------------------
-    MessageBody(FixedFieldRegion&& fixedFields_, std::vector<FieldValueVariant>&& varFields_)
+    CompositeField(FixedFieldRegion&& fixedFields_, std::vector<FieldValueVariant>&& varFields_)
         : fixedFields(std::move(fixedFields_)), varFields(std::move(varFields_))
     {
     }
 
     // ---------------------------------------------------------------------------
-    //! \brief Create a read-only MessageBody that borrows an external fixed-field
+    //! \brief Create a read-only CompositeField that borrows an external fixed-field
     //!     byte slice without copying it.
     //!
     //! Used to encode a single flat-array row in place: the returned body
@@ -742,18 +742,18 @@ class MessageBody
     //! \param[in] data_ Pointer to the first byte of the borrowed fixed-field slice.
     //! \param[in] size_ Number of bytes in the borrowed slice.
     // ---------------------------------------------------------------------------
-    [[nodiscard]] static MessageBody ViewFixedFields(const std::byte* data_, size_t size_)
+    [[nodiscard]] static CompositeField ViewFixedFields(const std::byte* data_, size_t size_)
     {
-        return MessageBody(FixedFieldRegion::View(data_, size_), std::vector<FieldValueVariant>{});
+        return CompositeField(FixedFieldRegion::View(data_, size_), std::vector<FieldValueVariant>{});
     }
 
     // ---------------------------------------------------------------------------
-    //! \brief Construct a MessageBody from a FieldInfo object, initializing each
+    //! \brief Construct a CompositeField from a FieldInfo object, initializing each
     //!     field with the default value of its type.
     //!
     //! \param[in] fieldInfo_ The FieldInfo object containing the message's fields
     // ---------------------------------------------------------------------------
-    MessageBody(FieldInfo::ConstPtr fieldInfo_) : fieldInfo(std::move(fieldInfo_))
+    CompositeField(FieldInfo::ConstPtr fieldInfo_) : fieldInfo(std::move(fieldInfo_))
     {
         if (fieldInfo)
         {
@@ -765,7 +765,7 @@ class MessageBody
                 switch (fieldDef->type)
                 {
                 case FIELD_TYPE::FIELD_ARRAY: {
-                    varFields[fieldDef->index] = NestedFieldArray{};
+                    varFields[fieldDef->index] = CompositeFieldArray{};
                     break;
                 }
                 case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
@@ -793,7 +793,7 @@ class MessageBody
                     case 1: SetFieldValue<true>(fieldDef->index, int8_t{}); break;
                     case 2: SetFieldValue<true>(fieldDef->index, int16_t{}); break;
                     case 4: SetFieldValue<true>(fieldDef->index, int32_t{}); break;
-                    default: throw std::runtime_error("MessageBody(): unsupported enum width");
+                    default: throw std::runtime_error("CompositeField(): unsupported enum width");
                     }
                     break;
                 default:
@@ -810,11 +810,11 @@ class MessageBody
     // ---------------------------------------------------------------------------
     //! Copy constructor and assignment operator
     // ---------------------------------------------------------------------------
-    MessageBody(const MessageBody& other) : fixedFields(other.fixedFields), varFields(other.varFields), fieldInfo(other.fieldInfo) {}
-    MessageBody& operator=(const MessageBody& other) = default;
+    CompositeField(const CompositeField& other) : fixedFields(other.fixedFields), varFields(other.varFields), fieldInfo(other.fieldInfo) {}
+    CompositeField& operator=(const CompositeField& other) = default;
 
     // ---------------------------------------------------------------------------
-    //! \brief Resize the memory regions of the MessageBody.
+    //! \brief Resize the memory regions of the CompositeField.
     //!
     //! \param[in] fixedFieldSize_ The new size in bytes for the fixed fields
     //! \param[in] varFieldCount_ The new number of variable field slots to allocate
@@ -881,7 +881,10 @@ class MessageBody
             if constexpr (std::is_same_v<T, std::string>) { return std::get<std::string>(varFields[field_.index]); }
             else { throw std::runtime_error("GetFieldValue<T>(): non-string type provided for string field"); }
         case FIELD_TYPE::FIELD_ARRAY:
-            if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, NestedFieldArray>) { return std::get<T>(varFields[field_.index]); }
+            if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
+            {
+                return std::get<T>(varFields[field_.index]);
+            }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
         default:
             if constexpr (std::is_trivially_copyable_v<T>)
@@ -957,17 +960,17 @@ class MessageBody
                     using T = std::decay_t<decltype(value)>;
                     if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::vector<std::byte>>) { return value.size(); }
                     else if constexpr (std::is_same_v<T, FlatFieldArray>) { return value.ByteSize(); }
-                    else if constexpr (std::is_same_v<T, std::vector<MessageBody>>)
+                    else if constexpr (std::is_same_v<T, std::vector<CompositeField>>)
                     {
                         const auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(&field_);
                         if (fieldArrayField == nullptr) { throw std::runtime_error("GetFieldByteSize(): missing field array metadata"); }
                         if (fieldArrayField->fieldInfo->varFieldCount == 0) { return fieldArrayField->fieldInfo->fixedFieldBytes * value.size(); }
                         size_t byteSize = 0;
-                        for (const auto& messageBody : value)
+                        for (const auto& compField : value)
                         {
                             for (const auto& field : fieldArrayField->fieldInfo->messageOrderedFields)
                             {
-                                byteSize += messageBody.GetFieldByteSize(*field);
+                                byteSize += compField.GetFieldByteSize(*field);
                             }
                         }
                         return byteSize;
@@ -1164,7 +1167,7 @@ class MessageBody
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]]; // TODO: is RESPONSE_STR always std::string?
         case FIELD_TYPE::STRING:
-            if constexpr (std::is_same_v<T, std::string> || (is_specialization_of_v<T, std::vector> && !std::is_same_v<T, NestedFieldArray>))
+            if constexpr (std::is_same_v<T, std::string> || (is_specialization_of_v<T, std::vector> && !std::is_same_v<T, CompositeFieldArray>))
             {
                 SetFieldValue<false>(fieldDef_.index, std::forward<T>(value_));
                 break;
@@ -1172,7 +1175,7 @@ class MessageBody
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for VARIABLE_LENGTH_ARRAY, RESPONSE_STR, or STRING"); }
             break;
         case FIELD_TYPE::FIELD_ARRAY:
-            if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, NestedFieldArray>)
+            if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
             {
                 varFields[fieldDef_.index] = std::forward<T>(value_);
             }
@@ -1293,7 +1296,7 @@ class MessageBody
                     {
                         throw std::runtime_error("WriteFieldToBuffer(): scalar values are not valid var field payloads");
                     }
-                    else if constexpr (is_specialization_of_v<T, std::vector> && !std::is_same_v<T, NestedFieldArray>)
+                    else if constexpr (is_specialization_of_v<T, std::vector> && !std::is_same_v<T, CompositeFieldArray>)
                     {
                         return copyBytes(reinterpret_cast<const std::byte*>(value.data()), sizeof(typename T::value_type) * value.size());
                     }
@@ -1341,15 +1344,15 @@ class MessageBody
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
 
-        const MessageBody* messageBody;
+        const CompositeField* compField;
         size_t index;
 
-        const_iterator(const MessageBody* messageBody_, size_t index_ = 0) : messageBody(messageBody_), index(index_) {}
+        const_iterator(const CompositeField* compField_, size_t index_ = 0) : compField(compField_), index(index_) {}
 
         reference operator*() const
         {
-            const auto& fieldDef = messageBody->fieldInfo->messageOrderedFields[index];
-            return {fieldDef, messageBody->GetFieldValueVariant(*fieldDef)};
+            const auto& fieldDef = compField->fieldInfo->messageOrderedFields[index];
+            return {fieldDef, compField->GetFieldValueVariant(*fieldDef)};
         }
 
         const_iterator& operator++()
@@ -1358,7 +1361,7 @@ class MessageBody
             return *this;
         }
 
-        bool operator==(const const_iterator& other) const { return messageBody == other.messageBody && index == other.index; }
+        bool operator==(const const_iterator& other) const { return compField == other.compField && index == other.index; }
         bool operator!=(const const_iterator& other) const { return !(*this == other); }
     };
 
@@ -1402,23 +1405,24 @@ class MessageDecoderBase
   protected:
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
-    std::unordered_map<uint32_t, std::function<void(MessageBody&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)>>
+    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)>>
         asciiFieldMap;
-    std::unordered_map<uint32_t, std::function<void(MessageBody&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>>
+    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>>
         jsonFieldMap;
 
-    [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, MessageBody& clMessageBody_,
+    [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& clMessageBody_,
                                       uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
-    [[nodiscard]] STATUS DecodeAscii(const FieldInfo& vMsgDefFields_, const char** ppcLogBuf_, MessageBody& clMessageBody_,
+    [[nodiscard]] STATUS DecodeAscii(const FieldInfo& vMsgDefFields_, const char** ppcLogBuf_, CompositeField& clMessageBody_,
                                      const char* pcBufEnd = nullptr) const;
-    [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, MessageBody& clMessageBody_) const;
+    [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, CompositeField& clMessageBody_) const;
 
     template <bool Fixed = true>
-    static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, MessageBody& clMessageBody_, size_t n = 1);
-    void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, MessageBody& clMessageBody_, size_t elementIndex_ = 0,
-                          bool fixed_ = true) const;
-    void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, MessageBody& clMessageBody_, size_t elementIndex_ = 0,
+    static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clMessageBody_,
+                                  size_t n = 1);
+    void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, CompositeField& clMessageBody_,
+                          size_t elementIndex_ = 0, bool fixed_ = true) const;
+    void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, CompositeField& clMessageBody_, size_t elementIndex_ = 0,
                          bool fixed_ = true) const;
 
     //----------------------------------------------------------------------------
@@ -1435,7 +1439,8 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <bool Fixed = true, typename T = int32_t, int R = 10>
-    static void ParseAndEmplace(MessageBody& clMessageBody_, const BaseField& field_, const char* token, size_t tokenLength, size_t elementIndex_ = 0)
+    static void ParseAndEmplace(CompositeField& clMessageBody_, const BaseField& field_, const char* token, size_t tokenLength,
+                                size_t elementIndex_ = 0)
     {
         T value;
         std::from_chars_result result;
@@ -1455,11 +1460,11 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(MessageBody&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)> SimpleAsciiMapEntry()
+    static std::function<void(CompositeField&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
-        return [](MessageBody& vIntermediate_, const BaseField& pstField_, const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+        return [](CompositeField& vIntermediate_, const BaseField& pstField_, const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                   const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
             if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
             else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
@@ -1468,7 +1473,7 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static void PushElement(MessageBody& vIntermediate_, const BaseField& field_, simdjson::dom::element clJsonField_, size_t elementIndex_ = 0,
+    static void PushElement(CompositeField& vIntermediate_, const BaseField& field_, simdjson::dom::element clJsonField_, size_t elementIndex_ = 0,
                             bool fixed_ = true)
     {
         // Determine the intermediate type to use for simdjson::get
@@ -1493,17 +1498,17 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static std::function<void(MessageBody&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)> SimpleJsonMapEntry()
+    static std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)> SimpleJsonMapEntry()
     {
-        return [](MessageBody& vIntermediate_, const BaseField& pstMessageDataType_, simdjson::dom::element clJsonField_, const size_t elementIndex_,
-                  const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        return [](CompositeField& vIntermediate_, const BaseField& pstMessageDataType_, simdjson::dom::element clJsonField_,
+                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
             PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_);
         };
     }
 
     // -------------------------------------------------------------------------------------------------------
     uint32_t GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
-                            const MessageBody& clMessageBody_) const
+                            const CompositeField& clMessageBody_) const
     {
         if (arrayDef.arrayLengthRef.empty())
         {
@@ -1613,7 +1618,7 @@ class MessageDecoderBase
     //! \brief Decode a message payload from the provided frame.
     //
     //! \param[in] pucMessage_ A pointer to a message payload.
-    //! \param[out] stInterMessage_ The MessageBody to be populated.
+    //! \param[out] stInterMessage_ The CompositeField to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
     //
@@ -1630,7 +1635,7 @@ class MessageDecoderBase
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, MessageBody& stInterMessage_, MetaDataBase& stMetaData_) const;
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, CompositeField& stInterMessage_, MetaDataBase& stMetaData_) const;
 };
 
 } // namespace novatel::edie
