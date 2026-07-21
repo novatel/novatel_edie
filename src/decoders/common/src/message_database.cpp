@@ -134,7 +134,7 @@ std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
 //-----------------------------------------------------------------------
 MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(std::string_view strMsgName_) const
 {
-    const auto it = mMessageName.find(strMsgName_.data());
+    const auto it = mMessageName.find(strMsgName_);
     if (it != mMessageName.end()) { return it->second; }
     return nullptr;
 }

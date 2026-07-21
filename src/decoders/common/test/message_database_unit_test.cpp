@@ -89,13 +89,15 @@ class MessageDatabaseTest : public testing::Test
         msgDef->name = name;
         msgDef->fieldInfo.emplace(kMsgCrc, CreateSimpleFieldInfo());
 
-        auto parentField = std::make_shared<BaseField>("header", FIELD_TYPE::SIMPLE, "%hu", DATA_TYPE::USHORT);
+        auto parentField0 = std::make_shared<BaseField>("rootShort", FIELD_TYPE::SIMPLE, "%hu", DATA_TYPE::USHORT);
+        auto parentField1 = std::make_shared<ArrayField>("rootVar", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%u", DATA_TYPE::UINT, 10);
+        auto parentField2 = std::make_shared<BaseField>("rootInt", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::INT);
         auto nestedField0 = std::make_shared<BaseField>("nestedShort", FIELD_TYPE::SIMPLE, "%hu", DATA_TYPE::USHORT);
         auto nestedField1 = std::make_shared<BaseField>("nestedInt", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::INT);
         auto nestedInfo = BuildFieldInfo({nestedField0, nestedField1});
         auto fieldArray = std::make_shared<FieldArrayField>("nestedArray", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, nestedInfo);
 
-        msgDef->fieldInfo.emplace(kMsgCrc2, BuildFieldInfo({parentField, fieldArray}));
+        msgDef->fieldInfo.emplace(kMsgCrc2, BuildFieldInfo({parentField0, parentField1, parentField2, fieldArray}));
         msgDef->latestMessageCrc = kMsgCrc2;
         return msgDef;
     }
@@ -243,17 +245,37 @@ TEST_F(MessageDatabaseTest, AppendMessagesRebuildsEveryCrcAndPreservesSourceDefi
     ASSERT_EQ(appended->fieldInfo.begin()->second->messageOrderedFields[1]->index, 4U);
 
     const auto& complexInfo = appended->GetMsgDefFromCrc(kMsgCrc2);
-    ASSERT_EQ(complexInfo.fixedFieldBytes, 2U);
-    ASSERT_EQ(complexInfo.varFieldCount, 1U);
-    ASSERT_EQ(complexInfo.messageOrderedFields.size(), 2U);
-    ASSERT_EQ(complexInfo.messageOrderedFields[1]->type, FIELD_TYPE::FIELD_ARRAY);
 
-    const auto appendedFieldArray = std::dynamic_pointer_cast<const FieldArrayField>(complexInfo.messageOrderedFields[1]);
-    const auto sourceFieldArray = std::dynamic_pointer_cast<const FieldArrayField>(source->GetMsgDefFromCrc(kMsgCrc2).messageOrderedFields[1]);
+    ASSERT_EQ(complexInfo.fixedFieldBytes, 8U);
+    ASSERT_EQ(complexInfo.varFieldCount, 2U);
+    ASSERT_EQ(complexInfo.messageOrderedFields.size(), 4U);
+    ASSERT_EQ(complexInfo.messageOrderedFields[3]->type, FIELD_TYPE::FIELD_ARRAY);
+
+    const auto appendedFieldArray = std::dynamic_pointer_cast<const FieldArrayField>(complexInfo.messageOrderedFields[3]);
+    const auto sourceFieldArray = std::dynamic_pointer_cast<const FieldArrayField>(source->GetMsgDefFromCrc(kMsgCrc2).messageOrderedFields[3]);
     ASSERT_NE(appendedFieldArray, nullptr);
     ASSERT_NE(sourceFieldArray, nullptr);
     ASSERT_EQ(appendedFieldArray->fieldInfo->messageOrderedFields.size(), 2U);
     ASSERT_NE(appendedFieldArray->fieldInfo->messageOrderedFields[0].get(), sourceFieldArray->fieldInfo->messageOrderedFields[0].get());
+}
+
+TEST_F(MessageDatabaseTest, AppendMessagesRebuildsFixedAndVariableIndices)
+{
+    auto source = CreateComplexMultiCrcMessageDefinition(400U, "SRCMSG");
+    MessageDatabase db({}, {});
+    db.SetMessageFamily("OEM");
+
+    db.AppendMessages({source});
+
+    const auto appended = db.GetMsgDef("SRCMSG");
+    ASSERT_NE(appended, nullptr);
+
+    const auto& complexInfo = appended->GetMsgDefFromCrc(kMsgCrc2);
+
+    ASSERT_EQ(complexInfo.messageOrderedFields[0]->index, 0U); // rootShort
+    ASSERT_EQ(complexInfo.messageOrderedFields[1]->index, 0U); // rootVar
+    ASSERT_EQ(complexInfo.messageOrderedFields[2]->index, 4U); // rootInt
+    ASSERT_EQ(complexInfo.messageOrderedFields[3]->index, 1U); // fieldArray
 }
 
 TEST_F(MessageDatabaseTest, MergeOverwritesConflictsUsingTargetFamilyAndPreservesSource)

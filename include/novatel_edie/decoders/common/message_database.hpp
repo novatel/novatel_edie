@@ -932,6 +932,9 @@ class MessageDatabase
 
     virtual void GenerateMessageMappings()
     {
+        // Must clear maps here as previous string_view keys could belong to old message definitions
+        mMessageName.clear();
+        mMessageId.clear();
         for (auto& msg : vMessageDefinitions)
         {
             mMessageName[msg->name] = msg;
