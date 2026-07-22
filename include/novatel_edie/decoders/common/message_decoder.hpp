@@ -242,9 +242,9 @@ class FixedFieldRegion
     //!
     //! \param[in] sz_ The new size of the fixed field region in bytes.
     // ---------------------------------------------------------------------------
-    void Resize(size_t sz_)
+    void resize(size_t sz_)
     {
-        assert(!IsView() && "Resize() is not permitted on a non-owning FixedFieldRegion view");
+        assert(!IsView() && "resize() is not permitted on a non-owning FixedFieldRegion view");
         byteRegion.resize(sz_);
     }
 
@@ -527,7 +527,7 @@ class FlatFieldArray
     //!
     //! \param[in] sz_ The new size of the fixed field region in bytes.
     // ---------------------------------------------------------------------------
-    void Resize(size_t sz_) { fields.Resize(sz_); }
+    void resize(size_t sz_) { fields.resize(sz_); }
 
     // ---------------------------------------------------------------------------
     //! \brief Get a field value at the given index as a specified type.
@@ -562,7 +562,7 @@ class FlatFieldArray
     void SetFieldInfo(FieldInfo::ConstPtr fieldInfo_)
     {
         fieldInfo = std::move(fieldInfo_);
-        if (fieldInfo) { Resize(fieldInfo->fixedFieldBytes); }
+        if (fieldInfo) { resize(fieldInfo->fixedFieldBytes); }
     }
 
     // ---------------------------------------------------------------------------
@@ -757,7 +757,7 @@ class CompositeField
     {
         if (fieldInfo)
         {
-            fixedFields.Resize(fieldInfo->fixedFieldBytes);
+            fixedFields.resize(fieldInfo->fixedFieldBytes);
             varFields.resize(fieldInfo->varFieldCount);
 
             for (const auto& fieldDef : fieldInfo->messageOrderedFields)
@@ -819,9 +819,9 @@ class CompositeField
     //! \param[in] fixedFieldSize_ The new size in bytes for the fixed fields
     //! \param[in] varFieldCount_ The new number of variable field slots to allocate
     // ---------------------------------------------------------------------------
-    void Resize(size_t fixedFieldSize_, size_t varFieldCount_)
+    void resize(size_t fixedFieldSize_, size_t varFieldCount_)
     {
-        fixedFields.Resize(fixedFieldSize_);
+        fixedFields.resize(fixedFieldSize_);
         varFields.resize(varFieldCount_);
     }
 
@@ -1034,7 +1034,7 @@ class CompositeField
     void SetFieldInfo(FieldInfo::ConstPtr fieldInfo_)
     {
         fieldInfo = std::move(fieldInfo_);
-        if (fieldInfo) { Resize(fieldInfo->fixedFieldBytes, fieldInfo->varFieldCount); }
+        if (fieldInfo) { resize(fieldInfo->fixedFieldBytes, fieldInfo->varFieldCount); }
     }
 
     // ---------------------------------------------------------------------------

@@ -930,7 +930,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, CompositeField& stI
     const uint32_t uiMessageCrc = stMetaData_.bResponse ? 0 : stMetaData_.uiMessageCrc;
     const FieldInfo& msgFieldInfo = pclMsgDef->GetMsgDefFromCrc(uiMessageCrc);
 
-    stInterMessage_.Resize(msgFieldInfo.fixedFieldBytes, msgFieldInfo.varFieldCount);
+    stInterMessage_.resize(msgFieldInfo.fixedFieldBytes, msgFieldInfo.varFieldCount);
     stInterMessage_.SetFieldInfo(pclMsgDef, uiMessageCrc);
 
     // Decode the detected format
