@@ -828,9 +828,7 @@ class CompositeField
     // ---------------------------------------------------------------------------
     //! Getters for member variables
     // ---------------------------------------------------------------------------
-    FixedFieldRegion& GetFixedFields() { return fixedFields; }
     const FixedFieldRegion& GetFixedFields() const { return fixedFields; }
-    std::vector<FieldValueVariant>& GetVarFields() { return varFields; }
     const std::vector<FieldValueVariant>& GetVarFields() const { return varFields; }
     const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
 
@@ -1162,12 +1160,16 @@ class CompositeField
     // ---------------------------------------------------------------------------
     template <typename T> void SetFieldValue(const BaseField& fieldDef_, T&& value_)
     {
+        using ValueT = std::decay_t<T>;
+        static_assert(!std::is_same_v<ValueT, std::vector<bool>>,
+                      "SetFieldValue does not support std::vector<bool>. Use std::vector<uint8_t> instead.");
         switch (fieldDef_.type)
         {
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]]; // TODO: is RESPONSE_STR always std::string?
         case FIELD_TYPE::STRING:
-            if constexpr (std::is_same_v<T, std::string> || (is_specialization_of_v<T, std::vector> && !std::is_same_v<T, CompositeFieldArray>))
+            if constexpr (std::is_same_v<ValueT, std::string> ||
+                          (is_specialization_of_v<ValueT, std::vector> && !std::is_same_v<ValueT, CompositeFieldArray>))
             {
                 SetFieldValue<false>(fieldDef_.index, std::forward<T>(value_));
                 break;
@@ -1175,14 +1177,14 @@ class CompositeField
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for VARIABLE_LENGTH_ARRAY, RESPONSE_STR, or STRING"); }
             break;
         case FIELD_TYPE::FIELD_ARRAY:
-            if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
+            if constexpr (std::is_same_v<ValueT, FlatFieldArray> || std::is_same_v<ValueT, CompositeFieldArray>)
             {
                 varFields[fieldDef_.index] = std::forward<T>(value_);
             }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
             break;
         default:
-            if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>)
+            if constexpr (std::is_trivially_copyable_v<ValueT> || is_specialization_of_v<ValueT, TypedBuffer>)
             {
                 SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
             }
@@ -1195,9 +1197,8 @@ class CompositeField
     //!
     //! \note This function is needed because decoder ASCII/JSON field map functions are
     //!     called for both standalone fields and individual array elements. SetFieldValue
-    //!     should only be used to set the value of a complete field, as it does no
-    //!     bounds checking for individual array elements and it cannot set individual
-    //!     elements of a variable-length array.
+    //!     should only be used to set the value of a complete field, as it cannot set
+    //!     individual elements of a variable-length array.
     //!
     //! \tparam Fixed True for fixed fields, false for variable-length fields.
     //! \tparam T The element type.
@@ -1210,18 +1211,10 @@ class CompositeField
     {
         using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
 
-        const auto getMaxArrayLength = [&]() -> size_t {
-            const auto* arrayField = dynamic_cast<const ArrayField*>(&fieldDef_);
-            if (arrayField == nullptr) { throw std::runtime_error("SetArrayElement(): missing fixed array metadata"); }
-            return arrayField->arrayLength;
-        };
-
-        const auto index = fieldDef_.index;
-
-        if constexpr (Fixed) { SetFieldValue<true>(index + (elementIndex_ * sizeof(StoredType)), static_cast<StoredType>(value_)); }
+        if constexpr (Fixed) { SetFieldValue<true>(fieldDef_.index + (elementIndex_ * sizeof(StoredType)), static_cast<StoredType>(value_)); }
         else
         {
-            if (index >= varFields.size()) { throw std::runtime_error("SetArrayElement(): varFields index is out of range"); }
+            if (fieldDef_.index >= varFields.size()) { throw std::runtime_error("SetArrayElement(): varFields index is out of range"); }
 
             std::visit(
                 [&](auto& varValue) {
@@ -1230,24 +1223,13 @@ class CompositeField
                     {
                         if (varValue.size() <= elementIndex_)
                         {
-                            const auto maxLen = getMaxArrayLength();
-                            if (maxLen <= elementIndex_)
-                            {
-                                throw std::runtime_error("SetArrayElement(): element index exceeds maximum array length");
-                            }
-                            varValue.resize(maxLen);
+                            throw std::runtime_error("SetArrayElement(): element index exceeds stored vector size");
                         }
                         varValue[elementIndex_] = static_cast<StoredType>(value_);
                     }
-                    else
-                    {
-                        const auto maxLen = getMaxArrayLength();
-                        if (maxLen <= elementIndex_) { throw std::runtime_error("SetArrayElement(): element index exceeds maximum array length"); }
-                        varFields[index] = std::vector<StoredType>(maxLen);
-                        std::get<std::vector<StoredType>>(varFields[index])[elementIndex_] = static_cast<StoredType>(value_);
-                    }
+                    else { throw std::runtime_error("SetArrayElement(): variant does not contain a vector of the correct type"); }
                 },
-                varFields[index]);
+                varFields[fieldDef_.index]);
         }
     }
 
@@ -1528,7 +1510,6 @@ class MessageDecoderBase
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
         if (auto arrLengthRefDef = clCompField_.GetFieldInfo()->GetFieldDefByName(arrayDef.arrayLengthRef))
         {
-            auto fieldValue = clCompField_.GetFieldValueVariant(*arrLengthRefDef);
             const auto arraySize = std::visit(
                 [](const auto& value) -> std::optional<uint32_t> {
                     using T = std::decay_t<decltype(value)>;
@@ -1546,7 +1527,7 @@ class MessageDecoderBase
                     }
                     return std::nullopt;
                 },
-                fieldValue);
+                clCompField_.GetFieldValueVariant(*arrLengthRefDef));
 
             if (arraySize) { return *arraySize; }
         }

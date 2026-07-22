@@ -257,6 +257,8 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_,
 {
     SimpleTypeVisitor(pstMessageDataType_, [&](auto valuePtr) {
         using T = std::decay_t<decltype(valuePtr)>;
+        // Note: T* is just used as a type tag here - SetFieldValue does not dereference the given pointer,
+        // so the reinterpret_cast is ok.
         clCompField_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const T*>(*ppucLogBuf_), n);
     });
     *ppucLogBuf_ += pstMessageDataType_.dataType.length * n;
@@ -299,7 +301,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             break;
         case FIELD_TYPE::RESPONSE_STR: {
             std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), uiMessageLength_ - sizeof(int32_t)); // Remove CRC
-            clCompField_.GetVarFields()[field->index] = std::string(sTemp);
+            clCompField_.SetFieldValue<false>(field->index, std::string(sTemp));
             // Binary response string is not null terminated or 4 byte aligned
             *ppucLogBuf_ += sTemp.size();
             break;
@@ -317,7 +319,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         case FIELD_TYPE::STRING: {
             // This version of a string is different. It is hopefully null terminated.
             std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_));
-            clCompField_.GetVarFields()[field->index] = std::string(sTemp);
+            clCompField_.SetFieldValue<false>(field->index, std::string(sTemp));
             *ppucLogBuf_ += sTemp.size() + 1; // + 1 to consume the NULL at the end of the string.
             AddStringFieldPadding(pucTempStart, ppucLogBuf_);
             break;
@@ -338,7 +340,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 // Store flat FIELD_ARRAY directly as std::vector<std::byte>
                 std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
                                                      reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
-                clCompField_.GetVarFields()[field->index] = FlatFieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo);
+                clCompField_.SetFieldValue(*field, FlatFieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo));
                 *ppucLogBuf_ += totalBytes;
             }
             else
@@ -355,7 +357,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 }
-                clCompField_.GetVarFields()[field->index] = std::move(vFieldArrayContainer);
+                clCompField_.SetFieldValue(*field, std::move(vFieldArrayContainer));
             }
             break;
         }
@@ -614,24 +616,19 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             }
             else
             {
+                if (!fixed)
+                {
+                    SimpleTypeVisitor(*field, [&](auto&& arg) {
+                        using T = std::decay_t<decltype(arg)>;
+                        using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
+                        clCompField_.SetFieldValue<false>(field->index, std::vector<StoredType>(uiArraySize));
+                    });
+                }
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
                     tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data());
                     DecodeAsciiField(*field, ppcLogBuf_, tokenLength, clCompField_, i, fixed);
                     *ppcLogBuf_ += tokenLength + 1;
-                }
-                if (!fixed)
-                {
-                    std::visit(
-                        [&uiArraySize](auto&& arg) {
-                            using T = std::decay_t<decltype(arg)>;
-                            if constexpr (is_specialization_of_v<T, std::vector>)
-                            {
-                                // Shrink the vector to the actual number of elements parsed
-                                if (arg.size() != uiArraySize) { arg.resize(uiArraySize); }
-                            }
-                        },
-                        clCompField_.GetVarFields()[field->index]);
                 }
             }
             if (eStatus != STATUS::SUCCESS)
@@ -678,7 +675,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 STATUS eStatus = DecodeAscii<Abbreviated>(*subFieldDefinitions->fieldInfo, ppcLogBuf_, pvFieldArrayContainer[i], pcBufEnd_);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
-            clCompField_.GetVarFields()[field->index] = std::move(pvFieldArrayContainer);
+            clCompField_.SetFieldValue(*field, std::move(pvFieldArrayContainer));
             break;
         }
         default:
@@ -745,7 +742,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: {
             std::string_view strValue;
-            if (clField.get(strValue) == simdjson::SUCCESS) { clCompField_.GetVarFields()[field->index] = std::string(strValue); }
+            if (clField.get(strValue) == simdjson::SUCCESS) { clCompField_.SetFieldValue<false>(field->index, std::string(strValue)); }
             break;
         }
 
@@ -879,7 +876,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
 
-            clCompField_.GetVarFields()[field->index] = std::move(vFieldArrayContainer);
+            clCompField_.SetFieldValue(*field, std::move(vFieldArrayContainer));
             break;
         }
 

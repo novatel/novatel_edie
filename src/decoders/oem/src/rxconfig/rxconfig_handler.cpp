@@ -190,7 +190,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
     default: break;
     }
 
-    stInterMessage_.GetVarFields()[0] = std::move(stEmbeddedMessageData);
+    stInterMessage_.SetFieldValue<false>(0, std::move(stEmbeddedMessageData));
 
     return STATUS::SUCCESS;
 }

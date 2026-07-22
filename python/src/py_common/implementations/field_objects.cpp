@@ -540,17 +540,21 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
 
             if (fieldArrayVal->fieldDef == nullptr) { fieldArrayVal->fieldDef = fieldArrayDef; }
             if (fieldArrayVal->fieldDef != fieldArrayDef) { throw nb::type_error("FieldArray contains elements of the wrong type!"); }
-            auto* mb = GetCompositeField();
-            // Note: mb should never be nullptr here as FIELD_ARRAY cannot appear in FlatFieldArray
-            if (mb == nullptr) { throw nb::type_error("FIELD_ARRAY assignment requires a CompositeField to be present."); }
+            auto* cf = GetCompositeField();
+            // Note: cf should never be nullptr here as FIELD_ARRAY cannot appear in FlatFieldArray
+            if (cf == nullptr) { throw nb::type_error("FIELD_ARRAY assignment requires a CompositeField to be present."); }
             // Transfer data ownership to the existing array wrapper, if still alive
             if (PyFieldArray* curArray = cached_array(entry.index))
             {
-                curArray->take_ownership(std::move(mb->GetVarFields()[entryField->index]));
+                curArray->take_ownership(cf->GetFieldValueVariant(*entryField));
             }
 
             // Copy value (minor part of constructor overhead - not worth optimizing).
-            mb->GetVarFields()[entryField->index] = *fieldArrayVal->dataPtr;
+            if (std::holds_alternative<FlatFieldArray>(*fieldArrayVal->dataPtr))
+            {
+                cf->SetFieldValue(*entryField, std::get<FlatFieldArray>(*fieldArrayVal->dataPtr));
+            }
+            else { cf->SetFieldValue(*entryField, std::get<CompositeFieldArray>(*fieldArrayVal->dataPtr)); }
             cachedArrays_[entry.index].reset();
             break;
         }

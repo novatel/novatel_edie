@@ -4255,16 +4255,14 @@ class NovatelTypesTest : public ::testing::Test
         STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_, CompositeField& vIntermediateFormat_)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
-            vIntermediateFormat_.GetFixedFields() = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
-            vIntermediateFormat_.GetVarFields().resize(fieldInfo.varFieldCount);
+            vIntermediateFormat_.Resize(fieldInfo.fixedFieldBytes, fieldInfo.varFieldCount);
             return DecodeAscii<false>(fieldInfo, ppcLogBuf_, vIntermediateFormat_);
         }
 
         STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& vIntermediateFormat_)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
-            vIntermediateFormat_.GetFixedFields() = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
-            vIntermediateFormat_.GetVarFields().resize(fieldInfo.varFieldCount);
+            vIntermediateFormat_.Resize(fieldInfo.fixedFieldBytes, fieldInfo.varFieldCount);
 
             uint16_t msgDefFieldsSize = 0;
             for (const auto& field : fieldInfo.messageOrderedFields)
