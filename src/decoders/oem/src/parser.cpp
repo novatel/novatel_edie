@@ -94,8 +94,8 @@ MessageDatabase::ConstPtr Parser::MessageDb() const { return std::const_pointer_
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& stHeader_, std::vector<FieldContainer>& stMessage_,
-                         MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_)
+Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& stHeader_, CompositeField& stMessage_, MetaDataStruct& stMetaData_,
+                         bool bDecodeIncompleteAbbreviated_)
 {
     while (true)
     {
@@ -200,7 +200,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
     while (true)
     {
         IntermediateHeader stHeader;
-        std::vector<FieldContainer> stMessage;
+        CompositeField stMessage;
         STATUS eStatus = ReadIntermediate(stMessageData_, stHeader, stMessage, stMetaData_, bDecodeIncompleteAbbreviated_);
         pucMyEncodeBufferPointer = pcMyEncodeBuffer.get(); //!< Reset the buffer.
 

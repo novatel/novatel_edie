@@ -25,8 +25,6 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 using namespace novatel::edie::py_common;
 
-NB_MAKE_OPAQUE(std::vector<FieldContainer>);
-
 namespace {
 //! Returns true if the raw value corresponds to a defined TIME_STATUS enumerator.
 bool IsValidTimeStatus(uint32_t value)
@@ -123,7 +121,7 @@ nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHea
     return message_pyinst;
 }
 
-nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector<FieldContainer>&& message_fields, MetaDataStruct& metadata,
+nb::object py_oem::create_message_instance(py_oem::PyHeader& header, CompositeField&& message_fields, MetaDataStruct& metadata,
                                            py_common::PyMessageDatabase::ConstPtr database)
 {
 

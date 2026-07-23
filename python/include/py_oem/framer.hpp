@@ -1,7 +1,6 @@
 #pragma once
 
 #include "novatel_edie/decoders/oem/framer.hpp"
-
 #include "py_common/bindings_core.hpp"
 
 namespace nb = nanobind;
@@ -10,7 +9,7 @@ namespace novatel::edie::oem {
 class PyFramer : public Framer
 {
   public:
-    PyFramer() : Framer() {};
+    PyFramer() : Framer(){};
 
     bool GetFrameJson() { return bMyFrameJson; }
 
@@ -22,4 +21,4 @@ class PyFramer : public Framer
 
     nb::tuple PyIterGetFrame();
 };
-}
+} // namespace novatel::edie::oem

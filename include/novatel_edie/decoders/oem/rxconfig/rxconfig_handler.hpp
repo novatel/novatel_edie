@@ -123,8 +123,8 @@ class RxConfigHandler
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
+                                const CompositeField& stMessage_, MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into Binary format.
@@ -147,7 +147,7 @@ class RxConfigHandler
     [[nodiscard]] STATUS EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                       MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                       MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                      std::vector<FieldContainer>& stEmbeddedMessage_) const;
+                                      CompositeField& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into ASCII format.
@@ -170,7 +170,7 @@ class RxConfigHandler
     [[nodiscard]] STATUS EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                      MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                      MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                     std::vector<FieldContainer>& stEmbeddedMessage_) const;
+                                     CompositeField& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into Abbreviated Ascii format.
@@ -193,7 +193,7 @@ class RxConfigHandler
     [[nodiscard]] STATUS EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                            MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                            MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                           std::vector<FieldContainer>& stEmbeddedMessage_) const;
+                                           CompositeField& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into JSON format.
@@ -215,7 +215,7 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                     MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
-                                    IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const;
+                                    IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const;
 
   public:
     //! NOTE: The following constructors prevent this class from ever being
@@ -304,8 +304,7 @@ class RxConfigHandler
     //!    NO_DEFINITION: The message ID was not found in the database.
     //!    UNSUPPORTED: The message ID is not for an RXCONFIG type message.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_,
-                                MetaDataStruct& stRxConfigMetaData_) const;
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, CompositeField& stInterMessage_, MetaDataStruct& stRxConfigMetaData_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encode an RXConfig message from the provided intermediate structures.
@@ -335,7 +334,7 @@ class RxConfigHandler
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
+                                const CompositeField& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Framer.

@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
                     if (eStatus == STATUS::SUCCESS)
                     {
                         stHeader.usMessageId = stMetaData.usMessageId;
-                        std::vector<FieldContainer> stMessage;
+                        CompositeField stMessage;
                         eStatus = clMessageDecoder.Decode((pucReadBuffer + stMetaData.uiHeaderLength), stMessage, stMetaData);
                         if (eStatus == STATUS::SUCCESS)
                         {

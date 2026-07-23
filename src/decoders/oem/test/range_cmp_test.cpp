@@ -88,8 +88,8 @@ TEST_F(RangeCmpTest, LOGGER)
     SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
-    ASSERT_NE(spdlog::get("range_decompressor"), nullptr);
     std::shared_ptr<spdlog::logger> range_decompressor = pclMyRangeDecompressor->GetLogger();
+    ASSERT_NE(range_decompressor, nullptr);
     pclMyRangeDecompressor->SetLoggerLevel(eLevel);
     ASSERT_EQ(range_decompressor->level(), eLevel);
 }

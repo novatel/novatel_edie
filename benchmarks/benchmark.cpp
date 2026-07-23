@@ -177,7 +177,7 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
         const unsigned char* dataPtr = data;
         MetaDataStruct metaData;
         IntermediateHeader header;
-        std::vector<FieldContainer> message;
+        CompositeField message;
 
         (void)headerDecoder.Decode(dataPtr, header, metaData);
         dataPtr += metaData.uiHeaderLength;
@@ -254,7 +254,7 @@ static void DecodeJsonHeader(benchmark::State& state)
     DecodeHeader(state, bestsatsJson);
 }
 
-template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
+template <ENCODE_FORMAT Format, size_t N> static void EncodeLog(benchmark::State& state, const unsigned char (&data)[N])
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
     const HeaderDecoder headerDecoder(clJsonDb);
@@ -264,9 +264,9 @@ template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
     MetaDataStruct metaData;
     MessageDataStruct messageData;
     IntermediateHeader header;
-    std::vector<FieldContainer> message;
+    CompositeField message;
 
-    const unsigned char* tempPtr = bestposBinary;
+    const unsigned char* tempPtr = data;
 
     (void)headerDecoder.Decode(tempPtr, header, metaData);
     tempPtr += metaData.uiHeaderLength;
@@ -283,11 +283,11 @@ template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
 }
 
-static void EncodeFlattenedBinaryLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::FLATTENED_BINARY>(state); }
-static void EncodeAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::ASCII>(state); }
-static void EncodeAbbrevAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::ABBREV_ASCII>(state); }
-static void EncodeBinaryLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::BINARY>(state); }
-static void EncodeJsonLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::JSON>(state); }
+static void EncodeFlattenedBinaryLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::FLATTENED_BINARY>(state, bestposBinary); }
+static void EncodeAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::ASCII>(state, bestposBinary); }
+static void EncodeAbbrevAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::ABBREV_ASCII>(state, bestposBinary); }
+static void EncodeBinaryLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::BINARY>(state, bestposBinary); }
+static void EncodeJsonLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::JSON>(state, bestposBinary); }
 
 static void DecompressRangeCmpGeneral(benchmark::State& state, uint32_t id, const char* compressedData)
 {

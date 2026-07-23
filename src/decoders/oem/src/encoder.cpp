@@ -26,7 +26,9 @@
 
 #include "novatel_edie/decoders/oem/encoder.hpp"
 
+#include <algorithm>
 #include <charconv>
+#include <cstring>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -53,7 +55,7 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
 }
 
 // -------------------------------------------------------------------------------------------------------
-Encoder::Encoder(MessageDatabase::ConstPtr pclMessageDb_) : EncoderBase("OEM", pclMessageDb_)
+Encoder::Encoder(MessageDatabase::ConstPtr pclMessageDb_) : EncoderBase("OEM", pclMessageDb_, OemAlignmentFunction)
 {
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 }
@@ -79,12 +81,12 @@ void Encoder::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("B")] = BasicIntMapEntry<int8_t>();
     asciiFieldMap[CalculateBlockCrc32("XB")] = BasicHexMapEntry<uint8_t>(2);
 
-    asciiFieldMap[CalculateBlockCrc32("x")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        if (fc_.fieldDef->dataType.length == 1) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint8_t>(fc_.fieldValue), 2); }
-        if (fc_.fieldDef->dataType.length == 2) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint16_t>(fc_.fieldValue), 4); }
-        if (fc_.fieldDef->dataType.length == 4) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue), 8); }
-        if (fc_.fieldDef->dataType.length == 8) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint64_t>(fc_.fieldValue), 16); }
+    asciiFieldMap[CalculateBlockCrc32("x")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        if (fd_.dataType.length == 1) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<uint8_t>(fd_, offset), 2); }
+        if (fd_.dataType.length == 2) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<uint16_t>(fd_, offset), 4); }
+        if (fd_.dataType.length == 4) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<uint32_t>(fd_, offset), 8); }
+        if (fd_.dataType.length == 8) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<uint64_t>(fd_, offset), 16); }
         return false;
     };
 
@@ -92,26 +94,26 @@ void Encoder::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("lx")] = BasicHexMapEntry<uint32_t>(8);
     asciiFieldMap[CalculateBlockCrc32("llx")] = BasicHexMapEntry<uint64_t>(16);
 
-    asciiFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR
-                   ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(std::get<uint8_t>(fc_.fieldValue)))
-                   : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(std::get<int8_t>(fc_.fieldValue)));
+    asciiFieldMap[CalculateBlockCrc32("s")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        return fd_.dataType.name == DATA_TYPE::UCHAR
+                   ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(cf_.GetFieldValue<uint8_t>(fd_, offset)))
+                   : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(cf_.GetFieldValue<int8_t>(fd_, offset)));
     };
 
-    asciiFieldMap[CalculateBlockCrc32("m")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue)).c_str());
+    asciiFieldMap[CalculateBlockCrc32("m")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase& pclMsgDb_, size_t offset) {
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, pclMsgDb_.MsgIdToMsgName(cf_.GetFieldValue<uint32_t>(fd_, offset)).c_str());
     };
 
-    asciiFieldMap[CalculateBlockCrc32("T")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue) / 1000.0, std::chars_format::fixed, 3);
+    asciiFieldMap[CalculateBlockCrc32("T")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<uint32_t>(fd_, offset) / 1000.0, std::chars_format::fixed, 3);
     };
 
-    asciiFieldMap[CalculateBlockCrc32("id")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        const uint32_t uiTempId = std::get<uint32_t>(fc_.fieldValue);
+    asciiFieldMap[CalculateBlockCrc32("id")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                  const MessageDatabase&, size_t offset) {
+        const auto uiTempId = cf_.GetFieldValue<uint32_t>(fd_, offset);
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
         return (sGloChan < 0)    ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, usSv, sGloChan)
@@ -119,75 +121,66 @@ void Encoder::InitFieldMaps()
                                  : WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, usSv);
     };
 
-    asciiFieldMap[CalculateBlockCrc32("P")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        // Allow signed integers to be used but interpret them as if they were unsigned
-        // If all logs with %P version strings are updated to use an unsigned DATA_TYPE this can be removed
-        uint8_t uiValue;
-        if (std::holds_alternative<int8_t>(fc_.fieldValue)) { uiValue = static_cast<uint8_t>(std::get<int8_t>(fc_.fieldValue)); }
-        else { uiValue = std::get<uint8_t>(fc_.fieldValue); }
-
+    asciiFieldMap[CalculateBlockCrc32("P")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        const uint8_t uiValue = fd_.dataType.name == DATA_TYPE::CHAR ? static_cast<uint8_t>(cf_.GetFieldValue<int8_t>(fd_, offset))
+                                                                     : cf_.GetFieldValue<uint8_t>(fd_, offset);
         if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }
         if (uiValue > 31 && uiValue < 127) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(uiValue)); }
         return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x") && WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, uiValue, 2);
     };
 
-    asciiFieldMap[CalculateBlockCrc32("f")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        if (fc_.fieldDef->dataType.length == 4)
+    asciiFieldMap[CalculateBlockCrc32("f")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        if (fd_.dataType.length == 4)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<float>(fd_, offset), std::chars_format::fixed, fd_.precision);
         }
-        if (fc_.fieldDef->dataType.length == 8)
+        if (fd_.dataType.length == 8)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<double>(fd_, offset), std::chars_format::fixed, fd_.precision);
         }
         return false;
     };
 
-    asciiFieldMap[CalculateBlockCrc32("lf")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+    asciiFieldMap[CalculateBlockCrc32("lf")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                  const MessageDatabase&, size_t offset) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<double>(fd_, offset), std::chars_format::fixed, fd_.precision);
     };
 
-    asciiFieldMap[CalculateBlockCrc32("e")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        if (fc_.fieldDef->dataType.length == 4)
+    asciiFieldMap[CalculateBlockCrc32("e")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        if (fd_.dataType.length == 4)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::scientific,
-                                      fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<float>(fd_, offset), std::chars_format::scientific, fd_.precision);
         }
-        if (fc_.fieldDef->dataType.length == 8)
+        if (fd_.dataType.length == 8)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::scientific,
-                                      fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<double>(fd_, offset), std::chars_format::scientific, fd_.precision);
         }
         return false;
     };
 
     asciiFieldMap[CalculateBlockCrc32("le")] = asciiFieldMap[CalculateBlockCrc32("e")];
 
-    asciiFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), FloatingPointFormat<float>(fc_),
-                                  fc_.fieldDef->precision);
+    asciiFieldMap[CalculateBlockCrc32("k")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        const auto val = cf_.GetFieldValue<float>(fd_, offset);
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, val, FloatingPointFormat(fd_, val), fd_.precision);
     };
 
-    asciiFieldMap[CalculateBlockCrc32("lk")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), FloatingPointFormat<double>(fc_),
-                                  fc_.fieldDef->precision);
+    asciiFieldMap[CalculateBlockCrc32("lk")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                  const MessageDatabase&, size_t offset) {
+        const auto val = cf_.GetFieldValue<double>(fd_, offset);
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, val, FloatingPointFormat(fd_, val), fd_.precision);
     };
 
-    asciiFieldMap[CalculateBlockCrc32("c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        if (fc_.fieldDef->dataType.length == 1)
+    asciiFieldMap[CalculateBlockCrc32("c")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        if (fd_.dataType.length == 1) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(cf_.GetFieldValue<uint8_t>(fd_, offset))); }
+        if (fd_.dataType.length == 4 && fd_.dataType.name == DATA_TYPE::ULONG)
         {
-            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(std::get<uint8_t>(fc_.fieldValue)));
-        }
-        if (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DATA_TYPE::ULONG)
-        {
-            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(std::get<uint32_t>(fc_.fieldValue)));
+            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(cf_.GetFieldValue<uint32_t>(fd_, offset)));
         }
         return false;
     };
@@ -197,19 +190,20 @@ void Encoder::InitFieldMaps()
     // =========================================================
     jsonFieldMap[CalculateBlockCrc32("P")] = BasicIntMapEntry<uint8_t>();
 
-    jsonFieldMap[CalculateBlockCrc32("T")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue) / 1000.0, std::chars_format::fixed, 3);
+    jsonFieldMap[CalculateBlockCrc32("T")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                const MessageDatabase&, size_t offset) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<uint32_t>(fd_, offset) / 1000.0, std::chars_format::fixed, 3);
     };
 
-    jsonFieldMap[CalculateBlockCrc32("m")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue))), '"');
+    jsonFieldMap[CalculateBlockCrc32("m")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                const MessageDatabase& pclMsgDb_, size_t offset) {
+        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(pclMsgDb_.MsgIdToMsgName(cf_.GetFieldValue<uint32_t>(fd_, offset))),
+                               '"');
     };
 
-    jsonFieldMap[CalculateBlockCrc32("id")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        const auto uiTempId = std::get<uint32_t>(fc_.fieldValue);
+    jsonFieldMap[CalculateBlockCrc32("id")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        const auto uiTempId = cf_.GetFieldValue<uint32_t>(fd_, offset);
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
         return (sGloChan < 0)    ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, sGloChan, '"')
@@ -217,89 +211,70 @@ void Encoder::InitFieldMaps()
                                  : CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, '"');
     };
 
-    jsonFieldMap[CalculateBlockCrc32("f")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        if (fc_.fieldDef->dataType.length == 4)
+    jsonFieldMap[CalculateBlockCrc32("f")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                const MessageDatabase&, size_t offset) {
+        if (fd_.dataType.length == 4)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<float>(fd_, offset), std::chars_format::fixed, fd_.precision);
         }
-        if (fc_.fieldDef->dataType.length == 8)
+        if (fd_.dataType.length == 8)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<double>(fd_, offset), std::chars_format::fixed, fd_.precision);
         }
         return false;
     };
 
-    jsonFieldMap[CalculateBlockCrc32("lf")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+    jsonFieldMap[CalculateBlockCrc32("lf")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<double>(fd_, offset), std::chars_format::fixed, fd_.precision);
     };
 
-    jsonFieldMap[CalculateBlockCrc32("e")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        if (fc_.fieldDef->dataType.length == 4)
+    jsonFieldMap[CalculateBlockCrc32("e")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                const MessageDatabase&, size_t offset) {
+        if (fd_.dataType.length == 4)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::scientific,
-                                      fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<float>(fd_, offset), std::chars_format::scientific, fd_.precision);
         }
-        if (fc_.fieldDef->dataType.length == 8)
+        if (fd_.dataType.length == 8)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::scientific,
-                                      fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, cf_.GetFieldValue<double>(fd_, offset), std::chars_format::scientific, fd_.precision);
         }
         return false;
     };
 
     jsonFieldMap[CalculateBlockCrc32("le")] = jsonFieldMap[CalculateBlockCrc32("e")];
 
-    jsonFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), FloatingPointFormat<float>(fc_),
-                                  fc_.fieldDef->precision);
+    jsonFieldMap[CalculateBlockCrc32("k")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                const MessageDatabase&, size_t offset) {
+        const auto val = cf_.GetFieldValue<float>(fd_, offset);
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, val, FloatingPointFormat(fd_, val), fd_.precision);
     };
 
-    jsonFieldMap[CalculateBlockCrc32("lk")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), FloatingPointFormat<double>(fc_),
-                                  fc_.fieldDef->precision);
+    jsonFieldMap[CalculateBlockCrc32("lk")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 const MessageDatabase&, size_t offset) {
+        const auto val = cf_.GetFieldValue<double>(fd_, offset);
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, val, FloatingPointFormat(fd_, val), fd_.precision);
     };
 
-    jsonFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+    jsonFieldMap[CalculateBlockCrc32("s")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                const MessageDatabase&, size_t offset) {
         return CopyToBuffer(ppcOutBuf_, uiBytesLeft_,
-                            fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR ? static_cast<char>(std::get<uint8_t>(fc_.fieldValue))
-                                                                            : static_cast<char>(std::get<int8_t>(fc_.fieldValue)));
+                            fd_.dataType.name == DATA_TYPE::UCHAR ? static_cast<char>(cf_.GetFieldValue<uint8_t>(fd_, offset))
+                                                                  : static_cast<char>(cf_.GetFieldValue<int8_t>(fd_, offset)));
     };
 
-    jsonFieldMap[CalculateBlockCrc32("c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        if (fc_.fieldDef->dataType.length == 1)
+    jsonFieldMap[CalculateBlockCrc32("c")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                const MessageDatabase&, size_t offset) {
+        if (fd_.dataType.length == 1)
         {
-            return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', static_cast<char>(std::get<uint8_t>(fc_.fieldValue)), '"');
+            return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', static_cast<char>(cf_.GetFieldValue<uint8_t>(fd_, offset)), '"');
         }
-        if (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DATA_TYPE::ULONG)
+        if (fd_.dataType.length == 4 && fd_.dataType.name == DATA_TYPE::ULONG)
         {
-            return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', static_cast<char>(std::get<uint32_t>(fc_.fieldValue)), '"');
+            return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', static_cast<char>(cf_.GetFieldValue<uint32_t>(fd_, offset)), '"');
         }
         return false;
     };
-}
-
-bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
-{
-    if (const auto* pValue = std::get_if<uint8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<float>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<double>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<bool>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<int32_t>(*pValue)); }
-    if (const auto* pValue = std::get_if<int8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<int16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<int32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<int64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<uint16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<uint32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-    if (const auto* pValue = std::get_if<uint64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, *pValue); }
-
-    throw std::runtime_error("Unsupported field type");
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -439,15 +414,18 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
-                ENCODE_FORMAT eFormat_) const
+Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_, const CompositeField& stMessage_,
+                MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
+
+    if (stMessage_.GetFieldInfo() == nullptr) { return STATUS::NO_DEFINITION; }
+
+    const auto& fieldDefinitions = stMessage_.GetFieldInfo()->messageOrderedFields;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
@@ -459,7 +437,8 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, "<")) { return STATUS::BUFFER_FULL; }
         stMessageData_.uiMessageHeaderLength = 1;
 
-        auto sResponse = std::get<std::string>(stMessage_[1].fieldValue);
+        if (fieldDefinitions.size() <= 1) { return STATUS::MALFORMED_INPUT; }
+        auto sResponse = stMessage_.GetFieldValue<std::string>(*fieldDefinitions.at(1));
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         stMessageData_.pucMessage = *ppucBuffer_;
@@ -478,7 +457,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"(,"body": )")) { return STATUS::BUFFER_FULL; }
     }
 
-    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, stMessageData_, eHeaderFormat_, eFormat_);
+    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, fieldDefinitions, stMessageData_, eHeaderFormat_, eFormat_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageBodyLength;
@@ -557,8 +536,9 @@ Encoder::EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_,
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
-                    MessageDataStruct& stMessageData_, const HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const
+Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const CompositeField& stMessage_,
+                    const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_, const HEADER_FORMAT eHeaderFormat_,
+                    ENCODE_FORMAT eFormat_) const
 {
     // TODO: this entire function should be in common, only header stuff and map redefinitions belong in this file
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
@@ -571,7 +551,7 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
     {
     case ENCODE_FORMAT::ASCII: {
         auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
-        if (!EncodeAsciiBody<false>(stMessage_, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        if (!EncodeAsciiBody<false>(stMessage_, fieldDefinitions, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pcTempBuffer--; // Remove last delimiter ','
         const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1,
                                                    reinterpret_cast<unsigned char*>(pcTempBuffer) - stMessageData_.pucMessageHeader - 1);
@@ -581,18 +561,18 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
     }
     case ENCODE_FORMAT::ABBREV_ASCII: {
         auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
-        if (!EncodeAsciiBody<true>(stMessage_, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        if (!EncodeAsciiBody<true>(stMessage_, fieldDefinitions, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pcTempBuffer--; // Remove last delimiter ' '
         if (!CopyToBuffer(&pcTempBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
     }
     case ENCODE_FORMAT::FLATTENED_BINARY:
-        if (!EncodeBinaryBody<true, true>(stMessage_, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        if (!EncodeBinaryBody<true>(stMessage_, fieldDefinitions, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         [[fallthrough]];
 
     case ENCODE_FORMAT::BINARY: {
-        if (eFormat_ == ENCODE_FORMAT::BINARY && !EncodeBinaryBody<false, true>(stMessage_, &pucTempBuffer, uiBufferSize_))
+        if (eFormat_ == ENCODE_FORMAT::BINARY && !EncodeBinaryBody<false>(stMessage_, fieldDefinitions, &pucTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
@@ -619,7 +599,7 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
     }
     case ENCODE_FORMAT::JSON: {
         auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
-        if (!EncodeJsonBody(stMessage_, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        if (!EncodeJsonBody(stMessage_, fieldDefinitions, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
     }

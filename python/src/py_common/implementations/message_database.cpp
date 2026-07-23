@@ -94,26 +94,16 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
 {
     ThrowIfLocked();
     other_->Lock();
-    core_->AppendEnumerations(other_->core_->EnumDefinitions());
+    core_->Merge(*other_->core_);
     AppendEnumTypes(other_->core_->EnumDefinitions());
-    core_->AppendMessages(other_->core_->MessageDefinitions());
-    AppendMessageTypes(other_->core_->MessageDefinitions());
+    AppendMessageTypes(core_->MessageDefinitions());
 }
 
-// Why clone on the way in:
-// MessageDatabase::AppendMessages writes through `EnumField::enumDef` via
-// MapMessageEnumFields; without an owned copy that mutation corrupts the
-// source database's shared field defs. Python is the only client that
-// legitimately reuses a def across databases, so the duplication is paid here
-// rather than inside the C++ AppendMessages.
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
 {
     ThrowIfLocked();
-    std::vector<MessageDefinition::ConstPtr> owned;
-    owned.reserve(vMessageDefinitions_.size());
-    for (const auto& msgDef : vMessageDefinitions_) { owned.push_back(std::make_shared<MessageDefinition>(*msgDef)); }
-    core_->AppendMessages(owned);
-    AppendMessageTypes(owned);
+    core_->AppendMessages(vMessageDefinitions_);
+    AppendMessageTypes(core_->MessageDefinitions());
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
@@ -217,7 +207,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumType(const std::str
     }
 }
 
-static py_common::FieldNameMap BuildFieldNameMapFromDefs(const std::vector<BaseField::Ptr>& fields)
+static py_common::FieldNameMap BuildFieldNameMapFromDefs(const std::vector<BaseField::ConstPtr>& fields)
 {
     py_common::FieldNameMap map;
     for (size_t i = 0; i < fields.size(); i++)
@@ -242,21 +232,21 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::UpdatePythonMessageTypes()
     AppendMessageTypes(core_->MessageDefinitions());
 }
 
-PYCOMMON_EXPORT void py_common::PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name,
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::AddFieldType(std::vector<BaseField::ConstPtr> fields, std::string base_name,
                                                                 std::string parent_message, nb::handle type_constructor)
 {
-    // rescursively add field types for each field array element within the provided vector
+    // recursively add field types for each field array element within the provided vector
     for (const auto& field : fields)
     {
         if (field->type == FIELD_TYPE::FIELD_ARRAY)
         {
-            auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
+            auto* field_array_field = dynamic_cast<const FieldArrayField*>(field.get());
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
             nb::object field_type = type_constructor(field_name);
             field_types[field.get()] = field_type;
             field_type_lookup_[field_type] = field;
-            field_name_maps_[field.get()] = BuildFieldNameMapFromDefs(field_array_field->fields);
-            AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor);
+            field_name_maps_[field.get()] = BuildFieldNameMapFromDefs(field_array_field->fieldInfo->messageOrderedFields);
+            AddFieldType(field_array_field->fieldInfo->messageOrderedFields, field_name, parent_message, type_constructor);
         }
     }
 }
@@ -295,7 +285,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessageTypes(const std:
         RemoveMessageType(message_def->logID);
         messages_types[message_def.get()] = std::map<uint32_t, nb::object>{};
 
-        for (const auto& [crc, message_fields] : message_def->fields)
+        for (const auto& [crc, field_info] : message_def->fieldInfo)
         {
             std::ostringstream ss;
             ss << message_def->name << "_" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << crc;
@@ -305,9 +295,9 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessageTypes(const std:
             nb::object msg_py_type = msg_type_cons(message_name);
             messages_types[message_def.get()][crc] = msg_py_type;
             message_type_lookup_[msg_py_type] = {message_def.get(), crc};
-            message_field_name_maps_[message_def.get()][crc] = BuildFieldNameMapFromDefs(message_fields);
+            message_field_name_maps_[message_def.get()][crc] = BuildFieldNameMapFromDefs(field_info->messageOrderedFields);
 
-            AddFieldType(message_fields, message_name, message_name, field_type_cons);
+            AddFieldType(field_info->messageOrderedFields, message_name, message_name, field_type_cons);
         }
     }
 }
@@ -328,10 +318,10 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessageType(uint32_t me
     message_field_name_maps_.erase(message_def.get());
 
     // remove all field types associated with this message from field_types
-    for (const auto& [crc, fields] : message_def->fields) { RemoveFieldTypes(fields); }
+    for (const auto& [crc, field_info] : message_def->fieldInfo) { RemoveFieldTypes(field_info->messageOrderedFields); }
 }
 
-void py_common::PyMessageDatabase::RemoveFieldTypes(const std::vector<BaseField::Ptr>& fieldDefs)
+void py_common::PyMessageDatabase::RemoveFieldTypes(const std::vector<BaseField::ConstPtr>& fieldDefs)
 {
     for (const auto& fieldDef : fieldDefs)
     {
@@ -344,8 +334,8 @@ void py_common::PyMessageDatabase::RemoveFieldTypes(const std::vector<BaseField:
         field_name_maps_.erase(fieldDef.get());
         if (fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
-            auto* fieldArrayFieldDef = dynamic_cast<FieldArrayField*>(fieldDef.get());
-            RemoveFieldTypes(fieldArrayFieldDef->fields);
+            auto* fieldArrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
+            RemoveFieldTypes(fieldArrayFieldDef->fieldInfo->messageOrderedFields);
         }
     }
 }

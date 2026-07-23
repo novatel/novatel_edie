@@ -313,6 +313,8 @@ struct BaseField
     bool isCsv{false};                // cached; Ascii encoding of this field is comma-separated,
                                       // true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
+    size_t index{0}; // if fixed, this is the byte offset of the field in CompositeField.fixedFields
+                     // if variable, this is the index of the field in CompositeField.variableFields
 
     BaseField() = default;
 
@@ -477,6 +479,42 @@ struct ArrayField : BaseField
     }
 };
 
+struct FieldInfo
+{
+    size_t fixedFieldBytes{0};
+    size_t varFieldCount{0};
+    std::vector<BaseField::ConstPtr> messageOrderedFields; // vector of field definitions in the order they are encoded in the message
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field definition by name.
+    //!
+    //! \param[in] fieldName_ The name of the field definition to retrieve.
+    //! \return A constant pointer to the field definition if found, nullptr otherwise.
+    // ---------------------------------------------------------------------------
+    BaseField::ConstPtr GetFieldDefByName(const std::string& fieldName_) const
+    {
+        const auto it = std::find_if(messageOrderedFields.begin(), messageOrderedFields.end(),
+                                     [&fieldName_](const BaseField::ConstPtr& fieldDef) { return fieldDef->name == fieldName_; });
+        if (it == messageOrderedFields.end()) { return nullptr; }
+        return *it;
+    }
+
+    [[nodiscard]] std::shared_ptr<FieldInfo> clone() const
+    {
+        auto copy = std::make_shared<FieldInfo>();
+        copy->fixedFieldBytes = fixedFieldBytes;
+        copy->varFieldCount = varFieldCount;
+        copy->messageOrderedFields.reserve(messageOrderedFields.size());
+        for (const auto& f : messageOrderedFields) { copy->messageOrderedFields.push_back(f ? f->clone() : nullptr); }
+        return copy;
+    }
+
+    using Ptr = std::shared_ptr<FieldInfo>;
+    using ConstPtr = std::shared_ptr<const FieldInfo>;
+};
+
+FieldInfo::ConstPtr BuildFieldInfo(std::vector<BaseField::Ptr> fields, std::string messageFamily = "");
+
 //-----------------------------------------------------------------------
 //! \struct FieldArrayField
 //! \brief Struct containing elements of field array fields in the UI DB.
@@ -484,16 +522,16 @@ struct ArrayField : BaseField
 struct FieldArrayField : ArrayField
 {
     uint32_t fieldSize{0}; // cached
-    std::vector<std::shared_ptr<BaseField>> fields;
+    FieldInfo::ConstPtr fieldInfo;
 
     FieldArrayField() = default;
 
     FieldArrayField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_, uint32_t arrayLength_,
-                    std::vector<std::shared_ptr<BaseField>> fields_)
-        : ArrayField(std::move(name_), type_, std::move(conversion_), eDataTypeName_, arrayLength_), fields(std::move(fields_))
+                    FieldInfo::ConstPtr fields_)
+        : ArrayField(std::move(name_), type_, std::move(conversion_), eDataTypeName_, arrayLength_), fieldInfo(std::move(fields_))
     {
         uint32_t childTotal = 0;
-        for (const auto& f : fields)
+        for (const auto& f : fieldInfo->messageOrderedFields)
         {
             if (!f) { continue; }
             switch (f->type)
@@ -514,7 +552,7 @@ struct FieldArrayField : ArrayField
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override
     {
         auto copy = std::make_shared<FieldArrayField>(*this);
-        for (auto& sub : copy->fields) { sub = sub->clone(); }
+        copy->fieldInfo = fieldInfo->clone();
         return copy;
     }
 
@@ -526,13 +564,13 @@ struct FieldArrayField : ArrayField
     {
         if (!ArrayField::equalsImpl(other)) { return false; }
         const auto& o = static_cast<const FieldArrayField&>(other);
-        if (fields.size() != o.fields.size()) { return false; }
-        for (size_t i = 0; i < fields.size(); ++i)
+        if (fieldInfo->messageOrderedFields.size() != o.fieldInfo->messageOrderedFields.size()) { return false; }
+        for (size_t i = 0; i < fieldInfo->messageOrderedFields.size(); ++i)
         {
-            const bool lhs_null = !fields[i];
-            const bool rhs_null = !o.fields[i];
+            const bool lhs_null = !fieldInfo->messageOrderedFields[i];
+            const bool rhs_null = !o.fieldInfo->messageOrderedFields[i];
             if (lhs_null != rhs_null) { return false; }
-            if (!lhs_null && *fields[i] != *o.fields[i]) { return false; }
+            if (!lhs_null && *fieldInfo->messageOrderedFields[i] != *o.fieldInfo->messageOrderedFields[i]) { return false; }
         }
         return true;
     }
@@ -563,10 +601,10 @@ struct MessageDefinition
     uint32_t logID{0};
     std::string name;
     std::string description;
-    std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields; // map of crc keys to field definitions
+    std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfo; // map of crc keys to field info
     uint32_t latestMessageCrc{0};
 
-    const std::vector<BaseField::Ptr>& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
+    const FieldInfo& GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Compares the non-cached fields. Two `MessageDefinition`s compare
@@ -578,22 +616,28 @@ struct MessageDefinition
     [[nodiscard]] bool operator==(const MessageDefinition& other) const
     {
         if (_id != other._id || logID != other.logID || name != other.name || description != other.description ||
-            latestMessageCrc != other.latestMessageCrc || fields.size() != other.fields.size())
+            latestMessageCrc != other.latestMessageCrc || fieldInfo.size() != other.fieldInfo.size())
         {
             return false;
         }
-        for (const auto& [crc, fieldVec] : fields)
+        for (const auto& [crc, info] : fieldInfo)
         {
-            auto it = other.fields.find(crc);
-            if (it == other.fields.end()) { return false; }
-            const auto& otherVec = it->second;
-            if (fieldVec.size() != otherVec.size()) { return false; }
-            for (size_t i = 0; i < fieldVec.size(); ++i)
+            auto it = other.fieldInfo.find(crc);
+            if (it == other.fieldInfo.end()) { return false; }
+
+            const auto& otherInfo = it->second;
+            if (info->fixedFieldBytes != otherInfo->fixedFieldBytes || info->varFieldCount != otherInfo->varFieldCount ||
+                info->messageOrderedFields.size() != otherInfo->messageOrderedFields.size())
             {
-                const bool lhs_null = !fieldVec[i];
-                const bool rhs_null = !otherVec[i];
+                return false;
+            }
+
+            for (size_t i = 0; i < info->messageOrderedFields.size(); ++i)
+            {
+                const bool lhs_null = !info->messageOrderedFields[i];
+                const bool rhs_null = !otherInfo->messageOrderedFields[i];
                 if (lhs_null != rhs_null) { return false; }
-                if (!lhs_null && *fieldVec[i] != *otherVec[i]) { return false; }
+                if (!lhs_null && *info->messageOrderedFields[i] != *otherInfo->messageOrderedFields[i]) { return false; }
             }
         }
         return true;
@@ -605,8 +649,8 @@ struct MessageDefinition
     ~MessageDefinition() = default;
 
     MessageDefinition(std::string id_, uint32_t logID_, std::string name_, std::string description_, uint32_t latestMessageCrc_,
-                      std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields_)
-        : _id(std::move(id_)), logID(logID_), name(std::move(name_)), description(std::move(description_)), fields(std::move(fields_)),
+                      std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfo_)
+        : _id(std::move(id_)), logID(logID_), name(std::move(name_)), description(std::move(description_)), fieldInfo(std::move(fieldInfo_)),
           latestMessageCrc(latestMessageCrc_)
     {
     }
@@ -620,12 +664,7 @@ struct MessageDefinition
     MessageDefinition(const MessageDefinition& other)
         : _id(other._id), logID(other.logID), name(other.name), description(other.description), latestMessageCrc(other.latestMessageCrc)
     {
-        for (const auto& [crc, fieldVec] : other.fields)
-        {
-            auto& copyVec = fields[crc];
-            copyVec.reserve(fieldVec.size());
-            for (const auto& f : fieldVec) { copyVec.push_back(f ? f->clone() : nullptr); }
-        }
+        for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo) { fieldInfo[crc] = otherFieldInfoPtr->clone(); }
     }
 
     MessageDefinition& operator=(const MessageDefinition& other)
@@ -636,13 +675,8 @@ struct MessageDefinition
         name = other.name;
         description = other.description;
         latestMessageCrc = other.latestMessageCrc;
-        fields.clear();
-        for (const auto& [crc, fieldVec] : other.fields)
-        {
-            auto& copyVec = fields[crc];
-            copyVec.reserve(fieldVec.size());
-            for (const auto& f : fieldVec) { copyVec.push_back(f ? f->clone() : nullptr); }
-        }
+        fieldInfo.clear();
+        for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo) { fieldInfo[crc] = otherFieldInfoPtr->clone(); }
         return *this;
     }
 
@@ -690,6 +724,11 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     //! \brief A constructor for the MessageDatabase class.
     //
+    //! \note This constructor does not recompute the FieldInfo of the given
+    //!     message definitions. The caller is responsible for ensuring that each
+    //!     definition's FieldInfo is valid for the given message family. (The
+    //!     JSON DB reader computes FieldInfo before using this constructor.)
+    //
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
     //! \param[in] pDbMetadata_ Database metadata
@@ -714,15 +753,15 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
-        std::thread enumThread([this, &other_]() { AppendEnumerations(other_.vEnumDefinitions); });
-        std::thread messageThread([this, &other_]() { AppendMessages(other_.vMessageDefinitions); });
-
-        enumThread.join();
-        messageThread.join();
+        AppendEnumerations(other_.vEnumDefinitions);
+        AppendMessages(other_.vMessageDefinitions);
     }
 
     //----------------------------------------------------------------------------
     //! \brief Append a list of message definitions to the database.
+    //
+    //! \note All of the given definitions are deep-copied into the database so
+    //!     their FieldInfo can be rebuilt without corrupting the source definitions.
     //
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //----------------------------------------------------------------------------
@@ -731,12 +770,23 @@ class MessageDatabase
         for (const auto& msgDef : vMessageDefinitions_)
         {
             RemoveMessage(msgDef->logID);
-            vMessageDefinitions.push_back(msgDef);
-            mMessageName[msgDef->name] = msgDef;
-            mMessageId[msgDef->logID] = msgDef;
 
-            for (const auto& item : msgDef->fields) { MapMessageEnumFields(item.second); }
+            MessageDefinition::Ptr copy = std::make_shared<MessageDefinition>(*msgDef);
+
+            // Rebuild FieldInfo to ensure field indices match our message family
+            for (const auto& [crc, fields] : copy->fieldInfo)
+            {
+                // BaseFields were already deep-copied by the MessageDefinition copy constructor, but we need to
+                // cast off constness to rebuild field definitions with this DB's message family.
+                std::vector<BaseField::Ptr> fieldVec;
+                fieldVec.reserve(fields->messageOrderedFields.size());
+                for (const auto& f : fields->messageOrderedFields) { fieldVec.emplace_back(std::const_pointer_cast<BaseField>(f)); }
+                copy->fieldInfo[crc] = BuildFieldInfo(std::move(fieldVec), pDbMetadata ? pDbMetadata->messageFamily : "");
+            }
+
+            vMessageDefinitions.push_back(copy);
         }
+        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -836,12 +886,38 @@ class MessageDatabase
 
     //----------------------------------------------------------------------------
     //! \brief Sets the message family on the DB metadata, creating it if absent.
+    //!     Rebuilds FieldInfo for every MessageDefinition in the database to ensure
+    //!     field indices match the new message family.
     //----------------------------------------------------------------------------
     void SetMessageFamily(const std::string& messageFamily_)
     {
         if (!pDbMetadata) { pDbMetadata = std::make_shared<DbMetadata>(); }
         pDbMetadata->messageFamily = messageFamily_;
+        const auto previousMessageDefinitions = std::move(vMessageDefinitions);
+        vMessageDefinitions.clear();
+        AppendMessages(previousMessageDefinitions); // Rebuild FieldInfo for all messages with the new message family
     }
+
+    //----------------------------------------------------------------------------
+    //! \brief Registers an alignment function for a given message family.
+    //!
+    //! \param[in] messageFamily_ The message family for which to register the alignment function
+    //! \param[in] fn The alignment function to register, which takes the field length,
+    //!     a pointer to the start of the message body, and a pointer to the current position,
+    //!     and returns the number of bytes to move forward to align the field.
+    //----------------------------------------------------------------------------
+    static void RegisterAlignmentFunction(std::string messageFamily_, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fn);
+
+    //----------------------------------------------------------------------------
+    //! \brief Retrieves the alignment functions map.
+    //! \return A reference to the map of message family names to their corresponding alignment functions.
+    //----------------------------------------------------------------------------
+    static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>>& GetAlignmentFunctions();
+
+    //----------------------------------------------------------------------------
+    //! \brief A no-op alignment function that always returns 0.
+    //----------------------------------------------------------------------------
+    static size_t NoAlign(size_t, const uintptr_t, const uintptr_t) noexcept { return 0; }
 
   protected:
     virtual void GenerateEnumMappings()
@@ -855,29 +931,39 @@ class MessageDatabase
 
     virtual void GenerateMessageMappings()
     {
+        // Must clear maps here as previous string_view keys could belong to old message definitions
+        mMessageName.clear();
+        mMessageId.clear();
         for (auto& msg : vMessageDefinitions)
         {
             mMessageName[msg->name] = msg;
             mMessageId[msg->logID] = msg;
 
-            for (const auto& item : msg->fields) { MapMessageEnumFields(item.second); }
+            for (const auto& item : msg->fieldInfo)
+            {
+                if (!item.second->messageOrderedFields.empty()) { MapMessageEnumFields(item.second->messageOrderedFields); }
+            }
         }
     }
 
   private:
-    void MapMessageEnumFields(const std::vector<std::shared_ptr<BaseField>>& vMsgDefFields_)
+    void MapMessageEnumFields(const std::vector<BaseField::ConstPtr>& vMsgDefFields_)
     {
         for (const auto& field : vMsgDefFields_)
         {
             if (field->type == FIELD_TYPE::ENUM)
             {
-                auto* enumField = dynamic_cast<EnumField*>(field.get());
-                enumField->enumDef = GetEnumDefId(enumField->enumId);
+                auto enumField = std::dynamic_pointer_cast<const EnumField>(field);
+                if (!enumField) { continue; }
+
+                // Definitions are stored as ConstPtr but enumDef is populated after loading DBs.
+                std::const_pointer_cast<EnumField>(enumField)->enumDef = GetEnumDefId(enumField->enumId);
             }
             else if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
-                auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
-                MapMessageEnumFields(fieldArrayField->fields);
+                auto fieldArrayField = std::dynamic_pointer_cast<const FieldArrayField>(field);
+                if (!fieldArrayField || fieldArrayField->fieldInfo->messageOrderedFields.empty()) { continue; }
+                MapMessageEnumFields(fieldArrayField->fieldInfo->messageOrderedFields);
             }
         }
     }

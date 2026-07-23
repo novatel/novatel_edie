@@ -134,8 +134,9 @@ std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
 //-----------------------------------------------------------------------
 MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(std::string_view strMsgName_) const
 {
-    const auto it = mMessageName.find(strMsgName_.data());
-    return it != mMessageName.end() ? it->second : nullptr;
+    const auto it = mMessageName.find(strMsgName_);
+    if (it != mMessageName.end()) { return it->second; }
+    return nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -143,7 +144,8 @@ MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(std::string_view strMsgNa
 MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(const int32_t iMsgId_) const
 {
     const auto it = mMessageId.find(iMsgId_);
-    return it != mMessageId.end() ? it->second : nullptr;
+    if (it != mMessageId.end()) { return it->second; }
+    return nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -156,10 +158,84 @@ void LogMissingMsgDef(spdlog::logger& pclLogger_, const int32_t iMsgId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-const std::vector<BaseField::Ptr>& MessageDefinition::GetMsgDefFromCrc([[maybe_unused]] spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const
+const FieldInfo& MessageDefinition::GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) const
 {
-    auto it = fields.find(uiMsgDefCrc_);
-    return (it != fields.end()) ? it->second : fields.at(latestMessageCrc);
+    auto it = fieldInfo.find(uiMsgDefCrc_);
+    if (it != fieldInfo.end() && it->second) { return *it->second; }
+
+    const auto latestIt = fieldInfo.find(latestMessageCrc);
+    if (latestIt != fieldInfo.end() && latestIt->second) { return *latestIt->second; }
+
+    throw std::runtime_error("GetMsgDefFromCrc(): no field definition found for requested or latest CRC");
+}
+
+// -------------------------------------------------------------------------------------------------------
+void MessageDatabase::RegisterAlignmentFunction(std::string messageFamily_, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fn)
+{
+    GetAlignmentFunctions()[messageFamily_] = std::move(fn);
+}
+
+// -------------------------------------------------------------------------------------------------------
+std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>>& MessageDatabase::GetAlignmentFunctions()
+{
+    static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>> alignmentFunctions;
+    return alignmentFunctions;
+}
+
+// ---------------------------------------------------------------------------
+FieldInfo::ConstPtr BuildFieldInfo(std::vector<BaseField::Ptr> fields, std::string messageFamily)
+{
+    size_t fixedBytes = 0;
+    size_t varFields = 0;
+    std::vector<BaseField::ConstPtr> constFields;
+    constFields.reserve(fields.size());
+
+    std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> alignFn = MessageDatabase::NoAlign;
+    const auto& it = MessageDatabase::GetAlignmentFunctions().find(messageFamily);
+    if (it != MessageDatabase::GetAlignmentFunctions().end()) { alignFn = it->second; }
+
+    const auto& alignFixed = [&](size_t typeLength) {
+        const auto ptr = static_cast<uintptr_t>(fixedBytes);
+        fixedBytes += alignFn(typeLength, uintptr_t{0}, ptr);
+    };
+
+    for (const auto& f : fields)
+    {
+        switch (f->type)
+        {
+        case FIELD_TYPE::BITFIELD: [[fallthrough]];
+        case FIELD_TYPE::RESPONSE_ID: [[fallthrough]];
+        case FIELD_TYPE::SIMPLE: [[fallthrough]];
+        case FIELD_TYPE::ENUM:
+            alignFixed(f->dataType.length);
+            f->index = fixedBytes;
+            fixedBytes += f->dataType.length;
+            break;
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+            alignFixed(f->dataType.length);
+            f->index = fixedBytes;
+            const auto* arrayField = dynamic_cast<const ArrayField*>(f.get());
+            if (!arrayField) { throw std::runtime_error("FIXED_LENGTH_ARRAY field is not of type ArrayField."); }
+            fixedBytes += f->dataType.length * arrayField->arrayLength;
+            break;
+        }
+        case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
+        case FIELD_TYPE::STRING: [[fallthrough]];
+        case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            f->index = varFields;
+            varFields++;
+            break;
+        default: throw std::runtime_error("Unknown field type encountered while building FieldInfo.");
+        }
+        constFields.push_back(f);
+    }
+
+    auto fieldInfo = std::make_shared<FieldInfo>();
+    fieldInfo->fixedFieldBytes = fixedBytes;
+    fieldInfo->varFieldCount = varFields;
+    fieldInfo->messageOrderedFields = std::move(constFields);
+    return fieldInfo;
 }
 
 } // namespace novatel::edie

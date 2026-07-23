@@ -91,17 +91,20 @@ std::string StringOr(element obj_, std::string_view key_, std::string_view defau
     return AsString(el);
 }
 
+using AlignFunction = std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>;
+
 // Forward declarations (parse functions are mutually recursive via field arrays).
 void ParseEnumDataType(element j_, EnumDataType& f_);
 void ParseSimpleDataType(element j_, SimpleDataType& f_);
 void ParseBaseField(element j_, BaseField& f_);
 void ParseEnumField(element j_, EnumField& f_);
 void ParseArrayField(element j_, ArrayField& fd_);
-void ParseFieldArrayField(element j_, FieldArrayField& fd_);
-void ParseMessageDefinition(element j_, MessageDefinition& md_);
+void ParseFieldArrayField(element j_, FieldArrayField& fd_, const AlignFunction& alignFn_);
 void ParseEnumDefinition(element j_, EnumDefinition& ed_);
 void ParseDbMetadata(element j_, DbMetadata& dbm_);
-uint32_t ParseFields(element j_, std::vector<BaseField::Ptr>& vFields_);
+
+// Forward declaration of parse_fields and parse_enumerators
+uint32_t ParseFields(element j_, FieldInfo& vFields_, const AlignFunction& alignFn_ = MessageDatabase::NoAlign);
 void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_);
 
 //-----------------------------------------------------------------------
@@ -167,7 +170,7 @@ void ParseArrayField(element j_, ArrayField& fd_)
 }
 
 //-----------------------------------------------------------------------
-void ParseFieldArrayField(element j_, FieldArrayField& fd_)
+void ParseFieldArrayField(element j_, FieldArrayField& fd_, const AlignFunction& alignFn_)
 {
     ParseBaseField(j_, fd_);
 
@@ -178,28 +181,12 @@ void ParseFieldArrayField(element j_, FieldArrayField& fd_)
     fd_.arrayLengthFieldSize =
         j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsUint(arrayLengthFieldSize)) : 4;
 
-    fd_.fieldSize = fd_.arrayLength * ParseFields(Member(j_, "fields"), fd_.fields);
+    FieldInfo stFieldInfo{};
+    fd_.fieldSize = fd_.arrayLength * ParseFields(Member(j_, "fields"), stFieldInfo, alignFn_);
+    fd_.fieldInfo = std::make_shared<FieldInfo>(std::move(stFieldInfo));
 
     element arrayLengthRef;
     if (j_["arrayLengthRef"].get(arrayLengthRef) == simdjson::SUCCESS) { fd_.arrayLengthRef = AsStringOrEmpty(arrayLengthRef); }
-}
-
-//-----------------------------------------------------------------------
-void ParseMessageDefinition(element j_, MessageDefinition& md_)
-{
-    md_._id = AsString(Member(j_, "_id"));
-    md_.logID = static_cast<uint32_t>(AsUint(Member(j_, "messageID"))); // this was "logID"
-    md_.name = AsString(Member(j_, "name"));
-    md_.description = AsStringOrEmpty(Member(j_, "description"));
-    md_.latestMessageCrc = std::stoul(AsString(Member(j_, "latestMsgDefCrc")));
-
-    object fields;
-    if (Member(j_, "fields").get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON object"); }
-    for (auto field : fields)
-    {
-        uint32_t defCrc = std::stoul(std::string(field.key));
-        ParseFields(field.value, md_.fields[defCrc]);
-    }
 }
 
 //-----------------------------------------------------------------------
@@ -219,13 +206,19 @@ void ParseDbMetadata(element j_, DbMetadata& dbm_)
 }
 
 //-----------------------------------------------------------------------
-uint32_t ParseFields(element j_, std::vector<BaseField::Ptr>& vFields_)
+uint32_t ParseFields(element j_, FieldInfo& vFields_, const AlignFunction& alignFn_)
 {
     uint32_t uiFieldSize = 0;
 
     array fields;
     if (j_.get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON array"); }
-    vFields_.reserve(fields.size());
+    vFields_.messageOrderedFields = std::vector<BaseField::ConstPtr>();
+    vFields_.messageOrderedFields.reserve(fields.size());
+
+    auto alignFixed = [&](size_t typeLength) {
+        const auto ptr = static_cast<uintptr_t>(vFields_.fixedFieldBytes);
+        vFields_.fixedFieldBytes += alignFn_(typeLength, uintptr_t{0}, ptr);
+    };
 
     for (element field : fields)
     {
@@ -238,29 +231,46 @@ uint32_t ParseFields(element j_, std::vector<BaseField::Ptr>& vFields_)
         {
             auto pstField = std::make_shared<BaseField>();
             ParseBaseField(field, *pstField);
-            vFields_.emplace_back(std::move(pstField));
+            alignFixed(stDataType.length);
+            pstField->index = vFields_.fixedFieldBytes;
+            vFields_.messageOrderedFields.push_back(pstField);
             uiFieldSize += stDataType.length;
+            vFields_.fixedFieldBytes += stDataType.length;
         }
         else if (sFieldType == "ENUM")
         {
             auto pstField = std::make_shared<EnumField>();
             ParseEnumField(field, *pstField);
-            vFields_.emplace_back(std::move(pstField));
+            alignFixed(stDataType.length);
+            pstField->index = vFields_.fixedFieldBytes;
+            vFields_.messageOrderedFields.push_back(pstField);
             uiFieldSize += stDataType.length;
+            vFields_.fixedFieldBytes += stDataType.length;
         }
         else if (sFieldType == "FIXED_LENGTH_ARRAY" || sFieldType == "VARIABLE_LENGTH_ARRAY" || sFieldType == "STRING")
         {
             auto pstField = std::make_shared<ArrayField>();
             ParseArrayField(field, *pstField);
             auto uiArrayLength = static_cast<uint32_t>(AsUint(Member(field, "arrayLength")));
-            vFields_.emplace_back(std::move(pstField));
             uiFieldSize += stDataType.length * uiArrayLength;
+            if (sFieldType == "FIXED_LENGTH_ARRAY")
+            {
+                alignFixed(stDataType.length);
+                pstField->index = vFields_.fixedFieldBytes;
+                vFields_.fixedFieldBytes += stDataType.length * uiArrayLength;
+            }
+            else { pstField->index = vFields_.varFieldCount; }
+
+            vFields_.messageOrderedFields.push_back(pstField);
+            if (sFieldType != "FIXED_LENGTH_ARRAY") { vFields_.varFieldCount++; }
         }
         else if (sFieldType == "FIELD_ARRAY")
         {
             auto pstField = std::make_shared<FieldArrayField>();
-            ParseFieldArrayField(field, *pstField);
-            vFields_.emplace_back(std::move(pstField));
+            ParseFieldArrayField(field, *pstField, alignFn_);
+            vFields_.messageOrderedFields.push_back(pstField);
+            pstField->index = vFields_.varFieldCount;
+            vFields_.varFieldCount++;
         }
         else { throw std::runtime_error("Could not find field type"); }
     }
@@ -282,7 +292,7 @@ void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_)
 }
 
 //-----------------------------------------------------------------------
-std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot_)
+std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot_, const AlignFunction& alignFn_)
 {
     array data;
     if (Member(jRoot_, "messages").get(data) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'messages' to be a JSON array"); }
@@ -290,10 +300,24 @@ std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot
     std::vector<MessageDefinition::ConstPtr> res;
     res.reserve(data.size());
 
-    for (element it : data)
+    for (const auto& j_ : data)
     {
         auto md = std::make_shared<MessageDefinition>();
-        ParseMessageDefinition(it, *md);
+        md->_id = AsString(Member(j_, "_id"));
+        md->logID = static_cast<uint32_t>(AsUint(Member(j_, "messageID"))); // this was "logID"
+        md->name = AsString(Member(j_, "name"));
+        md->description = AsStringOrEmpty(Member(j_, "description"));
+        md->latestMessageCrc = std::stoul(AsString(Member(j_, "latestMsgDefCrc")));
+
+        object fields;
+        if (Member(j_, "fields").get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON object"); }
+        for (auto field : fields)
+        {
+            uint32_t defCrc = std::stoul(std::string(field.key));
+            FieldInfo stFieldInfo{};
+            ParseFields(field.value, stFieldInfo, alignFn_);
+            md->fieldInfo[defCrc] = std::make_shared<FieldInfo>(std::move(stFieldInfo));
+        }
         res.emplace_back(std::move(md));
     }
 
@@ -328,10 +352,6 @@ MessageDatabase::Ptr ParseJsonDbImpl(simdjson::padded_string source, std::string
         element root;
         if (parser.parse(source).get(root) != simdjson::SUCCESS) { throw std::runtime_error("Failed to parse JSON database"); }
 
-        // The parsed DOM is immutable; the message and enum subtrees can be read concurrently.
-        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root);
-        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, root);
-
         DbMetadata::Ptr dbMeta;
         element meta;
         if (root["meta"].get(meta) == simdjson::SUCCESS)
@@ -339,6 +359,16 @@ MessageDatabase::Ptr ParseJsonDbImpl(simdjson::padded_string source, std::string
             dbMeta = std::make_shared<DbMetadata>();
             ParseDbMetadata(meta, *dbMeta);
         }
+
+        AlignFunction alignFn = MessageDatabase::NoAlign;
+        if (dbMeta && !dbMeta->messageFamily.empty())
+        {
+            const auto it = MessageDatabase::GetAlignmentFunctions().find(dbMeta->messageFamily);
+            if (it != MessageDatabase::GetAlignmentFunctions().end()) { alignFn = it->second; }
+        }
+
+        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root, std::cref(alignFn));
+        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, root);
 
         return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get(), dbMeta);
     }

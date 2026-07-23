@@ -279,7 +279,7 @@ class Parser
     //! if requested in the ParserConfigStruct given to SetConfig().
     //!   BUFFER_EMPTY: There are no more bytes to parse in the Parser.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& header_, std::vector<FieldContainer>& stMessage_,
+    [[nodiscard]] STATUS ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& header_, CompositeField& stMessage_,
                                           MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
 
     //----------------------------------------------------------------------------

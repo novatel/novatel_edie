@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
                     pucFrameBuffer += stMetaData.uiHeaderLength;
                     uint32_t uiBodyLength = stMetaData.uiLength - stMetaData.uiHeaderLength;
                     // Decode the Log, pass the metadata and populate the intermediate log.
-                    std::vector<FieldContainer> stMessage;
+                    CompositeField stMessage;
                     eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
 
                     if (eDecoderStatus == STATUS::SUCCESS)
