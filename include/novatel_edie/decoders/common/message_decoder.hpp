@@ -1166,7 +1166,7 @@ class CompositeField
         switch (fieldDef_.type)
         {
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
-        case FIELD_TYPE::RESPONSE_STR: [[fallthrough]]; // TODO: is RESPONSE_STR always std::string?
+        case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
         case FIELD_TYPE::STRING:
             if constexpr (std::is_same_v<ValueT, std::string> ||
                           (is_specialization_of_v<ValueT, std::vector> && !std::is_same_v<ValueT, CompositeFieldArray>))
@@ -1248,7 +1248,7 @@ class CompositeField
         if (buffer_ == nullptr && capacity_ != 0) { throw std::runtime_error("WriteFieldToBuffer(): destination buffer is null"); }
 
         const auto copyBytes = [&](const std::byte* source_, const size_t size_) -> size_t {
-            if (size_ > capacity_) { throw std::runtime_error("WriteFieldToBuffer(): destination buffer too small"); }
+            if (size_ > capacity_) { return 0; }
             if (size_ > 0) { std::memcpy(buffer_, source_, size_); }
             return size_;
         };

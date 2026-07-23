@@ -427,7 +427,7 @@ template <typename Derived> class EncoderBase
                         // VARIABLE_LENGTH_ARRAY, STRING, and flat FIELD_ARRAY
                         else
                         {
-                            if (!stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_)) { return false; }
+                            if (count > 0 && !stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_)) { return false; }
                         }
 
                         // For a flattened version of the log, fill in the remaining fields with 0x00.
@@ -447,7 +447,8 @@ template <typename Derived> class EncoderBase
             else
             {
                 // All other fields (SIMPLE, ENUM, RESPONSE_ID, RESPONSE_STR, FIXED_LENGTH_ARRAY): copy bytes directly
-                if (!stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_)) return false;
+                // Note: the following check assumes none of the aforementioned field types can be empty
+                if (!stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_)) { return false; }
             }
         }
 
