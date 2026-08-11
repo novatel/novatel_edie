@@ -62,7 +62,6 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 }
                 STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_header.c_str()), header, *metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
-                header.format = metadata->eFormat;
                 return header;
             },
             "raw_header"_a, nb::arg("metadata") = nb::none(),
@@ -89,7 +88,6 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                     default_metadata.uiBinaryMsgLength = static_cast<uint32_t>(raw_payload.size());
                     default_metadata.uiLength = default_metadata.uiHeaderLength + default_metadata.uiBinaryMsgLength;
                     default_metadata.uiMessageCrc = header.uiMessageDefinitionCrc;
-                    default_metadata.eFormat = header.format;
                     default_metadata.usMessageId = header.usMessageId;
                     default_metadata.messageName = decoder.database->MsgIdToMsgName(
                         CreateMsgId(header.usMessageId, NULL_SIBLING_ID, static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
@@ -120,7 +118,6 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 py_oem::PyHeader header;
                 const unsigned char* message_pointer = reinterpret_cast<const unsigned char*>(raw_message.c_str());
                 STATUS status = decoder.header_decoder.Decode(message_pointer, header, metadata);
-                header.format = metadata.eFormat;
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 const unsigned char* body_pointer = message_pointer + metadata.uiHeaderLength;
                 if (decoder.rx_config_handler.IsRxConfigTypeMsg(header.usMessageId))

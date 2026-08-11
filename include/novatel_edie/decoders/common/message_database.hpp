@@ -583,12 +583,23 @@ struct FieldArrayField : ArrayField
 struct DbMetadata
 {
     std::string subset;
-    std::string version;
     std::string messageFamily;
 
     using Ptr = std::shared_ptr<DbMetadata>;
     using ConstPtr = std::shared_ptr<const DbMetadata>;
 };
+
+//! Maps a header type name as it appears in the database (e.g. "SHORT") to the integral value stored
+//! in MessageDefinition::eMessageType. Registered per message family, since the set of header types
+//! and their meanings belong to the family rather than to the database reader.
+using HeaderTypeMap = std::unordered_map<std::string, int>;
+
+//! Value assigned to MessageDefinition::eMessageType when a header type cannot be resolved, either
+//! because the message family has no registered mapping or because the name is absent from it.
+//! Families are expected to number their own default header type 0, so that an unresolved definition
+//! falls back to it rather than to a value outside the family's enumeration. (The OEM family maps
+//! "STANDARD" to 0.)
+constexpr int DEFAULT_HEADER_TYPE = 0;
 
 //-----------------------------------------------------------------------
 //! \struct MessageDefinition
@@ -603,6 +614,11 @@ struct MessageDefinition
     std::string description;
     std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfo; // map of crc keys to field info
     uint32_t latestMessageCrc{0};
+    std::string headerType;
+    int eMessageType{DEFAULT_HEADER_TYPE}; // cached; integral form of headerType, resolved against the HeaderTypeMap
+                                           // registered for the owning database's message family. Interpret it with
+                                           // the family's own accessor (e.g. oem::GetHeaderType) rather than
+                                           // comparing raw values, as the numbering is family-specific.
 
     const FieldInfo& GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) const;
 
@@ -616,7 +632,7 @@ struct MessageDefinition
     [[nodiscard]] bool operator==(const MessageDefinition& other) const
     {
         if (_id != other._id || logID != other.logID || name != other.name || description != other.description ||
-            latestMessageCrc != other.latestMessageCrc || fieldInfo.size() != other.fieldInfo.size())
+            latestMessageCrc != other.latestMessageCrc || headerType != other.headerType || fieldInfo.size() != other.fieldInfo.size())
         {
             return false;
         }
@@ -662,7 +678,8 @@ struct MessageDefinition
     //! the source.
     //----------------------------------------------------------------------------
     MessageDefinition(const MessageDefinition& other)
-        : _id(other._id), logID(other.logID), name(other.name), description(other.description), latestMessageCrc(other.latestMessageCrc)
+        : _id(other._id), logID(other.logID), name(other.name), description(other.description), latestMessageCrc(other.latestMessageCrc),
+          headerType(other.headerType), eMessageType(other.eMessageType)
     {
         for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo) { fieldInfo[crc] = otherFieldInfoPtr->clone(); }
     }
@@ -675,6 +692,8 @@ struct MessageDefinition
         name = other.name;
         description = other.description;
         latestMessageCrc = other.latestMessageCrc;
+        headerType = other.headerType;
+        eMessageType = other.eMessageType;
         fieldInfo.clear();
         for (const auto& [crc, otherFieldInfoPtr] : other.fieldInfo) { fieldInfo[crc] = otherFieldInfoPtr->clone(); }
         return *this;
@@ -724,10 +743,11 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     //! \brief A constructor for the MessageDatabase class.
     //
-    //! \note This constructor does not recompute the FieldInfo of the given
-    //!     message definitions. The caller is responsible for ensuring that each
-    //!     definition's FieldInfo is valid for the given message family. (The
-    //!     JSON DB reader computes FieldInfo before using this constructor.)
+    //! \note This constructor does not recompute the FieldInfo or eMessageType of
+    //!     the given message definitions. The caller is responsible for ensuring
+    //!     that each definition's FieldInfo and eMessageType are valid for the given
+    //!     message family. (The JSON DB reader computes both before using this
+    //!     constructor.)
     //
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
@@ -761,17 +781,23 @@ class MessageDatabase
     //! \brief Append a list of message definitions to the database.
     //
     //! \note All of the given definitions are deep-copied into the database so
-    //!     their FieldInfo can be rebuilt without corrupting the source definitions.
+    //!     their FieldInfo and eMessageType can be rebuilt without corrupting the
+    //!     source definitions.
     //
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //----------------------------------------------------------------------------
     void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
     {
+        const std::string messageFamily = pDbMetadata ? pDbMetadata->messageFamily : "";
+
         for (const auto& msgDef : vMessageDefinitions_)
         {
             RemoveMessage(msgDef->logID);
 
             MessageDefinition::Ptr copy = std::make_shared<MessageDefinition>(*msgDef);
+
+            // Re-resolve the header type so it is numbered according to our message family, not the source's
+            copy->eMessageType = ResolveHeaderType(messageFamily, copy->headerType);
 
             // Rebuild FieldInfo to ensure field indices match our message family
             for (const auto& [crc, fields] : copy->fieldInfo)
@@ -781,7 +807,7 @@ class MessageDatabase
                 std::vector<BaseField::Ptr> fieldVec;
                 fieldVec.reserve(fields->messageOrderedFields.size());
                 for (const auto& f : fields->messageOrderedFields) { fieldVec.emplace_back(std::const_pointer_cast<BaseField>(f)); }
-                copy->fieldInfo[crc] = BuildFieldInfo(std::move(fieldVec), pDbMetadata ? pDbMetadata->messageFamily : "");
+                copy->fieldInfo[crc] = BuildFieldInfo(std::move(fieldVec), messageFamily);
             }
 
             vMessageDefinitions.push_back(copy);
@@ -832,6 +858,21 @@ class MessageDatabase
     //! \param[in] iMsgId_ The message ID.
     //----------------------------------------------------------------------------
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t iMsgId_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Get a non-owning pointer to the message definition for the provided message ID.
+    //
+    //! Unlike GetMsgDef this copies no shared_ptr which
+    //! makes it suited to hot paths that do not need to maintiain ownership.
+    //
+    //! \param[in] iMsgId_ The message ID.
+    //! \return A pointer to the definition, or nullptr if the ID is not in the database.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] const MessageDefinition* GetMsgDefRaw(const int32_t iMsgId_) const
+    {
+        const auto it = mMessageId.find(iMsgId_);
+        return it != mMessageId.end() ? it->second.get() : nullptr;
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Convert a message name string to a message ID number.
@@ -886,8 +927,9 @@ class MessageDatabase
 
     //----------------------------------------------------------------------------
     //! \brief Sets the message family on the DB metadata, creating it if absent.
-    //!     Rebuilds FieldInfo for every MessageDefinition in the database to ensure
-    //!     field indices match the new message family.
+    //!     Rebuilds FieldInfo and re-resolves eMessageType for every MessageDefinition
+    //!     in the database to ensure field indices and header types match the new
+    //!     message family.
     //----------------------------------------------------------------------------
     void SetMessageFamily(const std::string& messageFamily_)
     {
@@ -918,6 +960,38 @@ class MessageDatabase
     //! \brief A no-op alignment function that always returns 0.
     //----------------------------------------------------------------------------
     static size_t NoAlign(size_t, const uintptr_t, const uintptr_t) noexcept { return 0; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Registers a header type mapping for a given message family.
+    //!
+    //! The mapping is what turns each message definition's `headerType` string into
+    //! the integral `eMessageType` it caches. Registering replaces any mapping
+    //! previously registered for the same family. Databases already loaded are not
+    //! revisited, so families must register before their databases are read.
+    //!
+    //! \param[in] messageFamily_ The message family the mapping applies to.
+    //! \param[in] headerTypes_ Maps each header type name to its integral value. The
+    //!     values are family-defined and are expected to match the family's own
+    //!     header type enumeration, with the family's default header type numbered
+    //!     `DEFAULT_HEADER_TYPE` so that unresolvable names fall back to it.
+    //----------------------------------------------------------------------------
+    static void RegisterHeaderTypeMapping(std::string messageFamily_, HeaderTypeMap headerTypes_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Retrieves the header type mappings map.
+    //! \return A reference to the map of message family names to their header type mappings.
+    //----------------------------------------------------------------------------
+    static std::unordered_map<std::string, HeaderTypeMap>& GetHeaderTypeMappings();
+
+    //----------------------------------------------------------------------------
+    //! \brief Resolves a header type name to the integral value registered for a message family.
+    //!
+    //! \param[in] messageFamily_ The message family to resolve against.
+    //! \param[in] headerType_ The header type name, as it appears in the database.
+    //! \return The mapped value, or `DEFAULT_HEADER_TYPE` when the family has no
+    //!     registered mapping or the mapping does not contain the given name.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] static int ResolveHeaderType(const std::string& messageFamily_, const std::string& headerType_);
 
   protected:
     virtual void GenerateEnumMappings()

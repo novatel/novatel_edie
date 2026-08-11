@@ -182,6 +182,30 @@ std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr
     return alignmentFunctions;
 }
 
+// -------------------------------------------------------------------------------------------------------
+void MessageDatabase::RegisterHeaderTypeMapping(std::string messageFamily_, HeaderTypeMap headerTypes_)
+{
+    GetHeaderTypeMappings()[messageFamily_] = std::move(headerTypes_);
+}
+
+// -------------------------------------------------------------------------------------------------------
+std::unordered_map<std::string, HeaderTypeMap>& MessageDatabase::GetHeaderTypeMappings()
+{
+    static std::unordered_map<std::string, HeaderTypeMap> headerTypeMappings;
+    return headerTypeMappings;
+}
+
+// -------------------------------------------------------------------------------------------------------
+int MessageDatabase::ResolveHeaderType(const std::string& messageFamily_, const std::string& headerType_)
+{
+    const auto& mappings = GetHeaderTypeMappings();
+    const auto familyIt = mappings.find(messageFamily_);
+    if (familyIt == mappings.end()) { return DEFAULT_HEADER_TYPE; }
+
+    const auto typeIt = familyIt->second.find(headerType_);
+    return typeIt != familyIt->second.end() ? typeIt->second : DEFAULT_HEADER_TYPE;
+}
+
 // ---------------------------------------------------------------------------
 FieldInfo::ConstPtr BuildFieldInfo(std::vector<BaseField::Ptr> fields, std::string messageFamily)
 {

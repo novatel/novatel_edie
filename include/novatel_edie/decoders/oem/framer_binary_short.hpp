@@ -34,8 +34,7 @@ namespace novatel::edie::oem {
 //! \class FramerBinaryShort
 //! \brief Search bytes for patterns that could be an OEM binary message with a short header.
 //============================================================================
-class FramerBinaryShort
-    : public FramerBinaryBase<HEADER_FORMAT::SHORT_BINARY, OEM4_SHORT_BINARY_HEADER_LENGTH, 3U, uint8_t, MAX_SHORT_BINARY_MESSAGE_LENGTH>
+class FramerBinaryShort : public FramerBinaryBase<OEM4_SHORT_BINARY_HEADER_LENGTH, 3U, uint8_t, MAX_SHORT_BINARY_MESSAGE_LENGTH>
 {
   protected:
     [[nodiscard]] std::array<unsigned char, 3> GetSyncByteArray() const noexcept override

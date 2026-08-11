@@ -40,7 +40,7 @@ namespace novatel::edie::oem {
 //! \tparam MaxMessageLength The maximum allowed length of a message frame.
 //! \brief Search bytes for patterns that could be an OEM ASCII message.
 //============================================================================
-template <HEADER_FORMAT HeaderFormat, unsigned char SyncByte, size_t MaxMessageLength> class FramerAsciiBase : public FramerBase
+template <unsigned char SyncByte, size_t MaxMessageLength> class FramerAsciiBase : public FramerBase
 {
   protected:
     //----------------------------------------------------------------------------
@@ -89,11 +89,11 @@ template <HEADER_FORMAT HeaderFormat, unsigned char SyncByte, size_t MaxMessageL
 
         if (uiCrcDelimIndex == UCharFixedBuffer::npos)
         {
-            return uiBufferSize >= MaxMessageLength ? Result{Result::Status::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH}
-                                                    : Result{Result::Status::INCOMPLETE, HeaderFormat, uiBufferSize};
+            return uiBufferSize >= MaxMessageLength ? Result{Result::Status::INVALID, DECODE_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH}
+                                                    : Result{Result::Status::INCOMPLETE, DECODE_FORMAT::ASCII, uiBufferSize};
         }
-        if (uiBufferSize - uiCrcDelimIndex < uiCrcTrailerLength) { return {Result::Status::INCOMPLETE, HeaderFormat, uiCrcDelimIndex}; }
-        return {Result::Status::COMPLETE, HeaderFormat, uiCrcDelimIndex + uiCrcTrailerLength};
+        if (uiBufferSize - uiCrcDelimIndex < uiCrcTrailerLength) { return {Result::Status::INCOMPLETE, DECODE_FORMAT::ASCII, uiCrcDelimIndex}; }
+        return {Result::Status::COMPLETE, DECODE_FORMAT::ASCII, uiCrcDelimIndex + uiCrcTrailerLength};
     }
 
     //----------------------------------------------------------------------------

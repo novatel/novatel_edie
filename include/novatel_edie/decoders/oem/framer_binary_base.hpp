@@ -41,8 +41,7 @@ namespace novatel::edie::oem {
 //! \tparam MaxMessageLength The maximum allowed length of a message frame.
 //! \brief Search bytes for patterns that could be an OEM binary message.
 //============================================================================
-template <HEADER_FORMAT HeaderFormat, size_t HeaderLength, size_t MessageLengthIndex, typename MessageLengthT, size_t MaxMessageLength>
-class FramerBinaryBase : public FramerBase
+template <size_t HeaderLength, size_t MessageLengthIndex, typename MessageLengthT, size_t MaxMessageLength> class FramerBinaryBase : public FramerBase
 {
   protected:
     //----------------------------------------------------------------------------
@@ -89,14 +88,14 @@ class FramerBinaryBase : public FramerBase
         const auto uiBufferSize = clFrameBuffer.size();
         if (uiBufferSize < HeaderLength)
         {
-            return uiBufferSize < OEM4_BINARY_SYNC_LENGTH ? Result{Result::Status::INCOMPLETE, HEADER_FORMAT::UNKNOWN, start}
-                                                          : Result{Result::Status::INCOMPLETE, HeaderFormat, uiBufferSize};
+            return uiBufferSize < OEM4_BINARY_SYNC_LENGTH ? Result{Result::Status::INCOMPLETE, DECODE_FORMAT::UNKNOWN, start}
+                                                          : Result{Result::Status::INCOMPLETE, DECODE_FORMAT::BINARY, uiBufferSize};
         }
         const size_t uiTotalMessageLength =
             HeaderLength + clFrameBuffer.template read_value<MessageLengthT>(MessageLengthIndex) + OEM4_BINARY_CRC_LENGTH;
-        if (uiTotalMessageLength > MaxMessageLength) { return {Result::Status::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_BINARY_SYNC_LENGTH}; }
-        return uiTotalMessageLength > uiBufferSize ? Result{Result::Status::INCOMPLETE, HeaderFormat, uiBufferSize}
-                                                   : Result{Result::Status::COMPLETE, HeaderFormat, uiTotalMessageLength};
+        if (uiTotalMessageLength > MaxMessageLength) { return {Result::Status::INVALID, DECODE_FORMAT::UNKNOWN, OEM4_BINARY_SYNC_LENGTH}; }
+        return uiTotalMessageLength > uiBufferSize ? Result{Result::Status::INCOMPLETE, DECODE_FORMAT::BINARY, uiBufferSize}
+                                                   : Result{Result::Status::COMPLETE, DECODE_FORMAT::BINARY, uiTotalMessageLength};
     }
 
     //----------------------------------------------------------------------------

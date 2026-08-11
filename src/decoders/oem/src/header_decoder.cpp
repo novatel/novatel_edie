@@ -286,7 +286,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     const auto* pcTempBuf = reinterpret_cast<const char*>(pucLogBuf_);
     auto stBinaryHeader = LoadValueFromBuffer<Oem4BinaryHeader>(pucLogBuf_);
 
-    stMetaData_.eFormat = [&] {
+    HEADER_FORMAT eHeaderFormat = [&] {
         switch (stBinaryHeader.ucSync1)
         {
         case OEM4_ASCII_SYNC: return HEADER_FORMAT::ASCII;
@@ -304,8 +304,9 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         default: return HEADER_FORMAT::UNKNOWN;
         }
     }();
+    stMetaData_.eFormat = headerFormatToDecodeFormat(eHeaderFormat);
 
-    switch (stMetaData_.eFormat)
+    switch (eHeaderFormat)
     {
     case HEADER_FORMAT::ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '#'
@@ -349,7 +350,6 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         else
         {
             // Port field failed, so we (unsafely) assume this is short
-            stMetaData_.eFormat = HEADER_FORMAT::SHORT_ABB_ASCII;
             if (!DecodeAsciiHeaderField<pcAbbrevAsciiRegDelimiter, ASCII_HEADER::WEEK>(stInterHeader_, &pcTempBuf) ||
                 !DecodeAsciiHeaderField<pcAbbrevAsciiFinalDelimiter, ASCII_HEADER::SECONDS>(stInterHeader_, &pcTempBuf))
             {
