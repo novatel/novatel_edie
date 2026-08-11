@@ -408,7 +408,7 @@ TYPED_TEST(BinaryFramerTest, BINARY_BAD_CRC)
     // "<binary BESTPOS log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0xFF};
     this->WriteBytesToFramer(aucData, sizeof(aucData));
-    
+
     // OEM Framer keeps searching for a valid frame until a complete valid frame is found or buffer is exhausted,
     // so it will discard all bytes. The Binary OEM Framer returns when it finds the bad CRC and discards only
     // the sync bytes.
@@ -501,7 +501,7 @@ TYPED_TEST(BinaryFramerTest, BINARY_TRICK)
     this->WriteBytesToFramer(aucData, uiLogSize);
     this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_BINARY_SYNC_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
     if constexpr (std::is_same_v<TypeParam, Framer>)
-    {        
+    {
         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(15, MAX_BINARY_MESSAGE_LENGTH);
         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_BINARY_MESSAGE_LENGTH);
     }
@@ -786,7 +786,7 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_TRICK)
 
     this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_BINARY_SYNC_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
     if constexpr (std::is_same_v<TypeParam, Framer>)
-    {        
+    {
         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(10, MAX_SHORT_BINARY_MESSAGE_LENGTH);
         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_BINARY_MESSAGE_LENGTH);
     }
@@ -1016,7 +1016,7 @@ TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_ALTERNATING_RESPONSE_MESSAGE)
     this->WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
     this->WriteBytesToFramer(aucDataMessage, sizeof(aucDataMessage) - 1);
     this->WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
-    
+
     ASSERT_EQ(STATUS::SUCCESS, this->pclMyFramer->GetFrame(this->pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
     ASSERT_EQ(stTestMetaData, stExpectedMetaDataResponse);
     ASSERT_EQ(STATUS::SUCCESS, this->pclMyFramer->GetFrame(this->pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
@@ -1159,7 +1159,7 @@ class MockFramer : public FramerBase
             {
                 if (eMyState != MockFramerState::WAITING_FOR_SYNC) { return STATUS::INCOMPLETE; }
                 if (uiMyByteCount == 0) { return STATUS::BUFFER_EMPTY; }
-                
+
                 stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
                 stMetaData_.uiLength = uiMyByteCount;
                 return STATUS::UNKNOWN;
@@ -1173,17 +1173,17 @@ class MockFramer : public FramerBase
             case MockFramerState::WAITING_FOR_SYNC:
                 if (ucDataByte == '>')
                 {
-                    if (uiMyByteCount >= 5 && 
-                        (*pclMyBuffer)[uiMyByteCount - 2] == 'g' && 
-                        (*pclMyBuffer)[uiMyByteCount - 3] == 'o' && 
-                        (*pclMyBuffer)[uiMyByteCount - 4] == 'l' && 
+                    if (uiMyByteCount >= 5 &&
+                        (*pclMyBuffer)[uiMyByteCount - 2] == 'g' &&
+                        (*pclMyBuffer)[uiMyByteCount - 3] == 'o' &&
+                        (*pclMyBuffer)[uiMyByteCount - 4] == 'l' &&
                         (*pclMyBuffer)[uiMyByteCount - 5] == '<')
                     {
                         stMetaData_.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY; // Use this as mock header format
                         eMyState = MockFramerState::WAITING_FOR_BODY;
                     }
                 }
-                
+
                 // If we have just encountered sync bytes and have read bytes before, we need to handle them
                 if (eMyState != MockFramerState::WAITING_FOR_SYNC && uiMyByteCount > 5)
                 {
@@ -1200,11 +1200,11 @@ class MockFramer : public FramerBase
                 break;
 
             case MockFramerState::WAITING_FOR_BODY:
-                if (uiMyByteCount >= 6 && 
+                if (uiMyByteCount >= 6 &&
                     ucDataByte == '>' &&
-                    (*pclMyBuffer)[uiMyByteCount - 2] == 'g' && 
-                    (*pclMyBuffer)[uiMyByteCount - 3] == 'o' && 
-                    (*pclMyBuffer)[uiMyByteCount - 4] == 'l' && 
+                    (*pclMyBuffer)[uiMyByteCount - 2] == 'g' &&
+                    (*pclMyBuffer)[uiMyByteCount - 3] == 'o' &&
+                    (*pclMyBuffer)[uiMyByteCount - 4] == 'l' &&
                     (*pclMyBuffer)[uiMyByteCount - 5] == '/' &&
                     (*pclMyBuffer)[uiMyByteCount - 6] == '<')
                 {
@@ -1221,15 +1221,15 @@ class MockFramer : public FramerBase
                         pclMyBuffer->copy_out(pucFrameBuffer_, stMetaData_.uiLength);
                         pclMyBuffer->erase_begin(stMetaData_.uiLength);
                     }
-                    
+
                     uiMyByteCount = 0;
                     eMyState = MockFramerState::COMPLETE;
                 }
-                else if (uiMyByteCount >= 5 && 
+                else if (uiMyByteCount >= 5 &&
                         ucDataByte == '>' &&
-                        (*pclMyBuffer)[uiMyByteCount - 2] == 'g' && 
-                        (*pclMyBuffer)[uiMyByteCount - 3] == 'o' && 
-                        (*pclMyBuffer)[uiMyByteCount - 4] == 'l' && 
+                        (*pclMyBuffer)[uiMyByteCount - 2] == 'g' &&
+                        (*pclMyBuffer)[uiMyByteCount - 3] == 'o' &&
+                        (*pclMyBuffer)[uiMyByteCount - 4] == 'l' &&
                         (*pclMyBuffer)[uiMyByteCount - 5] == '<')
                 {
                     stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
@@ -1967,7 +1967,7 @@ TEST_F(FramerManagerTest, ABBREV_ASCII_ALTERNATING_RESPONSE_MESSAGE)
     WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
     WriteBytesToFramer(aucDataMessage, sizeof(aucDataMessage) - 1);
     WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
-    
+
     ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
     ASSERT_EQ(*stTestMetaData, stExpectedMetaDataResponse);
     ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
@@ -1996,7 +1996,7 @@ TEST_F(FramerManagerTest, ABBREV_ASCII_EMPTY_ARRAY)
 }
 
 TEST_F(FramerManagerTest, ABBREV_ASCII_SEGMENTED)
-{  
+{
     constexpr unsigned char aucData[] = "<RAWIMUX ICOM7 0 68.5 FINESTEERING 2222 136132.845 02040120 0dc5 16860\r\n< 04 41 2222 136132.844765 edb7fe00 327412165 - 7829932 13988218 - 498546 213188 - 987039\r\n[COM1]";
     uint32_t uiLogSize = sizeof(aucData) - 1 - 6; // Remove the [ICOM] from the log size
     uint32_t uiBytesWritten = 0;
@@ -2133,7 +2133,7 @@ TEST_F(FramerManagerTest, OEM_ABBREV_ASCII_INCOMPLETE_AND_MOCK_FRAMES) {
 TEST_F(FramerManagerTest, OEM_BINARY_AND_MOCK_FRAMES) {
     constexpr unsigned char aucOEMData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
     constexpr unsigned char aucMockData[] = "<log>testing123</log>\r\n";
-                                        
+
     WriteBytesToFramer(aucOEMData, sizeof(aucOEMData));
     WriteBytesToFramer(aucMockData, sizeof(aucMockData) - 1);
     WriteBytesToFramer(aucOEMData, sizeof(aucOEMData));
@@ -2147,7 +2147,7 @@ TEST_F(FramerManagerTest, OEM_BINARY_AND_MOCK_FRAMES) {
 TEST_F(FramerManagerTest, OEM_BINARY_INCOMPLETE_AND_MOCK_FRAMES) {
     constexpr unsigned char aucOEMData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
     constexpr unsigned char aucMockData[] = "<log>testing123</log>\r\n";
-                                        
+
     WriteBytesToFramer(aucOEMData, 50);
     FramerManagerHelper<HEADER_FORMAT::BINARY, STATUS::INCOMPLETE>(50, MAX_BINARY_MESSAGE_LENGTH);
 
@@ -2543,7 +2543,7 @@ TEST_F(DecodeEncodeTest, ABBREV_ASCII_NULL_IN_HEADER)
 {
     unsigned char aucLog[] = {
         '<', 'P', 'P', 'P', 'S', 'A', 'T', 'S', ' ', 'C', 'O', 'M', '1', ' ', '0', ' ', '7', '4', '.', '0', ' ', 'F', 'I', 'N', 'E', 'S', 'T', 'E', 'E', 'R', 'I', 'N', 'G', ' ',
-             '2', '3', '5', '8', ' ', '1', '9', '1', '5', '0', '.', '0', '0', '0', ' ', '1', 'a', '0', '0', '8', '0', '0', '0', ' ', 'c', 'e', '3', 'f', ' ', 
+             '2', '3', '5', '8', ' ', '1', '9', '1', '5', '0', '.', '0', '0', '0', ' ', '1', 'a', '0', '0', '8', '0', '0', '0', ' ', 'c', 'e', '3', 'f', ' ',
              '1', '\0', '7', '3', '4', '5', '\r', '\n',
         '<', ' ', ' ', ' ', ' ', '2', '\r', '\n',
         '<', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'G', 'P', 'S', ' ', '1', '8', ' ', 'G', 'O', 'O', 'D', ' ', '0', '0', '0', '0', '0', '0', '0', '7', '\r', '\n',
@@ -4328,7 +4328,12 @@ class NovatelTypesTest : public ::testing::Test
                  "enumerators": []
               }
            ],
-           "messages": []
+           "messages": [],
+           "meta": {
+                "version": "1.1.0",
+                "family": "OEM",
+                "subset": "all"
+            }
         })";
     }
 

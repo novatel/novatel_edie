@@ -156,7 +156,10 @@ class MessageDecoderTypesTest : public ::testing::Test
                               \"enumerators\": [] \
                            } \
                         ], \
-                        \"messages\": [] \
+                        \"messages\": [], \
+                        \"meta\": { \
+                           \"version\": \"1.0.0\" \
+                        } \
                   }";
     }
 

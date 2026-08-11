@@ -583,7 +583,6 @@ struct FieldArrayField : ArrayField
 struct DbMetadata
 {
     std::string subset;
-    std::string version;
     std::string messageFamily;
 
     using Ptr = std::shared_ptr<DbMetadata>;
@@ -603,6 +602,7 @@ struct MessageDefinition
     std::string description;
     std::unordered_map<uint32_t, FieldInfo::ConstPtr> fieldInfo; // map of crc keys to field info
     uint32_t latestMessageCrc{0};
+    std::string headerType; // TODO: Check if caching an integral representation improves performance
 
     const FieldInfo& GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) const;
 
