@@ -100,7 +100,7 @@ inline uint32_t CalculateBlockCrc32Chorba(const unsigned char* ucBuffer_, uint32
 
     return novatel::edie::CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(reinterpret_cast<const unsigned char*>(final), uiCount_ - i, 0);
 }
-} // namespace (anonymous)
+} // namespace
 
 namespace novatel::edie::oem {
 constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_)
@@ -114,8 +114,5 @@ constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t 
                          : CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(ucBuffer_, uiCount_, uiInitialCrc_);
 }
 
-constexpr uint32_t CalculateBlockCrc32(std::string_view buffer_)
-{
-    return CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(buffer_);
-}
+constexpr uint32_t CalculateBlockCrc32(std::string_view buffer_) { return CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(buffer_); }
 } // namespace novatel::edie::oem

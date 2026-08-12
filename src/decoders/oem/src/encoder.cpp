@@ -24,12 +24,13 @@
 // ! \file encoder.cpp
 // ===============================================================================
 
+#include "novatel_edie/decoders/oem/encoder.hpp"
+
 #include <algorithm>
 #include <charconv>
 #include <cstring>
 
 #include "novatel_edie/decoders/oem/crc.hpp"
-#include "novatel_edie/decoders/oem/encoder.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;

@@ -28,8 +28,8 @@
 
 #include <charconv>
 
-#include "novatel_edie/decoders/oem/crc.hpp"
 #include "novatel_edie/decoders/common/framer_registration.hpp"
+#include "novatel_edie/decoders/oem/crc.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;

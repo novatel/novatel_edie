@@ -24,6 +24,8 @@
 // ! \file message_decoder.cpp
 // ===============================================================================
 
+#include "novatel_edie/decoders/oem/message_decoder.hpp"
+
 #include <bitset>
 #include <charconv>
 #include <cmath>
@@ -32,7 +34,6 @@
 
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/crc.hpp"
-#include "novatel_edie/decoders/oem/message_decoder.hpp"
 
 using namespace novatel::edie::oem;
 

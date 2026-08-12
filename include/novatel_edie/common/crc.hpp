@@ -29,6 +29,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string_view>
 #include <type_traits>
 
@@ -94,7 +95,7 @@ template <typename CrcT, CrcT Poly, bool Rev> constexpr auto make_crc_table()
 
 // Variable template: one table instance per CRC type/polynomial, computed entirely at compile time.
 template <typename CrcT, CrcT Poly, bool Rev> inline constexpr auto UI_CRC_TABLE = make_crc_table<CrcT, Poly, Rev>();
-} // namespace (anonymous)
+} // namespace
 
 namespace novatel::edie {
 // --------------------------------------------------------------------------
@@ -150,7 +151,7 @@ constexpr CrcT CalculateBlockCrc(const unsigned char* ucBuffer_, uint32_t uiCoun
     const size_t chunks = uiCount_ / 8;
     for (size_t k = 0; k < chunks; k++)
     {
-        uint8_t b[8]; // b0..b7
+        uint8_t b[8] = {0}; // b0..b7
         std::memcpy(b, ucBuffer_ + i, sizeof(b));
 
         if constexpr (Rev)
