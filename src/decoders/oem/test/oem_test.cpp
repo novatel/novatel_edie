@@ -3130,9 +3130,10 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     unsigned char* pucEncodeBuffer = acEncodeBuffer;
 
     ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, ENCODE_FORMAT::UNSPECIFIED));
-    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData, false, ENCODE_FORMAT::UNSPECIFIED));
+    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData,
+                                                              HEADER_TYPES::STANDARD, ENCODE_FORMAT::UNSPECIFIED));
     ASSERT_EQ(STATUS::UNSUPPORTED,
-              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, false,
+              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, HEADER_TYPES::STANDARD,
                                        ENCODE_FORMAT::UNSPECIFIED));
 }
 

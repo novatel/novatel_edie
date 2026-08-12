@@ -28,6 +28,10 @@
 #define NOVATEL_COMMON_HPP
 
 #include <cstdint>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <unordered_map>
 
 #include "novatel_edie/decoders/common/common.hpp"
 
@@ -109,7 +113,91 @@ inline INPUT_FORMAT headerFormatToInputFormat(HEADER_FORMAT headerFormat_)
     }
 }
 
-inline bool hasShortHeader(const MessageDefinition* def) { return def->headerType == "SHORT"; }
+//-----------------------------------------------------------------------
+//! \enum HEADER_TYPES
+//! \brief The kind of header an OEM message is framed with, as recorded by its
+//!     message definition in the database.
+//!
+//! These are the values that MessageDefinition::eMessageType holds for
+//! definitions belonging to the "OEM" message family. The numbering is part of
+//! the mapping registered with MessageDatabase::RegisterHeaderTypeMapping, so the
+//! two must be kept in step; use GetHeaderType() to read a definition rather than
+//! comparing eMessageType directly.
+//!
+//! STANDARD is deliberately DEFAULT_HEADER_TYPE (0), making it the fallback for a
+//! definition whose header type could not be resolved. New header types must
+//! therefore be appended rather than inserted at the front.
+//-----------------------------------------------------------------------
+enum class HEADER_TYPES
+{
+    STANDARD = 0,
+    SHORT = 1,
+    STANDARD_ENCRYPTED = 2,
+    NOVATELX = 3
+};
+
+//-----------------------------------------------------------------------
+//! \brief The header type mapping for the "OEM" message family.
+//!
+//! Registered with MessageDatabase::RegisterHeaderTypeMapping so that the
+//! database reader can resolve each message definition's `headerType` string into
+//! its HEADER_TYPES value.
+//-----------------------------------------------------------------------
+inline const HeaderTypeMap& OemHeaderTypeMapping()
+{
+    static const HeaderTypeMap mapping = {{"STANDARD", static_cast<int>(HEADER_TYPES::STANDARD)},
+                                          {"SHORT", static_cast<int>(HEADER_TYPES::SHORT)},
+                                          {"STANDARD_ENCRYPTED", static_cast<int>(HEADER_TYPES::STANDARD_ENCRYPTED)},
+                                          {"NOVATELX", static_cast<int>(HEADER_TYPES::NOVATELX)}};
+    return mapping;
+}
+
+//-----------------------------------------------------------------------
+//! \brief Get the header type of a message definition.
+//!
+//! \param[in] def_ The message definition to read.
+//! \return The HEADER_TYPES value cached in the definition's eMessageType.
+//!     A definition whose header type was absent from the database, or was a name
+//!     the OEM mapping does not list, holds DEFAULT_HEADER_TYPE and so reads back
+//!     as HEADER_TYPES::STANDARD.
+//-----------------------------------------------------------------------
+inline HEADER_TYPES GetHeaderType(const MessageDefinition& def_) { return static_cast<HEADER_TYPES>(def_.eMessageType); }
+
+constexpr std::string_view HeaderTypeToString(const HEADER_TYPES eHeaderType_)
+{
+    switch (eHeaderType_)
+    {
+    case HEADER_TYPES::STANDARD: return "STANDARD";
+    case HEADER_TYPES::SHORT: return "SHORT";
+    case HEADER_TYPES::STANDARD_ENCRYPTED: return "STANDARD_ENCRYPTED";
+    case HEADER_TYPES::NOVATELX: return "NOVATELX";
+    }
+}
+
+//-----------------------------------------------------------------------
+//! \brief Whether EDIE can decode and encode messages carrying the given header type.
+//!
+//! STANDARD_ENCRYPTED and NOVATELX are recognized by the database reader but are
+//! not yet handled by the decoder or encoder. They are rejected at those entry
+//! points rather than silently processed as though they had a standard header.
+//-----------------------------------------------------------------------
+constexpr bool IsSupportedHeaderType(const HEADER_TYPES eHeaderType_)
+{
+    return eHeaderType_ == HEADER_TYPES::STANDARD || eHeaderType_ == HEADER_TYPES::SHORT;
+}
+
+//-----------------------------------------------------------------------
+//! \brief Throw if the given header type is one EDIE does not support.
+//!
+//! \param[in] eHeaderType_ The header type to check.
+//! \throws std::runtime_error If the header type is not supported.
+//-----------------------------------------------------------------------
+inline void ThrowIfUnsupportedHeaderType(const HEADER_TYPES eHeaderType_)
+{
+    if (IsSupportedHeaderType(eHeaderType_)) { return; }
+
+    throw std::runtime_error(fmt::format("Header type {} is not supported", HeaderTypeToString(eHeaderType_)));
+}
 
 //-----------------------------------------------------------------------
 //! \enum NovAtelFrameState

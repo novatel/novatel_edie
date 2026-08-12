@@ -216,7 +216,7 @@ STATUS RxConfigHandler::EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t u
     if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"({"header": )")) { return STATUS::BUFFER_FULL; }
 
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, false, ENCODE_FORMAT::JSON);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::JSON);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 
@@ -250,7 +250,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
     // -- Encode RXConfig Header --
     // Abuse the fact that header format is only used for determining whether the header is long or short
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, false, ENCODE_FORMAT::ABBREV_ASCII);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::ABBREV_ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 
@@ -264,9 +264,11 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
     uiBufferSize_++;
 
     const MessageDefinition* def = pclMyMsgDb->GetMsgDef(stEmbeddedHeader_.usMessageId).get();
-    bool encodeWithShortHeader = hasShortHeader(def);
+    // Without a definition assume a normal header
+    const HEADER_TYPES eEmbeddedHeaderType = def != nullptr ? GetHeaderType(*def) : HEADER_TYPES::STANDARD;
+    ThrowIfUnsupportedHeaderType(eEmbeddedHeaderType);
 
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessageData_, encodeWithShortHeader,
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessageData_, eEmbeddedHeaderType,
                                        ENCODE_FORMAT::ABBREV_ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageHeaderLength;
@@ -286,7 +288,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
     // -- Encode Embedded Body --
     const auto& embeddedFieldDefinitions = stEmbeddedMessage_.GetFieldInfo()->messageOrderedFields;
     eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedMessage_, embeddedFieldDefinitions, stEmbeddedMessageData_,
-                                     encodeWithShortHeader, ENCODE_FORMAT::ABBREV_ASCII);
+                                     eEmbeddedHeaderType, ENCODE_FORMAT::ABBREV_ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageBodyLength;
 
@@ -309,7 +311,7 @@ STATUS RxConfigHandler::EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t 
     // -- Encode RXConfig Header --
     // Abuse the fact that header format is only used for determining whether the header is long or short
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, false, ENCODE_FORMAT::ASCII);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 
@@ -359,12 +361,9 @@ STATUS RxConfigHandler::EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t
 
     // -- Encode RXConfig Header --
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, false, ENCODE_FORMAT::BINARY);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::BINARY);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
-
-    const MessageDefinition* def = pclMyMsgDb->GetMsgDef(stEmbeddedHeader_.usMessageId).get();
-    bool encodeWithShortHeader = hasShortHeader(def);
 
     // -- Encode Embedded Message --
     stMessageData_.pucMessageBody = pucTempEncodeBuffer;

@@ -350,13 +350,21 @@ void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_)
 }
 
 //-----------------------------------------------------------------------
-std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot_, const AlignFunction& alignFn_)
+std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot_, const AlignFunction& alignFn_, HeaderTypeMap headerTypes_)
 {
     array data;
     if (Member(jRoot_, "messages").get(data) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'messages' to be a JSON array"); }
 
     std::vector<MessageDefinition::ConstPtr> res;
     res.reserve(data.size());
+
+    // Resolved against the mapping the caller already looked up, rather than through
+    // MessageDatabase::ResolveHeaderType, to keep the per-message cost to a single lookup.
+    // An empty mapping leaves every definition at DEFAULT_HEADER_TYPE.
+    const auto resolveHeaderType = [&headerTypes_](const std::string& headerType_) {
+        const auto it = headerTypes_.find(headerType_);
+        return it != headerTypes_.end() ? it->second : DEFAULT_HEADER_TYPE;
+    };
 
     for (const auto& j_ : data)
     {
@@ -367,6 +375,7 @@ std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot
         md->description = AsStringOrEmpty(Member(j_, "description"));
         md->latestMessageCrc = std::stoul(AsString(Member(j_, "latestMsgDefCrc")));
         md->headerType = StringOr(j_, "headerType", ""); // Absent in schema versions before 1.1.0.
+        md->eMessageType = resolveHeaderType(md->headerType);
 
         object fields;
         if (Member(j_, "fields").get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON object"); }
@@ -429,13 +438,17 @@ MessageDatabase::Ptr ParseJsonDbImpl(simdjson::padded_string source, std::string
         ParseDbMetadata(meta, *dbMeta, errorContext);
 
         AlignFunction alignFn = MessageDatabase::NoAlign;
+        HeaderTypeMap headerTypes;
         if (!dbMeta->messageFamily.empty())
         {
             const auto it = MessageDatabase::GetAlignmentFunctions().find(dbMeta->messageFamily);
             if (it != MessageDatabase::GetAlignmentFunctions().end()) { alignFn = it->second; }
+
+            const auto headerTypeIt = MessageDatabase::GetHeaderTypeMappings().find(dbMeta->messageFamily);
+            if (headerTypeIt != MessageDatabase::GetHeaderTypeMappings().end()) { headerTypes = headerTypeIt->second; }
         }
 
-        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root, std::cref(alignFn));
+        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root, std::cref(alignFn), std::move(headerTypes));
         auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, root);
 
         return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get(), dbMeta);

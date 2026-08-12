@@ -136,7 +136,9 @@ class Encoder : public EncoderBase<Encoder>
     //! This must be populated by the HeaderDecoder.
     //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
     //! populated by the encoder.
-    //! \param[in] eHeaderFormat_ The original format of the message's header.
+    //! \param[in] eHeaderType_ The header type recorded for the message in the
+    //! database, which selects between the standard and short header layouts. Must
+    //! be a header type EDIE supports; see IsSupportedHeaderType.
     //! \param[in] eFormat_ The format to encode the message to.
     //! \param[in] bIsEmbeddedHeader_ This header is embedded in an RXCONFIG
     //! message, and should be treated as such. Is a default argument and is
@@ -154,7 +156,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                      MessageDataStruct& stMessageData_, bool encodeWithShortHeader_, ENCODE_FORMAT eFormat_,
+                                      MessageDataStruct& stMessageData_, HEADER_TYPES eHeaderType_, ENCODE_FORMAT eFormat_,
                                       bool bIsEmbeddedHeader_ = false) const;
 
     //----------------------------------------------------------------------------
@@ -167,7 +169,10 @@ class Encoder : public EncoderBase<Encoder>
     //! This must be populated by the MessageDecoder.
     //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
     //! populated by the encoder.
-    //! \param[in] eHeaderFormat_ The original format of the message's header.
+    //! \param[in] eHeaderType_ The header type recorded for the message in the
+    //! database, which selects which header length field the encoded body length is
+    //! written back into. Must be a header type EDIE supports; see
+    //! IsSupportedHeaderType.
     //! \param[in] eFormat_ The format to encode the message to.
     //
     //! \return An error code describing the result of encoding.
@@ -183,8 +188,8 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const CompositeField& stMessage_,
-                                    const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_, bool hasShortHeader_,
-                                    ENCODE_FORMAT eFormat_) const;
+                                    const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_,
+                                    HEADER_TYPES eHeaderType_, ENCODE_FORMAT eFormat_) const;
 
     friend class EncoderBase<Encoder>;
 };

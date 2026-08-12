@@ -27,6 +27,7 @@
 #include "novatel_edie/decoders/oem/encoder.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <charconv>
 #include <cstring>
 
@@ -424,7 +425,8 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
     const MessageDefinition* def = pclMyMsgDb->GetMsgDef(stHeader_.usMessageId).get();
 
     // Without a valid id (such as for abbrev ascii responses) assume normal header
-    bool encodeWithShortHeader = def ? hasShortHeader(def) : false;
+    const HEADER_TYPES eHeaderType = def != nullptr ? GetHeaderType(*def) : HEADER_TYPES::STANDARD;
+    ThrowIfUnsupportedHeaderType(eHeaderType);
 
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
 
@@ -453,7 +455,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         return STATUS::SUCCESS;
     }
 
-    STATUS eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, encodeWithShortHeader, eFormat_);
+    STATUS eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, eHeaderType, eFormat_);
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
@@ -462,7 +464,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"(,"body": )")) { return STATUS::BUFFER_FULL; }
     }
 
-    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, fieldDefinitions, stMessageData_, encodeWithShortHeader, eFormat_);
+    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, fieldDefinitions, stMessageData_, eHeaderType, eFormat_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageBodyLength;
@@ -481,21 +483,22 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                      MessageDataStruct& stMessageData_, bool useShortHeader_, const ENCODE_FORMAT eFormat_, const bool bIsEmbeddedHeader_) const
+                      MessageDataStruct& stMessageData_, const HEADER_TYPES eHeaderType_, const ENCODE_FORMAT eFormat_,
+                      const bool bIsEmbeddedHeader_) const
 {
+    assert(IsSupportedHeaderType(eHeaderType_) && "EncodeHeader(): unsupported header type");
+
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
-    MessageDefinition::ConstPtr def = pclMyMsgDb->GetMsgDef(stHeader_.usMessageId);
-
     unsigned char* pucTempBuffer = *ppucBuffer_;
 
     switch (eFormat_)
     {
     case ENCODE_FORMAT::ASCII: {
         auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
-        if (useShortHeader_ ? !EncodeAsciiShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
-                            : !EncodeAsciiHeader(stHeader_, &pcTempBuffer, uiBufferSize_))
+        if (eHeaderType_ == HEADER_TYPES::SHORT ? !EncodeAsciiShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
+                                                : !EncodeAsciiHeader(stHeader_, &pcTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
@@ -504,8 +507,8 @@ Encoder::EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_,
     }
     case ENCODE_FORMAT::ABBREV_ASCII: {
         auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
-        if (useShortHeader_ ? !EncodeAbbrevAsciiShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
-                            : !EncodeAbbrevAsciiHeader(stHeader_, &pcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
+        if (eHeaderType_ == HEADER_TYPES::SHORT ? !EncodeAbbrevAsciiShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
+                                                : !EncodeAbbrevAsciiHeader(stHeader_, &pcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
         {
             return STATUS::BUFFER_FULL;
         }
@@ -514,16 +517,16 @@ Encoder::EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_,
     }
     case ENCODE_FORMAT::FLATTENED_BINARY: [[fallthrough]];
     case ENCODE_FORMAT::BINARY:
-        if (useShortHeader_ ? !EncodeBinaryShortHeader(stHeader_, &pucTempBuffer, uiBufferSize_)
-                            : !EncodeBinaryHeader(stHeader_, &pucTempBuffer, uiBufferSize_))
+        if (eHeaderType_ == HEADER_TYPES::SHORT ? !EncodeBinaryShortHeader(stHeader_, &pucTempBuffer, uiBufferSize_)
+                                                : !EncodeBinaryHeader(stHeader_, &pucTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
     case ENCODE_FORMAT::JSON: {
         auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
-        if (useShortHeader_ ? !EncodeJsonShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
-                            : !EncodeJsonHeader(stHeader_, &pcTempBuffer, uiBufferSize_))
+        if (eHeaderType_ == HEADER_TYPES::SHORT ? !EncodeJsonShortHeader(stHeader_, &pcTempBuffer, uiBufferSize_)
+                                                : !EncodeJsonHeader(stHeader_, &pcTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
@@ -542,9 +545,11 @@ Encoder::EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_,
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const CompositeField& stMessage_,
-                    const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_, bool hasShortHeader_,
+                    const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_, const HEADER_TYPES eHeaderType_,
                     ENCODE_FORMAT eFormat_) const
 {
+    assert(IsSupportedHeaderType(eHeaderType_) && "EncodeBody(): unsupported header type");
+
     // TODO: this entire function should be in common, only header stuff and map redefinitions belong in this file
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
@@ -585,7 +590,7 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
         if (stMessageData_.pucMessageHeader == nullptr) { return STATUS::FAILURE; }
         // Go back and set the length field in the header.
         // TODO: this block of code below is what's blocking us from moving this function to common (can solve this with dynamic casting or CRTP?)
-        if (!hasShortHeader_)
+        if (eHeaderType_ != HEADER_TYPES::SHORT)
         {
             auto usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
             std::memcpy(stMessageData_.pucMessageHeader + offsetof(Oem4BinaryHeader, usLength), &usLength, sizeof(usLength));
