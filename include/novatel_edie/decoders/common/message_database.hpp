@@ -860,6 +860,21 @@ class MessageDatabase
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t iMsgId_) const;
 
     //----------------------------------------------------------------------------
+    //! \brief Get a non-owning pointer to the message definition for the provided message ID.
+    //
+    //! Unlike GetMsgDef this copies no shared_ptr which
+    //! makes it suited to hot paths that do not need to maintiain ownership.
+    //
+    //! \param[in] iMsgId_ The message ID.
+    //! \return A pointer to the definition, or nullptr if the ID is not in the database.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] const MessageDefinition* GetMsgDefRaw(const int32_t iMsgId_) const
+    {
+        const auto it = mMessageId.find(iMsgId_);
+        return it != mMessageId.end() ? it->second.get() : nullptr;
+    }
+
+    //----------------------------------------------------------------------------
     //! \brief Convert a message name string to a message ID number.
     //
     //! \param[in] sMsgName_ The message name string

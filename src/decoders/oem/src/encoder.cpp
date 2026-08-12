@@ -422,7 +422,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
     // pclMyMsgDb will keep definition alive so take a raw pointer
-    const MessageDefinition* def = pclMyMsgDb->GetMsgDef(stHeader_.usMessageId).get();
+    const MessageDefinition* def = pclMyMsgDb->GetMsgDefRaw(stHeader_.usMessageId);
 
     // Without a valid id (such as for abbrev ascii responses) assume normal header
     const HEADER_TYPES eHeaderType = def != nullptr ? GetHeaderType(*def) : HEADER_TYPES::STANDARD;
