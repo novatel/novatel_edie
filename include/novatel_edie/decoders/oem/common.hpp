@@ -172,6 +172,8 @@ constexpr std::string_view HeaderTypeToString(const HEADER_TYPES eHeaderType_)
     case HEADER_TYPES::STANDARD_ENCRYPTED: return "STANDARD_ENCRYPTED";
     case HEADER_TYPES::NOVATELX: return "NOVATELX";
     }
+
+    return "UNKNOWN";
 }
 
 //-----------------------------------------------------------------------
