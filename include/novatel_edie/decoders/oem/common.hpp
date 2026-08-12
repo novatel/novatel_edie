@@ -72,6 +72,27 @@ constexpr uint16_t OEM4_SHORT_BINARY_HEADER_LENGTH = 12;
 constexpr uint8_t OEM4_PROPRIETARY_BINARY_SYNC2 = 0x45;
 
 //-----------------------------------------------------------------------
+// Header types
+//-----------------------------------------------------------------------
+
+enum class HEADER_FORMAT
+{
+    UNKNOWN = 1,
+    BINARY,
+    SHORT_BINARY,
+    PROPRIETARY_BINARY,
+    ASCII,
+    SHORT_ASCII,
+    ABB_ASCII,
+    NMEA,
+    JSON,
+    SHORT_ABB_ASCII,
+    ALL // Used in filters to indicate all filter types : all new enums should be added before this value
+};
+
+inline bool hasShortHeader(const MessageDefinition* def) { return def->headerType == "SHORT"; }
+
+//-----------------------------------------------------------------------
 //! \enum NovAtelFrameState
 //! \brief Enumeration for state machine used while framing the log.
 //-----------------------------------------------------------------------
@@ -146,6 +167,7 @@ struct MetaDataStruct : public MetaDataBase
 {
     uint8_t ucSiblingId{NULL_SIBLING_ID};
     TIME_STATUS eTimeStatus{TIME_STATUS::UNKNOWN};
+    HEADER_FORMAT eHeaderFormat;
 
     // NOTE: C++20 automatically generates a generic operator== for this struct.
     bool operator==(const MetaDataStruct& other_) const

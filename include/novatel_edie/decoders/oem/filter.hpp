@@ -54,10 +54,10 @@ class Filter
     std::vector<TIME_STATUS> vMyTimeStatusFilters;
     bool bMyInvertTimeStatusFilter{};
 
-    std::vector<std::tuple<uint32_t, HEADER_FORMAT, uint8_t>> vMyMessageIdFilters;
+    std::vector<std::tuple<uint32_t, INPUT_FORMAT, uint8_t>> vMyMessageIdFilters;
     bool bMyInvertMessageIdFilter{};
 
-    std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>> vMyMessageNameFilters;
+    std::vector<std::tuple<std::string, INPUT_FORMAT, uint8_t>> vMyMessageNameFilters;
     bool bMyInvertMessageNameFilter{};
 
     uint32_t uiMyLowerWeek{};
@@ -238,7 +238,7 @@ class Filter
     //! \param[in] eSource_  The antenna source.
 
     //----------------------------------------------------------------------------
-    void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = NULL_SIBLING_ID);
+    void IncludeMessageId(uint32_t uiId_, INPUT_FORMAT eFormat_ = INPUT_FORMAT::ALL, uint8_t ucSource_ = NULL_SIBLING_ID);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message IDs.
@@ -246,7 +246,7 @@ class Filter
     //! \param[in] vIds_  Vector of tuples containing: message ID, message format,
     //! and antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, uint8_t>>& vIds_);
+    void IncludeMessageId(std::vector<std::tuple<uint32_t, INPUT_FORMAT, uint8_t>>& vIds_);
 
     //----------------------------------------------------------------------------
     //! \brief Remove a specific message ID from the filter.
@@ -255,7 +255,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void RemoveMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, uint8_t ucSource_);
+    void RemoveMessageId(uint32_t uiId_, INPUT_FORMAT eFormat_, uint8_t ucSource_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the message ID filter.
@@ -276,7 +276,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = NULL_SIBLING_ID);
+    void IncludeMessageName(std::string_view szMsgName_, INPUT_FORMAT eFormat_ = INPUT_FORMAT::ALL, uint8_t ucSource_ = NULL_SIBLING_ID);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message names.
@@ -284,7 +284,7 @@ class Filter
     //! \param[in] vNames_  Vector of tuples containing: message name,
     //! message format, and antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>>& vNames_);
+    void IncludeMessageName(std::vector<std::tuple<std::string, INPUT_FORMAT, uint8_t>>& vNames_);
 
     //----------------------------------------------------------------------------
     //! \brief Remove a specific message name from the filter.
@@ -293,7 +293,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void RemoveMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, uint8_t ucSource_);
+    void RemoveMessageName(std::string_view szMsgName_, INPUT_FORMAT eFormat_, uint8_t ucSource_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the message name filter.

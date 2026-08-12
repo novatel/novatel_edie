@@ -124,7 +124,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const CompositeField& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
+                                const CompositeField& stMessage_, MessageDataStruct& stMessageData_, INPUT_FORMAT eHeaderFormat_,
                                 ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
@@ -155,7 +155,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                      MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_,
+                                      MessageDataStruct& stMessageData_, bool encodeWithShortHeader_, ENCODE_FORMAT eFormat_,
                                       bool bIsEmbeddedHeader_ = false) const;
 
     //----------------------------------------------------------------------------
@@ -184,8 +184,8 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const CompositeField& stMessage_,
-                                    const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_,
-                                    HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const;
+                                    const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_, bool hasShortHeader_,
+                                    ENCODE_FORMAT eFormat_) const;
 
     friend class EncoderBase<Encoder>;
 };

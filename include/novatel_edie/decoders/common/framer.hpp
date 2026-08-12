@@ -55,7 +55,7 @@ class FramerBase
             INVALID     // The buffer size exceeded the max message length before finding a complete frame
         };
         Status eStatus{Status::INVALID};
-        HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
+        INPUT_FORMAT eFormat{INPUT_FORMAT::UNKNOWN};
 
         // If eStatus is COMPLETE, RESPONSE, or INVALID, then uiIndex stores the index following the last byte
         // of the message, response, or unknown data, respectively. If eStatus is INCOMPLETE, then uiIndex stores

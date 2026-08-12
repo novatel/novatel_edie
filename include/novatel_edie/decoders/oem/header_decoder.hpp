@@ -43,7 +43,7 @@ class HeaderDecoder
   private:
     //! \brief Type alias for message counts key.
     //! \details Tuple containing: format (ASCII, binary, etc.), message ID (uint16_t), sibling ID (uint8_t).
-    using MessageCountsKey = std::tuple<HEADER_FORMAT, uint16_t, uint8_t>;
+    using MessageCountsKey = std::tuple<INPUT_FORMAT, uint16_t, uint8_t>;
 
     struct MessageCountsKeyHash
     {

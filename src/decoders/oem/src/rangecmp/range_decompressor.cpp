@@ -42,8 +42,8 @@ RangeDecompressor::RangeDecompressor(MessageDatabase::Ptr pclJsonDb_)
 
     for (const auto id : {RANGECMP_MSG_ID, RANGECMP2_MSG_ID, RANGECMP3_MSG_ID, RANGECMP4_MSG_ID, RANGECMP5_MSG_ID})
     {
-        clMyRangeCmpFilter.IncludeMessageId(id, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
-        clMyRangeCmpFilter.IncludeMessageId(id, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
+        clMyRangeCmpFilter.IncludeMessageId(id, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
+        clMyRangeCmpFilter.IncludeMessageId(id, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
     }
 
     pclMyLogger->debug("RangeDecompressor initialized");
@@ -755,10 +755,10 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
 
     if (!clMyRangeCmpFilter.DoFiltering(stMetaData_)) { return STATUS::UNSUPPORTED; }
 
-    HEADER_FORMAT eFormat = stMetaData_.eFormat;
+    INPUT_FORMAT eFormat = stMetaData_.eFormat;
     pucTempMessagePointer += stMetaData_.uiHeaderLength;
     // If the message is not in binary format, we need to ensure that it is encoded to binary so that it can be decompressed.
-    if (eFormat != HEADER_FORMAT::BINARY)
+    if (eFormat != INPUT_FORMAT::BINARY)
     {
         eStatus = clMyMessageDecoder.Decode(pucTempMessagePointer, stMessage, stMetaData_);
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
@@ -800,7 +800,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
     stMetaData_.messageName = "RANGE";
 
     // The message should be returned in its original format.
-    stMetaData_.eFormat = HEADER_FORMAT::BINARY;
+    stMetaData_.eFormat = INPUT_FORMAT::BINARY;
     stMessage = {};
     eStatus = clMyMessageDecoder.Decode(pucTempMessagePointer, stMessage, stMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
@@ -809,12 +809,11 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
     // Re-encode to the original format if a format was not specified.
     if (eFormat_ == ENCODE_FORMAT::UNSPECIFIED)
     {
-        eFormat_ = eFormat == HEADER_FORMAT::BINARY || eFormat == HEADER_FORMAT::SHORT_BINARY || eFormat == HEADER_FORMAT::PROPRIETARY_BINARY
-                       ? ENCODE_FORMAT::BINARY
-                   : eFormat == HEADER_FORMAT::ASCII || eFormat == HEADER_FORMAT::SHORT_ASCII ? ENCODE_FORMAT::ASCII
-                   : eFormat == HEADER_FORMAT::ABB_ASCII                                      ? ENCODE_FORMAT::ABBREV_ASCII
-                   : eFormat == HEADER_FORMAT::JSON                                           ? ENCODE_FORMAT::JSON
-                                                                                              : ENCODE_FORMAT::ASCII; // Default to ASCII
+        eFormat_ = eFormat == INPUT_FORMAT::BINARY      ? ENCODE_FORMAT::BINARY
+                   : eFormat == INPUT_FORMAT::ASCII     ? ENCODE_FORMAT::ASCII
+                   : eFormat == INPUT_FORMAT::ABB_ASCII ? ENCODE_FORMAT::ABBREV_ASCII
+                   : eFormat == INPUT_FORMAT::JSON      ? ENCODE_FORMAT::JSON
+                                                        : ENCODE_FORMAT::ASCII; // Default to ASCII
     }
 
     // Re-encode the data back into the range message buffer.

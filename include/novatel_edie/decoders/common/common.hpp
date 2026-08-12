@@ -175,28 +175,19 @@ inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
 }
 
 //-----------------------------------------------------------------------
-//! \enum HEADER_FORMAT
-//! \brief Header formats of messages.
+//! \enum INPUT_FORMAT
+//! \brief Represents the format that a message was decoded from.
 //-----------------------------------------------------------------------
-enum class HEADER_FORMAT
+enum class INPUT_FORMAT
 {
     UNKNOWN = 1,
     BINARY,
-    SHORT_BINARY,
-    PROPRIETARY_BINARY,
     ASCII,
-    SHORT_ASCII,
     ABB_ASCII,
-    NMEA,
     JSON,
-    SHORT_ABB_ASCII,
-    ALL // Used in filters to indicate all filter types : all new enums should be added before this value
+    NMEA, // TODO: Remove this it does not fit
+    ALL   // Used in filters to indicate all filter types : all new enums should be added before this value
 };
-
-constexpr bool IsShortHeaderFormat(const HEADER_FORMAT eFormat_)
-{
-    return eFormat_ == HEADER_FORMAT::SHORT_ASCII || eFormat_ == HEADER_FORMAT::SHORT_BINARY || eFormat_ == HEADER_FORMAT::SHORT_ABB_ASCII;
-}
 
 //-----------------------------------------------------------------------
 //! \enum MESSAGE_FORMAT
@@ -291,7 +282,7 @@ struct EnumDefinition;
 struct MetaDataBase
 {
     bool bResponse{false};
-    HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
+    INPUT_FORMAT eFormat{INPUT_FORMAT::UNKNOWN};
     uint16_t usWeek{0};
     double dMilliseconds{0.0};
     uint32_t uiLength{0};

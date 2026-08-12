@@ -550,7 +550,7 @@ TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessag
 
     const std::string payload = "1234,ok,1,5678,nested";
     MetaDataBase meta;
-    meta.eFormat = HEADER_FORMAT::ASCII;
+    meta.eFormat = INPUT_FORMAT::ASCII;
     meta.usMessageId = static_cast<uint16_t>(msgDef->logID);
     meta.uiMessageCrc = kMsgCrc;
     meta.uiHeaderLength = 0;
