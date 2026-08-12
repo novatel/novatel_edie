@@ -150,65 +150,59 @@ constexpr CrcT CalculateBlockCrc(const unsigned char* ucBuffer_, uint32_t uiCoun
     const size_t chunks = uiCount_ / 8;
     for (size_t k = 0; k < chunks; k++)
     {
-        uint8_t b0 = ucBuffer_[i + 0];
-        uint8_t b1 = ucBuffer_[i + 1];
-        uint8_t b2 = ucBuffer_[i + 2];
-        uint8_t b3 = ucBuffer_[i + 3];
-        uint8_t b4 = ucBuffer_[i + 4];
-        uint8_t b5 = ucBuffer_[i + 5];
-        uint8_t b6 = ucBuffer_[i + 6];
-        uint8_t b7 = ucBuffer_[i + 7];
+        uint8_t b[8]; // b0..b7
+        std::memcpy(b, ucBuffer_ + i, sizeof(b));
 
         if constexpr (Rev)
         {
             // LSB-first: inject running CRC bytes from right-to-left
-            b0 ^= static_cast<uint8_t>(crc & static_cast<CrcT>(0xFF));
-            if constexpr (sizeof(CrcT) > 1) { b1 ^= static_cast<uint8_t>((crc >> 8) & static_cast<CrcT>(0xFF)); }
+            b[0] ^= static_cast<uint8_t>(crc & static_cast<CrcT>(0xFF));
+            if constexpr (sizeof(CrcT) > 1) { b[1] ^= static_cast<uint8_t>((crc >> 8) & static_cast<CrcT>(0xFF)); }
             if constexpr (sizeof(CrcT) > 2)
             {
-                b2 ^= static_cast<uint8_t>((crc >> 16) & static_cast<CrcT>(0xFF));
-                b3 ^= static_cast<uint8_t>((crc >> 24) & static_cast<CrcT>(0xFF));
+                b[2] ^= static_cast<uint8_t>((crc >> 16) & static_cast<CrcT>(0xFF));
+                b[3] ^= static_cast<uint8_t>((crc >> 24) & static_cast<CrcT>(0xFF));
             }
             if constexpr (sizeof(CrcT) > 4)
             {
-                b4 ^= static_cast<uint8_t>((crc >> 32) & static_cast<CrcT>(0xFF));
-                b5 ^= static_cast<uint8_t>((crc >> 40) & static_cast<CrcT>(0xFF));
-                b6 ^= static_cast<uint8_t>((crc >> 48) & static_cast<CrcT>(0xFF));
-                b7 ^= static_cast<uint8_t>((crc >> 56) & static_cast<CrcT>(0xFF));
+                b[4] ^= static_cast<uint8_t>((crc >> 32) & static_cast<CrcT>(0xFF));
+                b[5] ^= static_cast<uint8_t>((crc >> 40) & static_cast<CrcT>(0xFF));
+                b[6] ^= static_cast<uint8_t>((crc >> 48) & static_cast<CrcT>(0xFF));
+                b[7] ^= static_cast<uint8_t>((crc >> 56) & static_cast<CrcT>(0xFF));
             }
         }
         else
         {
             // MSB-first: inject running CRC bytes from left-to-right
-            if constexpr (sizeof(CrcT) == 1) { b0 ^= static_cast<uint8_t>(crc); }
+            if constexpr (sizeof(CrcT) == 1) { b[0] ^= static_cast<uint8_t>(crc); }
             else if constexpr (sizeof(CrcT) == 2)
             {
-                b0 ^= static_cast<uint8_t>((crc >> 8) & static_cast<CrcT>(0xFF));
-                b1 ^= static_cast<uint8_t>(crc & static_cast<CrcT>(0xFF));
+                b[0] ^= static_cast<uint8_t>((crc >> 8) & static_cast<CrcT>(0xFF));
+                b[1] ^= static_cast<uint8_t>(crc & static_cast<CrcT>(0xFF));
             }
             else if constexpr (sizeof(CrcT) == 4)
             {
-                b0 ^= static_cast<uint8_t>((crc >> 24) & static_cast<CrcT>(0xFF));
-                b1 ^= static_cast<uint8_t>((crc >> 16) & static_cast<CrcT>(0xFF));
-                b2 ^= static_cast<uint8_t>((crc >> 8) & static_cast<CrcT>(0xFF));
-                b3 ^= static_cast<uint8_t>(crc & static_cast<CrcT>(0xFF));
+                b[0] ^= static_cast<uint8_t>((crc >> 24) & static_cast<CrcT>(0xFF));
+                b[1] ^= static_cast<uint8_t>((crc >> 16) & static_cast<CrcT>(0xFF));
+                b[2] ^= static_cast<uint8_t>((crc >> 8) & static_cast<CrcT>(0xFF));
+                b[3] ^= static_cast<uint8_t>(crc & static_cast<CrcT>(0xFF));
             }
             else
             {
-                b0 ^= static_cast<uint8_t>((crc >> 56) & static_cast<CrcT>(0xFF));
-                b1 ^= static_cast<uint8_t>((crc >> 48) & static_cast<CrcT>(0xFF));
-                b2 ^= static_cast<uint8_t>((crc >> 40) & static_cast<CrcT>(0xFF));
-                b3 ^= static_cast<uint8_t>((crc >> 32) & static_cast<CrcT>(0xFF));
-                b4 ^= static_cast<uint8_t>((crc >> 24) & static_cast<CrcT>(0xFF));
-                b5 ^= static_cast<uint8_t>((crc >> 16) & static_cast<CrcT>(0xFF));
-                b6 ^= static_cast<uint8_t>((crc >> 8) & static_cast<CrcT>(0xFF));
-                b7 ^= static_cast<uint8_t>(crc & static_cast<CrcT>(0xFF));
+                b[0] ^= static_cast<uint8_t>((crc >> 56) & static_cast<CrcT>(0xFF));
+                b[1] ^= static_cast<uint8_t>((crc >> 48) & static_cast<CrcT>(0xFF));
+                b[2] ^= static_cast<uint8_t>((crc >> 40) & static_cast<CrcT>(0xFF));
+                b[3] ^= static_cast<uint8_t>((crc >> 32) & static_cast<CrcT>(0xFF));
+                b[4] ^= static_cast<uint8_t>((crc >> 24) & static_cast<CrcT>(0xFF));
+                b[5] ^= static_cast<uint8_t>((crc >> 16) & static_cast<CrcT>(0xFF));
+                b[6] ^= static_cast<uint8_t>((crc >> 8) & static_cast<CrcT>(0xFF));
+                b[7] ^= static_cast<uint8_t>(crc & static_cast<CrcT>(0xFF));
             }
         }
 
-        crc = UI_CRC_TABLE<CrcT, Poly, Rev>[7][b0] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[6][b1] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[5][b2] ^
-              UI_CRC_TABLE<CrcT, Poly, Rev>[4][b3] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[3][b4] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[2][b5] ^
-              UI_CRC_TABLE<CrcT, Poly, Rev>[1][b6] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[0][b7];
+        crc = UI_CRC_TABLE<CrcT, Poly, Rev>[7][b[0]] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[6][b[1]] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[5][b[2]] ^
+              UI_CRC_TABLE<CrcT, Poly, Rev>[4][b[3]] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[3][b[4]] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[2][b[5]] ^
+              UI_CRC_TABLE<CrcT, Poly, Rev>[1][b[6]] ^ UI_CRC_TABLE<CrcT, Poly, Rev>[0][b[7]];
 
         i += 8;
     }
