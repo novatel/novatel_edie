@@ -240,8 +240,7 @@ STATUS RxConfigHandler::EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t u
 
 STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                           MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
-                                          MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                          CompositeField& stEmbeddedMessage_) const
+                                          IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const
 {
     STATUS eStatus;
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
@@ -250,7 +249,8 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
     // -- Encode RXConfig Header --
     // Abuse the fact that header format is only used for determining whether the header is long or short
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::ABBREV_ASCII);
+    eStatus =
+        clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::ABBREV_ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 
