@@ -204,7 +204,7 @@ STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBuf
 }
 
 STATUS RxConfigHandler::EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                   MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
+                                   MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                    IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const
 {
     STATUS eStatus;
@@ -301,7 +301,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
 }
 
 STATUS RxConfigHandler::EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                    MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
+                                    MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                     IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const
 {
     STATUS eStatus;
@@ -352,8 +352,7 @@ STATUS RxConfigHandler::EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t 
 
 STATUS RxConfigHandler::EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                      MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
-                                     MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                     CompositeField& stEmbeddedMessage_) const
+                                     IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const
 {
     STATUS eStatus;
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
@@ -433,20 +432,19 @@ STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBuf
     switch (eFormat_)
     {
     case ENCODE_FORMAT::BINARY: {
-        return EncodeBinary(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_, stEmbeddedHeader,
+        return EncodeBinary(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedHeader,
                             stEmbeddedMessage);
     }
     case ENCODE_FORMAT::ASCII: {
-        return EncodeAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_, stEmbeddedHeader,
+        return EncodeAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedHeader,
                            stEmbeddedMessage);
     }
 
     case ENCODE_FORMAT::ABBREV_ASCII: {
-        return EncodeAbbrevAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_, stEmbeddedHeader,
-                                 stEmbeddedMessage);
+        return EncodeAbbrevAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedHeader, stEmbeddedMessage);
     }
     case ENCODE_FORMAT::JSON: {
-        return EncodeJSON(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_, stEmbeddedHeader,
+        return EncodeJSON(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedHeader,
                           stEmbeddedMessage);
     }
     default: return STATUS::UNSUPPORTED;
