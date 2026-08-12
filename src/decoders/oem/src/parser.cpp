@@ -213,8 +213,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
         }
         else
         {
-            eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
-                                         stMetaData_.eFormat, eMyEncodeFormat);
+            eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_, eMyEncodeFormat);
         }
 
         if (eStatus == STATUS::SUCCESS) { return STATUS::SUCCESS; }

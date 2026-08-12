@@ -174,7 +174,7 @@ def test_message_format(my_filter, decoder):
 
    filterlist  = [
       ("BESTPOS", HEADER_FORMAT.ASCII, MEASUREMENT_SOURCE.PRIMARY),
-      ("RAWIMUSX", HEADER_FORMAT.SHORT_ASCII, MEASUREMENT_SOURCE.PRIMARY)
+      ("RAWIMUSX", HEADER_FORMAT.ASCII, MEASUREMENT_SOURCE.PRIMARY)
    ]
    my_filter.extend_message_names(filterlist)
 

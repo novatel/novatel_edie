@@ -393,7 +393,7 @@ def test_binary_trick(helper):
 def test_short_ascii_complete(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer(data)
-    helper.test_framer(HEADER_FORMAT.SHORT_ASCII, len(data))
+    helper.test_framer(HEADER_FORMAT.ASCII, len(data))
 
 
 def test_short_ascii_incomplete(helper):
@@ -424,7 +424,7 @@ def test_short_ascii_inadequate_buffer(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer_errors(ne.BufferFullException, len(data) - 1)
-    helper.test_framer(HEADER_FORMAT.SHORT_ASCII, len(data), len(data))
+    helper.test_framer(HEADER_FORMAT.ASCII, len(data), len(data))
 
 
 def test_short_ascii_byte_by_byte(helper):
@@ -432,7 +432,7 @@ def test_short_ascii_byte_by_byte(helper):
     log_size = len(data)
     remaining_bytes = log_size
     expected_meta_data = oem.MetaData()
-    expected_meta_data.format = HEADER_FORMAT.SHORT_ASCII
+    expected_meta_data.format = HEADER_FORMAT.ASCII
     while True:
         helper.write_bytes_to_framer(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
@@ -445,7 +445,7 @@ def test_short_ascii_byte_by_byte(helper):
         if not remaining_bytes:
             break
     expected_meta_data.length = log_size
-    helper.test_framer(HEADER_FORMAT.SHORT_ASCII, log_size)
+    helper.test_framer(HEADER_FORMAT.ASCII, log_size)
 
 
 def test_short_ascii_segmented(helper):
@@ -470,7 +470,7 @@ def test_short_ascii_segmented(helper):
 
     helper.write_bytes_to_framer(data[bytes_written:][:oem.OEM4_ASCII_CRC_LENGTH + 2])
     bytes_written += oem.OEM4_ASCII_CRC_LENGTH + 2
-    helper.test_framer(HEADER_FORMAT.SHORT_ASCII, bytes_written)
+    helper.test_framer(HEADER_FORMAT.ASCII, bytes_written)
 
     assert bytes_written == len(data)
 
@@ -481,7 +481,7 @@ def test_short_ascii_trick(helper):
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 5)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 1)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 5)
-    helper.test_framer(HEADER_FORMAT.SHORT_ASCII, 120)
+    helper.test_framer(HEADER_FORMAT.ASCII, 120)
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -495,7 +495,7 @@ def test_short_binary_complete(helper):
          0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F,
          0xAF, 0xBA])
     helper.write_bytes_to_framer(data)
-    helper.test_framer(HEADER_FORMAT.SHORT_BINARY, len(data))
+    helper.test_framer(HEADER_FORMAT.BINARY, len(data))
 
 
 def test_short_binary_incomplete(helper):
@@ -515,7 +515,7 @@ def test_short_binary_buffer_full(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data = oem.MetaData()
     expected_meta_data.length = 34
-    expected_meta_data.format = HEADER_FORMAT.SHORT_BINARY
+    expected_meta_data.format = HEADER_FORMAT.BINARY
     helper.test_framer_errors(ne.BufferFullException, len(data) - 1)
 
 
@@ -543,7 +543,7 @@ def test_short_binary_run_on_crc(helper):
          0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F,
          0xAF, 0xBA, 0xFF, 0xFF])
     helper.write_bytes_to_framer(data)
-    helper.test_framer(HEADER_FORMAT.SHORT_BINARY, 56)
+    helper.test_framer(HEADER_FORMAT.BINARY, 56)
 
 
 def test_short_binary_inadequate_buffer(helper):
@@ -555,7 +555,7 @@ def test_short_binary_inadequate_buffer(helper):
          0xAF, 0xBA])
     helper.write_bytes_to_framer(data)
     helper.test_framer_errors(ne.BufferFullException, len(data) - 1)
-    helper.test_framer(HEADER_FORMAT.SHORT_BINARY, len(data), len(data))
+    helper.test_framer(HEADER_FORMAT.BINARY, len(data), len(data))
 
 def test_short_binary_byte_by_byte(helper):
     # "<short binary rawimusx log>"
@@ -573,14 +573,14 @@ def test_short_binary_byte_by_byte(helper):
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
         if expected_meta_data.length == oem.OEM4_SHORT_BINARY_SYNC_LENGTH:
-            expected_meta_data.format = HEADER_FORMAT.SHORT_BINARY
+            expected_meta_data.format = HEADER_FORMAT.BINARY
 
         if remaining_bytes > 0:
             helper.test_framer_errors(ne.IncompleteException)
         else:
             break
     expected_meta_data.length = log_size
-    helper.test_framer(HEADER_FORMAT.SHORT_BINARY, log_size)
+    helper.test_framer(HEADER_FORMAT.BINARY, log_size)
 
 
 def test_short_binary_segmented(helper):
@@ -606,7 +606,7 @@ def test_short_binary_segmented(helper):
 
     helper.write_bytes_to_framer(data[bytes_written:][:oem.OEM4_BINARY_CRC_LENGTH])
     bytes_written += oem.OEM4_BINARY_CRC_LENGTH
-    helper.test_framer(HEADER_FORMAT.SHORT_BINARY, bytes_written)
+    helper.test_framer(HEADER_FORMAT.BINARY, bytes_written)
 
 
 def test_short_binary_trick(helper):
@@ -627,7 +627,7 @@ def test_short_binary_trick(helper):
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 3)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 10)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer(HEADER_FORMAT.SHORT_BINARY, 56)
+    helper.test_framer(HEADER_FORMAT.BINARY, 56)
 
 
 # -------------------------------------------------------------------------------------------------------

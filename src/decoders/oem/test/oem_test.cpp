@@ -520,14 +520,14 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_COMPLETE)
 {
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
     this->WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_INCOMPLETE)
 {
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215";
     this->WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_SYNC_ERROR)
@@ -555,7 +555,7 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_RUN_ON_CRC)
 {
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7bff\r\n";
     this->WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_INADEQUATE_BUFFER)
@@ -563,8 +563,8 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_INADEQUATE_BUFFER)
     // "<binary BESTPOS log>"
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
     this->WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, sizeof(aucData) - 1);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, sizeof(aucData) - 1);
 }
 
 TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_BYTE_BY_BYTE)
@@ -574,7 +574,7 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_BYTE_BY_BYTE)
     uint32_t uiRemainingBytes = uiLogSize;
 
     MetaDataStruct stExpectedMetaData;
-    stExpectedMetaData.eFormat = INPUT_FORMAT::SHORT_ASCII;
+    stExpectedMetaData.eFormat = INPUT_FORMAT::ASCII;
     MetaDataStruct stTestMetaData;
 
     while (uiRemainingBytes > 1)
@@ -602,23 +602,23 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_SEGMENTED)
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_SHORT_ASCII_SYNC_LENGTH);
     uiBytesWritten += OEM4_SHORT_ASCII_SYNC_LENGTH;
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], 26);
     uiBytesWritten += 26;
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], 82);
     uiBytesWritten += 82;
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], 1);
     uiBytesWritten += 1;
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_ASCII_CRC_LENGTH + 2);
     uiBytesWritten += OEM4_ASCII_CRC_LENGTH + 2;
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     ASSERT_EQ(sizeof(aucData) - 1, uiBytesWritten);
 }
@@ -647,7 +647,7 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_TRICK)
         this->template FramerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_ASCII_SYNC_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
         this->template FramerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     }
-    this->template FramerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -658,7 +658,7 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_COMPLETE)
     // "<short binary rawimusx log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA};
     this->WriteBytesToFramer(aucData, sizeof(aucData));
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_INCOMPLETE)
@@ -666,7 +666,7 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_INCOMPLETE)
     // "<incomplete short binary rawimusx log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87};
     this->WriteBytesToFramer(aucData, sizeof(aucData));
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::INCOMPLETE>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_BUFFER_FULL)
@@ -705,7 +705,7 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_RUN_ON_CRC)
     // "<short binary rawimusx log>FF"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA, 0xFF, 0xFF};
     this->WriteBytesToFramer(aucData, sizeof(aucData));
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_INADEQUATE_BUFFER)
@@ -713,8 +713,8 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_INADEQUATE_BUFFER)
     // "<short binary rawimusx log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA};
     this->WriteBytesToFramer(aucData, sizeof(aucData));
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(sizeof(aucData), sizeof(aucData));
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucData), sizeof(aucData));
 }
 
 TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_BYTE_BY_BYTE)
@@ -736,7 +736,7 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_BYTE_BY_BYTE)
 
         if (stExpectedMetaData.uiLength == OEM4_SHORT_BINARY_SYNC_LENGTH)
         {
-            stExpectedMetaData.eFormat = INPUT_FORMAT::SHORT_BINARY;
+            stExpectedMetaData.eFormat = INPUT_FORMAT::BINARY;
         }
 
         if (uiRemainingBytes == 0)
@@ -761,19 +761,19 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_SEGMENTED)
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_SHORT_BINARY_SYNC_LENGTH);
     uiBytesWritten += OEM4_SHORT_BINARY_SYNC_LENGTH;
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], (OEM4_SHORT_BINARY_HEADER_LENGTH - OEM4_SHORT_BINARY_SYNC_LENGTH));
     uiBytesWritten += (OEM4_SHORT_BINARY_HEADER_LENGTH - OEM4_SHORT_BINARY_SYNC_LENGTH);
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], 40);
     uiBytesWritten += 40;
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
     this->WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_BINARY_CRC_LENGTH);
     uiBytesWritten += OEM4_BINARY_CRC_LENGTH;
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
     ASSERT_EQ(sizeof(aucData), uiBytesWritten);
 }
@@ -795,7 +795,7 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_TRICK)
         this->template FramerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_BINARY_SYNC_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
         this->template FramerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, MAX_SHORT_BINARY_MESSAGE_LENGTH);
     }
-    this->template FramerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    this->template FramerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1179,7 +1179,7 @@ class MockFramer : public FramerBase
                         (*pclMyBuffer)[uiMyByteCount - 4] == 'l' &&
                         (*pclMyBuffer)[uiMyByteCount - 5] == '<')
                     {
-                        stMetaData_.eFormat = INPUT_FORMAT::PROPRIETARY_BINARY; // Use this as mock header format
+                        stMetaData_.eFormat = INPUT_FORMAT::BINARY; // Use this as mock header format
                         eMyState = MockFramerState::WAITING_FOR_BODY;
                     }
                 }
@@ -1638,7 +1638,7 @@ TEST_F(FramerManagerTest, SHORT_ASCII_COMPLETE)
 {
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, SHORT_ASCII_SYNC_ERROR)
@@ -1659,7 +1659,7 @@ TEST_F(FramerManagerTest, SHORT_ASCII_RUN_ON_CRC)
 {
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7bff\r\n";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, SHORT_ASCII_INADEQUATE_BUFFER)
@@ -1667,8 +1667,8 @@ TEST_F(FramerManagerTest, SHORT_ASCII_INADEQUATE_BUFFER)
     // "<binary BESTPOS log>"
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, sizeof(aucData) - 1);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, sizeof(aucData) - 1);
 }
 
 TEST_F(FramerManagerTest, SHORT_ASCII_BYTE_BY_BYTE)
@@ -1678,7 +1678,7 @@ TEST_F(FramerManagerTest, SHORT_ASCII_BYTE_BY_BYTE)
     uint32_t uiRemainingBytes = uiLogSize;
 
     MetaDataBase stExpectedMetaData;
-    stExpectedMetaData.eFormat = INPUT_FORMAT::SHORT_ASCII;
+    stExpectedMetaData.eFormat = INPUT_FORMAT::ASCII;
     MetaDataBase* stTestMetaData;
 
     while (uiRemainingBytes > 1)
@@ -1704,23 +1704,23 @@ TEST_F(FramerManagerTest, SHORT_ASCII_SEGMENTED)
 
     WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_SHORT_ASCII_SYNC_LENGTH);
     uiBytesWritten += OEM4_SHORT_ASCII_SYNC_LENGTH;
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], 26);
     uiBytesWritten += 26;
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], 82);
     uiBytesWritten += 82;
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], 1);
     uiBytesWritten += 1;
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_ASCII_CRC_LENGTH + 2);
     uiBytesWritten += OEM4_ASCII_CRC_LENGTH + 2;
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
     ASSERT_EQ(sizeof(aucData) - 1, uiBytesWritten);
 }
@@ -1735,7 +1735,7 @@ TEST_F(FramerManagerTest, SHORT_ASCII_TRICK)
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_ASCII_SYNC_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_ASCII_SYNC_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_SHORT_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<INPUT_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1746,7 +1746,7 @@ TEST_F(FramerManagerTest, SHORT_BINARY_COMPLETE)
     // "<short binary rawimusx log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA};
     WriteBytesToFramer(aucData, sizeof(aucData));
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, SHORT_BINARY_BUFFER_FULL)
@@ -1779,7 +1779,7 @@ TEST_F(FramerManagerTest, SHORT_BINARY_RUN_ON_CRC)
     // "<short binary rawimusx log>FF"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA, 0xFF, 0xFF};
     WriteBytesToFramer(aucData, sizeof(aucData));
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, SHORT_BINARY_INADEQUATE_BUFFER)
@@ -1787,8 +1787,8 @@ TEST_F(FramerManagerTest, SHORT_BINARY_INADEQUATE_BUFFER)
     // "<short binary rawimusx log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA};
     WriteBytesToFramer(aucData, sizeof(aucData));
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(sizeof(aucData), sizeof(aucData));
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucData), sizeof(aucData));
 }
 
 TEST_F(FramerManagerTest, SHORT_BINARY_BYTE_BY_BYTE)
@@ -1812,7 +1812,7 @@ TEST_F(FramerManagerTest, SHORT_BINARY_BYTE_BY_BYTE)
 
         if (stExpectedMetaData.uiLength == OEM4_SHORT_BINARY_SYNC_LENGTH)
         {
-            stExpectedMetaData.eFormat = INPUT_FORMAT::SHORT_BINARY;
+            stExpectedMetaData.eFormat = INPUT_FORMAT::BINARY;
         }
 
         if (uiRemainingBytes == 0)
@@ -1841,19 +1841,19 @@ TEST_F(FramerManagerTest, SHORT_BINARY_SEGMENTED)
 
     WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_SHORT_BINARY_SYNC_LENGTH);
     uiBytesWritten += OEM4_SHORT_BINARY_SYNC_LENGTH;
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], (OEM4_SHORT_BINARY_HEADER_LENGTH - OEM4_SHORT_BINARY_SYNC_LENGTH));
     uiBytesWritten += (OEM4_SHORT_BINARY_HEADER_LENGTH - OEM4_SHORT_BINARY_SYNC_LENGTH);
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], 40);
     uiBytesWritten += 40;
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_BINARY_CRC_LENGTH);
     uiBytesWritten += OEM4_BINARY_CRC_LENGTH;
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
     ASSERT_EQ(sizeof(aucData), uiBytesWritten);
 }
@@ -1866,7 +1866,7 @@ TEST_F(FramerManagerTest, SHORT_BINARY_TRICK)
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_BINARY_SYNC_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_BINARY_SYNC_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, MAX_SHORT_BINARY_MESSAGE_LENGTH);
-    FramerManagerHelper<INPUT_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -2056,7 +2056,7 @@ TEST_F(FramerManagerTest, OEM_ASCII_AND_MOCK_FRAMES) {
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
 
     FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<INPUT_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH); // Discard the extra '\r\n' after the mock log
     FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
@@ -2073,7 +2073,7 @@ TEST_F(FramerManagerTest, OEM_ASCII_INCOMPLETE_AND_MOCK_FRAMES) {
     WriteBytesToFramer(&aucData[6], sizeof(aucData) - 6);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_ASCII_SYNC_LENGTH, MAX_ASCII_MESSAGE_LENGTH); // Discard sync
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_ASCII_MESSAGE_LENGTH);  // Discard 'BESTP'
-    FramerManagerHelper<INPUT_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard the extra '\r\n' after the mock log
     FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
@@ -2092,7 +2092,7 @@ TEST_F(FramerManagerTest, OEM_ASCII_AND_MOCK_INCOMPLETE_FRAMES) {
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_ASCII_MESSAGE_LENGTH);      // Discard '/log'
     FramerManagerHelper<INPUT_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
     // OEM framer consumes the extra '\r\n' after the mock log
-    FramerManagerHelper<INPUT_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, OEM_ABBREV_ASCII_AND_MOCK_FRAMES) {
@@ -2105,7 +2105,7 @@ TEST_F(FramerManagerTest, OEM_ABBREV_ASCII_AND_MOCK_FRAMES) {
     WriteBytesToFramer(aucOEMData, sizeof(aucOEMData) - 1);
     FramerManagerHelper<INPUT_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucOEMData) - 7, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(6, MAX_ASCII_MESSAGE_LENGTH);  // Discard '[COM1]'
-    FramerManagerHelper<INPUT_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard '\r\n' after the mock log
     FramerManagerHelper<INPUT_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucOEMData) - 7, MAX_ASCII_MESSAGE_LENGTH);
 }
@@ -2125,7 +2125,7 @@ TEST_F(FramerManagerTest, OEM_ABBREV_ASCII_INCOMPLETE_AND_MOCK_FRAMES) {
     WriteBytesToFramer(aucMockData, sizeof(aucMockData) - 1);
     WriteBytesToFramer(aucOEMData, sizeof(aucOEMData) - 1);
     FramerManagerHelper<INPUT_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucPartialOEMData) + 1, MAX_ASCII_MESSAGE_LENGTH);  // Match partial OEM abb ASCII log + '\r\n'
-    FramerManagerHelper<INPUT_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard '\r\n' after the mock log
     FramerManagerHelper<INPUT_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucOEMData) - 7, MAX_ASCII_MESSAGE_LENGTH);
 }
@@ -2139,7 +2139,7 @@ TEST_F(FramerManagerTest, OEM_BINARY_AND_MOCK_FRAMES) {
     WriteBytesToFramer(aucOEMData, sizeof(aucOEMData));
 
     FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucOEMData), MAX_BINARY_MESSAGE_LENGTH);
-    FramerManagerHelper<INPUT_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard the extra '\r\n' after the mock log
     FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucOEMData), MAX_BINARY_MESSAGE_LENGTH);
 }
@@ -2156,7 +2156,7 @@ TEST_F(FramerManagerTest, OEM_BINARY_INCOMPLETE_AND_MOCK_FRAMES) {
 
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_BINARY_SYNC_LENGTH, MAX_BINARY_MESSAGE_LENGTH); // Discard sync
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(47, MAX_BINARY_MESSAGE_LENGTH);    // Discard partial OEM binary log
-    FramerManagerHelper<INPUT_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<INPUT_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard the extra '\r\n' after the mock log
     FramerManagerHelper<INPUT_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucOEMData), MAX_BINARY_MESSAGE_LENGTH);
 }
@@ -2220,7 +2220,7 @@ class DecodeEncodeTest : public ::testing::Test
         eStatus = pclMyMessageDecoder->Decode(pucTempPtr, stMessage, stMetaData_);
         if (STATUS::SUCCESS != eStatus) { return MESSAGE_DECODER_ERROR; }
 
-        eStatus = pclMyEncoder->Encode(&pucEncodeBuffer_, uiEncodeBufferSize_, stHeader, stMessage, stMessageData_, stMetaData_.eFormat, eFormat_);
+        eStatus = pclMyEncoder->Encode(&pucEncodeBuffer_, uiEncodeBufferSize_, stHeader, stMessage, stMessageData_, eFormat_);
         if (STATUS::SUCCESS != eStatus) { return ENCODER_ERROR; }
 
         return SUCCESS;
@@ -3129,10 +3129,10 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodeBuffer = acEncodeBuffer;
 
-    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
-    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
+    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, ENCODE_FORMAT::UNSPECIFIED));
+    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData, false, ENCODE_FORMAT::UNSPECIFIED));
     ASSERT_EQ(STATUS::UNSUPPORTED,
-              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, stMetaData.eFormat,
+              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, false,
                                        ENCODE_FORMAT::UNSPECIFIED));
 }
 
@@ -3695,7 +3695,7 @@ TEST_F(FilterTest, MESSAGE_FORMAT)
 {
     std::vector<std::tuple<std::string, INPUT_FORMAT, uint8_t>> filterList = {
         {"BESTPOS", INPUT_FORMAT::ASCII, 0},
-        {"RAWIMUSX", INPUT_FORMAT::SHORT_ASCII, 0}};
+        {"RAWIMUSX", INPUT_FORMAT::ASCII, 0}};
 
     pclMyFilter->IncludeMessageName(filterList);
 

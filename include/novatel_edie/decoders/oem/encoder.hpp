@@ -124,8 +124,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const CompositeField& stMessage_, MessageDataStruct& stMessageData_, INPUT_FORMAT eHeaderFormat_,
-                                ENCODE_FORMAT eFormat_) const;
+                                const CompositeField& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message header from the provided intermediate header.

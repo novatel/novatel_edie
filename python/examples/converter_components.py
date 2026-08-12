@@ -42,8 +42,8 @@ from common_setup import setup_example_logging, handle_args
 
 def format_frame(frame, frame_format):
     """Format the frame into a human-readable string."""
-    if frame_format in [HEADER_FORMAT.BINARY, HEADER_FORMAT.SHORT_BINARY,
-                        HEADER_FORMAT.PROPRIETARY_BINARY,
+    if frame_format in [HEADER_FORMAT.BINARY, HEADER_FORMAT.BINARY,
+                        HEADER_FORMAT.BINARY,
                         ENCODE_FORMAT.BINARY, ENCODE_FORMAT.FLATTENED_BINARY]:
         return hexlify(frame, sep=" ").decode("ascii").upper()
     return frame

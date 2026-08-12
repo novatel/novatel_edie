@@ -17,10 +17,10 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_, CompositeField&& message_fields_,
-                                          oem::MetaDataStruct& metadata_, py_common::PyMessageDatabase::ConstPtr database_)
+nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_,
+                                          CompositeField&& message_fields_, oem::MetaDataStruct& metadata_,
+                                          py_common::PyMessageDatabase::ConstPtr database_)
 {
-    header_.format = metadata_.eFormat;
     switch (status_)
     {
     case STATUS::SUCCESS: return create_message_instance(header_, std::move(message_fields_), metadata_, database_);
@@ -127,7 +127,9 @@ void py_oem::init_novatel_parser(nb::module_& m)
                      "The number of bytes in the Parser's internal buffer available for writing new data.")
         .def(
             "write",
-            [](py_oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const unsigned char*>(data.c_str()), data.size()); },
+            [](py_oem::PyParser& self, const nb::bytes& data) {
+                return self.Write(reinterpret_cast<const unsigned char*>(data.c_str()), data.size());
+            },
             R"doc(
              Writes data to the Parser's internal buffer allowing it to later be parsed.
 

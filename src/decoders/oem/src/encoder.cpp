@@ -415,14 +415,16 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_, const CompositeField& stMessage_,
-                MessageDataStruct& stMessageData_, INPUT_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const
+                MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
     // pclMyMsgDb will keep definition alive so take a raw pointer
     const MessageDefinition* def = pclMyMsgDb->GetMsgDef(stHeader_.usMessageId).get();
-    bool encodeWithShortHeader = hasShortHeader(def);
+
+    // Without a valid id (such as for abbrev ascii responses) assume normal header
+    bool encodeWithShortHeader = def ? hasShortHeader(def) : false;
 
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
 

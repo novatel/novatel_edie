@@ -225,8 +225,8 @@ STATUS RxConfigHandler::EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t u
     stMessageData_.pucMessageBody = pucTempEncodeBuffer;
     stEmbeddedMessageData_.pucMessage = pucTempEncodeBuffer;
 
-    eStatus = clMyEncoder.Encode(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessage_, stEmbeddedMessageData_,
-                                 stEmbeddedMetaData_.eFormat, ENCODE_FORMAT::JSON);
+    eStatus =
+        clMyEncoder.Encode(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessage_, stEmbeddedMessageData_, ENCODE_FORMAT::JSON);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageLength;
     stMessageData_.uiMessageBodyLength = pucTempEncodeBuffer - stMessageData_.pucMessageBody;
@@ -315,8 +315,8 @@ STATUS RxConfigHandler::EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t 
 
     // -- Encode Embedded Message --
     stMessageData_.pucMessageBody = pucTempEncodeBuffer;
-    eStatus = clMyEncoder.Encode(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessage_, stEmbeddedMessageData_,
-                                 stEmbeddedMetaData_.eFormat, ENCODE_FORMAT::ASCII);
+    eStatus =
+        clMyEncoder.Encode(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessage_, stEmbeddedMessageData_, ENCODE_FORMAT::ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageLength;
 
@@ -368,8 +368,8 @@ STATUS RxConfigHandler::EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t
 
     // -- Encode Embedded Message --
     stMessageData_.pucMessageBody = pucTempEncodeBuffer;
-    eStatus = clMyEncoder.Encode(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessage_, stEmbeddedMessageData_,
-                                 stEmbeddedMetaData_.eFormat, ENCODE_FORMAT::BINARY);
+    eStatus =
+        clMyEncoder.Encode(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessage_, stEmbeddedMessageData_, ENCODE_FORMAT::BINARY);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageLength;
 

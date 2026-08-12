@@ -99,7 +99,7 @@ def test_proprietary_binary_complete(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     expected_meta_data.length = 76
-    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.BINARY
     _, test_meta_data = helper.framer.get_frame()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
@@ -151,7 +151,7 @@ def test_proprietary_binary_run_on_crc(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data = oem.MetaData()
     expected_meta_data.length = 76
-    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.BINARY
     _, test_meta_data = helper.framer.get_frame()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
@@ -167,7 +167,7 @@ def test_proprietary_binary_inadequate_buffer(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data = oem.MetaData()
     expected_meta_data.length = 76
-    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.BINARY
     test_meta_data = oem.MetaData()
     helper.test_framer_errors(ne.BufferFullException, buffer_size=38)
 
@@ -192,7 +192,7 @@ def test_proprietary_binary_byte_by_byte(helper):
             helper.test_framer_errors(ne.IncompleteException)
         else:
             break
-    helper.test_framer(HEADER_FORMAT.PROPRIETARY_BINARY, log_size)
+    helper.test_framer(HEADER_FORMAT.BINARY, log_size)
 
 
 def test_proprietary_binary_segmented(helper):
@@ -218,7 +218,7 @@ def test_proprietary_binary_segmented(helper):
 
     helper.write_bytes_to_framer(data[bytes_written:][:oem.OEM4_BINARY_CRC_LENGTH])
     bytes_written += oem.OEM4_BINARY_CRC_LENGTH
-    helper.test_framer(HEADER_FORMAT.PROPRIETARY_BINARY, bytes_written)
+    helper.test_framer(HEADER_FORMAT.BINARY, bytes_written)
     assert bytes_written == len(data)
 
 
@@ -236,4 +236,4 @@ def test_proprietary_binary_trick(helper):
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 3)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 15)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer(HEADER_FORMAT.PROPRIETARY_BINARY, 76)
+    helper.test_framer(HEADER_FORMAT.BINARY, 76)
