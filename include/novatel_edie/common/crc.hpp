@@ -32,6 +32,7 @@
 #include <string_view>
 #include <type_traits>
 
+namespace {
 // Build the slice-by-8 lookup tables for the given generator polynomial.
 // Rev=true expects a reflected polynomial and computes LSB-first tables.
 // Rev=false expects a normal polynomial and computes MSB-first tables.
@@ -93,7 +94,9 @@ template <typename CrcT, CrcT Poly, bool Rev> constexpr auto make_crc_table()
 
 // Variable template: one table instance per CRC type/polynomial, computed entirely at compile time.
 template <typename CrcT, CrcT Poly, bool Rev> inline constexpr auto UI_CRC_TABLE = make_crc_table<CrcT, Poly, Rev>();
+} // namespace (anonymous)
 
+namespace novatel::edie {
 // --------------------------------------------------------------------------
 // Accumulate a single character into the given CRC value
 // --------------------------------------------------------------------------
@@ -244,3 +247,4 @@ template <uint32_t Poly = 0xEDB88320UL, bool Rev = true> constexpr uint32_t Calc
 {
     return CalculateBlockCrc<uint32_t, Poly, Rev>(buffer_);
 }
+} // namespace novatel::edie

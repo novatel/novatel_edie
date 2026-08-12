@@ -34,7 +34,6 @@
 #include <numeric>
 #include <type_traits>
 
-#include "novatel_edie/common/crc.hpp"
 //!< Recommended frame buffer size. Should work for most formats and message sizes. If the buffer is too small, the framer will return BUFFER_FULL.
 constexpr uint32_t RECOMMENDED_FRAME_BUFFER_SIZE = 256 * 1024; // 256Kb
 
