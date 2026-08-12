@@ -304,7 +304,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         default: return HEADER_FORMAT::UNKNOWN;
         }
     }();
-    stMetaData_.eFormat = headerFormatToInputFormat(eHeaderFormat);
+    stMetaData_.eFormat = headerFormatToDecodeFormat(eHeaderFormat);
 
     switch (eHeaderFormat)
     {

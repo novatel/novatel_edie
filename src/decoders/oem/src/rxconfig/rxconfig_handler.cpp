@@ -133,7 +133,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
     uint32_t uiCopyableEmbeddedMsgBytes;
     switch (stRxConfigMetaData_.eFormat)
     {
-    case INPUT_FORMAT::ABB_ASCII: {
+    case DECODE_FORMAT::ABB_ASCII: {
         // Fix embedded header indentation
         const auto* pcTempBuffer = reinterpret_cast<const char*>(pucTempMessagePointer);
         ConsumeAbbrevFormatting(&pcTempBuffer);
@@ -142,12 +142,12 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - (pucTempMessagePointer - pucMessage_);
         break;
     }
-    case INPUT_FORMAT::ASCII: {
+    case DECODE_FORMAT::ASCII: {
         // Ignore {CRC}*{CRC}\r\n at end of buffer
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - OEM4_ASCII_CRC_LENGTH - 1 - OEM4_ASCII_CRC_LENGTH - 2;
         break;
     }
-    case INPUT_FORMAT::BINARY: {
+    case DECODE_FORMAT::BINARY: {
         // Ignore CRCs at end of buffer
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - 2 * OEM4_BINARY_CRC_LENGTH;
         break;
@@ -169,7 +169,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
     // Flip CRC to make the raw reprentation decodable
     switch (stRxConfigMetaData_.eFormat)
     {
-    case INPUT_FORMAT::ASCII: {
+    case DECODE_FORMAT::ASCII: {
         // invert ascii crc
         const uint32_t uiCRC = strtoul(reinterpret_cast<const char*>(pucTempMessagePointer), nullptr, 16) ^ 0xFFFFFFFF;
         char pucCRC[OEM4_ASCII_CRC_LENGTH];
@@ -179,7 +179,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'));
         break;
     }
-    case INPUT_FORMAT::BINARY: {
+    case DECODE_FORMAT::BINARY: {
         auto uiCRC = LoadValueFromBuffer<uint32_t>(pucTempMessagePointer) ^ 0xFFFFFFFF;
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24));
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16));

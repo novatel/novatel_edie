@@ -89,11 +89,11 @@ template <unsigned char SyncByte, size_t MaxMessageLength> class FramerAsciiBase
 
         if (uiCrcDelimIndex == UCharFixedBuffer::npos)
         {
-            return uiBufferSize >= MaxMessageLength ? Result{Result::Status::INVALID, INPUT_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH}
-                                                    : Result{Result::Status::INCOMPLETE, INPUT_FORMAT::ASCII, uiBufferSize};
+            return uiBufferSize >= MaxMessageLength ? Result{Result::Status::INVALID, DECODE_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH}
+                                                    : Result{Result::Status::INCOMPLETE, DECODE_FORMAT::ASCII, uiBufferSize};
         }
-        if (uiBufferSize - uiCrcDelimIndex < uiCrcTrailerLength) { return {Result::Status::INCOMPLETE, INPUT_FORMAT::ASCII, uiCrcDelimIndex}; }
-        return {Result::Status::COMPLETE, INPUT_FORMAT::ASCII, uiCrcDelimIndex + uiCrcTrailerLength};
+        if (uiBufferSize - uiCrcDelimIndex < uiCrcTrailerLength) { return {Result::Status::INCOMPLETE, DECODE_FORMAT::ASCII, uiCrcDelimIndex}; }
+        return {Result::Status::COMPLETE, DECODE_FORMAT::ASCII, uiCrcDelimIndex + uiCrcTrailerLength};
     }
 
     //----------------------------------------------------------------------------

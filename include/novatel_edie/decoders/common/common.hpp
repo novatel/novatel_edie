@@ -175,10 +175,10 @@ inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
 }
 
 //-----------------------------------------------------------------------
-//! \enum INPUT_FORMAT
+//! \enum DECODE_FORMAT
 //! \brief Represents the format that a message was decoded from.
 //-----------------------------------------------------------------------
-enum class INPUT_FORMAT
+enum class DECODE_FORMAT
 {
     UNKNOWN = 1,
     BINARY,
@@ -282,7 +282,7 @@ struct EnumDefinition;
 struct MetaDataBase
 {
     bool bResponse{false};
-    INPUT_FORMAT eFormat{INPUT_FORMAT::UNKNOWN};
+    DECODE_FORMAT eFormat{DECODE_FORMAT::UNKNOWN};
     uint16_t usWeek{0};
     double dMilliseconds{0.0};
     uint32_t uiLength{0};

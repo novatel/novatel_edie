@@ -131,20 +131,20 @@ void Filter::ClearTimeStatuses()
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageId(uint32_t uiId_, INPUT_FORMAT eFormat_, uint8_t ucSource_)
+void Filter::IncludeMessageId(uint32_t uiId_, DECODE_FORMAT eFormat_, uint8_t ucSource_)
 {
     auto tMessageId = std::make_tuple(uiId_, eFormat_, ucSource_);
     PushUnique(vMyMessageIdFilters, tMessageId);
     PushUnique(vMyFilterFunctions, &Filter::FilterMessageId);
 }
 
-void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, INPUT_FORMAT, uint8_t>>& vIds_)
+void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, DECODE_FORMAT, uint8_t>>& vIds_)
 {
     for (const auto& id : vIds_) { PushUnique(vMyMessageIdFilters, id); }
     PushUnique(vMyFilterFunctions, &Filter::FilterMessageId);
 }
 
-void Filter::RemoveMessageId(uint32_t uiId_, INPUT_FORMAT eFormat_, uint8_t ucSource_)
+void Filter::RemoveMessageId(uint32_t uiId_, DECODE_FORMAT eFormat_, uint8_t ucSource_)
 {
     auto tMessageId = std::make_tuple(uiId_, eFormat_, ucSource_);
     Remove(vMyMessageIdFilters, tMessageId);
@@ -159,20 +159,20 @@ void Filter::ClearMessageIds()
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageName(std::string_view szMsgName_, INPUT_FORMAT eFormat_, uint8_t ucSource_)
+void Filter::IncludeMessageName(std::string_view szMsgName_, DECODE_FORMAT eFormat_, uint8_t ucSource_)
 {
     auto tMessageName = std::make_tuple(std::string(szMsgName_), eFormat_, ucSource_);
     PushUnique(vMyMessageNameFilters, tMessageName);
     PushUnique(vMyFilterFunctions, &Filter::FilterMessage);
 }
 
-void Filter::IncludeMessageName(std::vector<std::tuple<std::string, INPUT_FORMAT, uint8_t>>& vNames_)
+void Filter::IncludeMessageName(std::vector<std::tuple<std::string, DECODE_FORMAT, uint8_t>>& vNames_)
 {
     for (const auto& name : vNames_) { PushUnique(vMyMessageNameFilters, name); }
     PushUnique(vMyFilterFunctions, &Filter::FilterMessage);
 }
 
-void Filter::RemoveMessageName(std::string_view szMsgName_, INPUT_FORMAT eFormat_, uint8_t ucSource_)
+void Filter::RemoveMessageName(std::string_view szMsgName_, DECODE_FORMAT eFormat_, uint8_t ucSource_)
 {
     auto tMessageName = std::make_tuple(std::string(szMsgName_), eFormat_, ucSource_);
     Remove(vMyMessageNameFilters, tMessageName);
@@ -252,11 +252,11 @@ bool Filter::FilterMessageId(const MetaDataStruct& stMetaData_) const
     if (vMyMessageIdFilters.empty()) { return true; }
 
     auto uiMessageId = static_cast<uint32_t>(stMetaData_.usMessageId);
-    INPUT_FORMAT eFormat = stMetaData_.eFormat;
+    DECODE_FORMAT eFormat = stMetaData_.eFormat;
     uint8_t ucSource = stMetaData_.ucSiblingId;
 
-    const auto isMessageIdFilterMatch = [&uiMessageId, ucSource](const std::tuple<uint32_t, INPUT_FORMAT, uint8_t>& elem) {
-        return uiMessageId == std::get<0>(elem) && INPUT_FORMAT::ALL == std::get<1>(elem) && ucSource == std::get<2>(elem);
+    const auto isMessageIdFilterMatch = [&uiMessageId, ucSource](const std::tuple<uint32_t, DECODE_FORMAT, uint8_t>& elem) {
+        return uiMessageId == std::get<0>(elem) && DECODE_FORMAT::ALL == std::get<1>(elem) && ucSource == std::get<2>(elem);
     };
 
     return bMyInvertMessageIdFilter ==
@@ -271,11 +271,11 @@ bool Filter::FilterMessage(const MetaDataStruct& stMetaData_) const
     if (vMyMessageNameFilters.empty()) { return true; }
 
     std::string_view szMessageName = stMetaData_.messageName;
-    INPUT_FORMAT eFormat = stMetaData_.eFormat;
+    DECODE_FORMAT eFormat = stMetaData_.eFormat;
     uint8_t eSource = stMetaData_.ucSiblingId;
 
-    const auto isMessageNameFilterMatch = [&szMessageName, eSource](const std::tuple<std::string_view, INPUT_FORMAT, uint8_t>& elem_) {
-        return szMessageName == std::get<0>(elem_) && INPUT_FORMAT::ALL == std::get<1>(elem_) && eSource == std::get<2>(elem_);
+    const auto isMessageNameFilterMatch = [&szMessageName, eSource](const std::tuple<std::string_view, DECODE_FORMAT, uint8_t>& elem_) {
+        return szMessageName == std::get<0>(elem_) && DECODE_FORMAT::ALL == std::get<1>(elem_) && eSource == std::get<2>(elem_);
     };
 
     return bMyInvertMessageNameFilter ==
@@ -293,8 +293,8 @@ bool Filter::FilterDecimation(const MetaDataStruct& stMetaData_) const
 // -------------------------------------------------------------------------------------------------------
 bool Filter::DoFiltering(const MetaDataStruct& stMetaData_) const
 {
-    if (stMetaData_.eFormat == INPUT_FORMAT::UNKNOWN) { return false; }
-    if (stMetaData_.eFormat == INPUT_FORMAT::NMEA) { return bMyIncludeNmea; }
+    if (stMetaData_.eFormat == DECODE_FORMAT::UNKNOWN) { return false; }
+    if (stMetaData_.eFormat == DECODE_FORMAT::NMEA) { return bMyIncludeNmea; }
     if (stMetaData_.bResponse && !bMyIncludeResponses) { return false; }
     if (!stMetaData_.bResponse && !bMyIncludeNonResponses) { return false; }
 

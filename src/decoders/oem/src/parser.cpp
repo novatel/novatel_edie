@@ -57,16 +57,16 @@ void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
         clMyRangeDecompressor.LoadJsonDb(pclMessageDb_);
         clMyRxConfigHandler.LoadJsonDb(pclMessageDb_);
 
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP5_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP5_MSG_ID, INPUT_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP5_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP5_MSG_ID, DECODE_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
 
         pclMyMessageDb = pclMessageDb_;
     }
@@ -108,7 +108,7 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
         // eFormat is HEADER_FORMAT::ABB_ASCII or HEADER_FORMAT::SHORT_ABB_ASCII then flush the framer
         // and attempt to decode that data.
 
-        if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE && (stMetaData_.eFormat == INPUT_FORMAT::ABB_ASCII))
+        if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE && (stMetaData_.eFormat == DECODE_FORMAT::ABB_ASCII))
         {
             uint32_t uiFlushSize = clMyFramer.Flush(pucMyFrameBufferPointer, uiParserInternalBufferSize);
             if (uiFlushSize > 0)
@@ -131,7 +131,7 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
         }
         else if (eStatus == STATUS::SUCCESS)
         {
-            if (stMetaData_.bResponse && stMetaData_.eFormat == INPUT_FORMAT::ABB_ASCII && bMyIgnoreAbbreviatedAsciiResponse)
+            if (stMetaData_.bResponse && stMetaData_.eFormat == DECODE_FORMAT::ABB_ASCII && bMyIgnoreAbbreviatedAsciiResponse)
             {
                 pclMyLogger->debug("Abbreviated ascii response ignored");
                 continue;

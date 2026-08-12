@@ -132,7 +132,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, CompositeFi
 
         nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
-        bool is_complete = (metadata.eFormat != INPUT_FORMAT::ABB_ASCII);
+        bool is_complete = (metadata.eFormat != DECODE_FORMAT::ABB_ASCII);
         new (response_cinst) PyResponse(message_fields, database, header, is_complete, msgDef, metadata.uiMessageCrc);
         nb::inst_mark_ready(response_pyinst);
 

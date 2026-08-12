@@ -94,22 +94,22 @@ enum class HEADER_FORMAT
     ALL // Used in filters to indicate all filter types : all new enums should be added before this value
 };
 
-inline INPUT_FORMAT headerFormatToInputFormat(HEADER_FORMAT headerFormat_)
+inline DECODE_FORMAT headerFormatToDecodeFormat(HEADER_FORMAT headerFormat_)
 {
     switch (headerFormat_)
     {
-    case HEADER_FORMAT::UNKNOWN: return INPUT_FORMAT::UNKNOWN;
+    case HEADER_FORMAT::UNKNOWN: return DECODE_FORMAT::UNKNOWN;
     case HEADER_FORMAT::BINARY: [[fallthrough]];
     case HEADER_FORMAT::SHORT_BINARY: [[fallthrough]];
-    case HEADER_FORMAT::PROPRIETARY_BINARY: return INPUT_FORMAT::BINARY;
+    case HEADER_FORMAT::PROPRIETARY_BINARY: return DECODE_FORMAT::BINARY;
     case HEADER_FORMAT::ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ASCII: return INPUT_FORMAT::ASCII;
+    case HEADER_FORMAT::SHORT_ASCII: return DECODE_FORMAT::ASCII;
     case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ABB_ASCII: return INPUT_FORMAT::ABB_ASCII;
-    case HEADER_FORMAT::NMEA: return INPUT_FORMAT::NMEA;
-    case HEADER_FORMAT::JSON: return INPUT_FORMAT::JSON;
-    case HEADER_FORMAT::ALL: return INPUT_FORMAT::ALL;
-    default: return INPUT_FORMAT::UNKNOWN;
+    case HEADER_FORMAT::SHORT_ABB_ASCII: return DECODE_FORMAT::ABB_ASCII;
+    case HEADER_FORMAT::NMEA: return DECODE_FORMAT::NMEA;
+    case HEADER_FORMAT::JSON: return DECODE_FORMAT::JSON;
+    case HEADER_FORMAT::ALL: return DECODE_FORMAT::ALL;
+    default: return DECODE_FORMAT::UNKNOWN;
     }
 }
 

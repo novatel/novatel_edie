@@ -66,23 +66,23 @@ FramerAbbAscii::FramerAbbAscii(std::shared_ptr<UCharFixedBuffer> buffer) : Frame
     const auto& clFrameBuffer = *pclMyBuffer;
 
     auto midLineIncomplete = [&clFrameBuffer]() -> Result {
-        return clFrameBuffer.size() >= MAX_ASCII_MESSAGE_LENGTH ? Result{ReturnStatus::INVALID, INPUT_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH}
-                                                                : Result{ReturnStatus::INCOMPLETE, INPUT_FORMAT::ABB_ASCII, clFrameBuffer.size()};
+        return clFrameBuffer.size() >= MAX_ASCII_MESSAGE_LENGTH ? Result{ReturnStatus::INVALID, DECODE_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH}
+                                                                : Result{ReturnStatus::INCOMPLETE, DECODE_FORMAT::ABB_ASCII, clFrameBuffer.size()};
     };
 
     // Step 1: Parse the first line (header/response line)
     const size_t headerCrlfIndex = clFrameBuffer.search_chars(crlf, 0, MAX_ASCII_MESSAGE_LENGTH);
     if (headerCrlfIndex == UCharFixedBuffer::npos) { return midLineIncomplete(); }
 
-    if (IsAbbrevAsciiResponse()) { return Result{ReturnStatus::RESPONSE, INPUT_FORMAT::ABB_ASCII, headerCrlfIndex + 2}; }
+    if (IsAbbrevAsciiResponse()) { return Result{ReturnStatus::RESPONSE, DECODE_FORMAT::ABB_ASCII, headerCrlfIndex + 2}; }
 
     // If we reach this point, then the message is not a response
     // Step 2: Ensure the body is nonempty
     const size_t bodyStart = headerCrlfIndex + 2;
-    if (clFrameBuffer.size() <= bodyStart + 1) { return Result{ReturnStatus::INCOMPLETE, INPUT_FORMAT::ABB_ASCII, headerCrlfIndex}; }
+    if (clFrameBuffer.size() <= bodyStart + 1) { return Result{ReturnStatus::INCOMPLETE, DECODE_FORMAT::ABB_ASCII, headerCrlfIndex}; }
     if (clFrameBuffer.size() > bodyStart && !IsBodyLine(bodyStart))
     {
-        return Result{ReturnStatus::INVALID, INPUT_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH};
+        return Result{ReturnStatus::INVALID, DECODE_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH};
     }
 
     // Step 3: Parse body lines
@@ -94,7 +94,7 @@ FramerAbbAscii::FramerAbbAscii(std::shared_ptr<UCharFixedBuffer> buffer) : Frame
 
     if (uiCrlfIndex == UCharFixedBuffer::npos) { return midLineIncomplete(); }
 
-    if (clFrameBuffer.size() <= uiCrlfIndex + 3) { return Result{ReturnStatus::INCOMPLETE, INPUT_FORMAT::ABB_ASCII, uiCrlfIndex}; }
+    if (clFrameBuffer.size() <= uiCrlfIndex + 3) { return Result{ReturnStatus::INCOMPLETE, DECODE_FORMAT::ABB_ASCII, uiCrlfIndex}; }
 
-    return Result{ReturnStatus::COMPLETE, INPUT_FORMAT::ABB_ASCII, uiCrlfIndex + 2};
+    return Result{ReturnStatus::COMPLETE, DECODE_FORMAT::ABB_ASCII, uiCrlfIndex + 2};
 }
