@@ -29,6 +29,8 @@
 #include "novatel_edie/common/crc.hpp"
 
 namespace {
+constexpr size_t CHORBA_WINDOW = 48; // 6 words * 8 bytes/word
+
 //============================================================================
 //! \brief An implementation of the Chorba CRC32 algorithm from https://arxiv.org/abs/2412.16398.
 //!     Uses the reflected generator polynomial 0xEDB88320 and treats the input as LSB-first.
@@ -43,9 +45,10 @@ namespace {
 //============================================================================
 inline uint32_t CalculateBlockCrc32Chorba(const unsigned char* ucBuffer_, uint32_t uiCount_, uint32_t uiInitialCrc_ = 0)
 {
-    uint64_t final[6] = {0};
-    uint64_t next1 = uiInitialCrc_, next2 = 0, next3 = 0, next4 = 0, next5 = 0;
-    uint64_t in1, a1, a2, a3, a4;
+    uint64_t acc[5] = {0};
+    acc[0] = uiInitialCrc_;
+    uint64_t f[4] = {0};
+    uint64_t cur = 0;
 
     uint32_t i = 0;
 
@@ -53,52 +56,49 @@ inline uint32_t CalculateBlockCrc32Chorba(const unsigned char* ucBuffer_, uint32
     // The core idea of the Chorba algorithm is that adding any multiple of such a
     // zero polynomial does not change the CRC:
     // M(x) mod G(x) = (M(x) + k(x) * Z(x)) mod G(x).
-    // For each 64-bit word w from the input, the algorithm conceptually adds
-    // w * Z(x) (at the word's position) to the message, where
+    // For each 64-bit word m from the input, the algorithm conceptually adds
+    // m * Z(x) (at the word's position) to the message, where
     //
     //        Z(x) = x^300 + x^211 + x^183 + x^145 + 1.
     //
-    // (More precisely, we add w * x^k * Z(x), where k corresponds to the
-    // bit position of w in the stream.)
+    // (More precisely, we add m * x^k * Z(x), where k corresponds to the
+    // bit position of m in the stream.)
     //
     // This is a good choice of Z(x) because it has small degree (we only need to look
     // ceil(300 / 64) = 5 words ahead) and few terms (so we can implement the multiplication
     // with few shifts/XORs).
     //
-    // The algorithm maintains a 5-word window of pending modifications. "next1..next5"
+    // The algorithm maintains a 5-word window of pending modifications. "acc[0]..acc[4]"
     // are the terms to be XORed into the next five input words as the loop advances,
-    // and "a1..a4" are the newly generated downstream terms from the current "in1".
-    // This mapping may help visualize where each term lands:
+    // and "f[0]..f[3]" are the newly generated downstream terms from the current "cur".
+    // This diagram may help visualize where each term lands:
     //
-    // words:     w0       w1       w2       w3       w4       w5       w6       ...
-    // vars:      in1               a1       a2       a3       a4
-    //            next1    next2    next3    next4    next5
+    // input:     m0       m1       m2       m3       m4       m5       m6       ...
+    // vars:      cur               f[0]     f[1]     f[2]     f[3]
+    //            acc[0]   acc[1]   acc[2]   acc[3]   acc[4]
 
-    for (; (i + 40 + 8) < uiCount_; i += 8)
+    for (; i + CHORBA_WINDOW < uiCount_; i += 8)
     {
-        std::memcpy(&in1, ucBuffer_ + i, sizeof(in1));
-        in1 ^= next1;
+        std::memcpy(&cur, ucBuffer_ + i, sizeof(cur));
+        cur ^= acc[0];
 
-        a1 = (in1 << 17) /* represents x^145 (2*64 + 17 = 145) */ ^ (in1 << 55) /* represents x^183 (2*64 + 55 = 183) */;
-        a2 = (in1 >> 47) /* overflow from x^145 */ ^ (in1 >> 9) /* overflow from x^183 */ ^ (in1 << 19) /* represents x^211 (3*64 + 19 = 211) */;
-        a3 = (in1 >> 45) /* overflow from x^211 */ ^ (in1 << 44) /* represents x^300 (4*64 + 44 = 300) */;
-        a4 = (in1 >> 20) /* overflow from x^300 */;
+        f[0] = (cur << 17) /* represents x^145 (2*64 + 17 = 145) */ ^ (cur << 55) /* represents x^183 (2*64 + 55 = 183) */;
+        f[1] = (cur >> 47) /* overflow from x^145 */ ^ (cur >> 9) /* overflow from x^183 */ ^ (cur << 19) /* represents x^211 (3*64 + 19 = 211) */;
+        f[2] = (cur >> 45) /* overflow from x^211 */ ^ (cur << 44) /* represents x^300 (4*64 + 44 = 300) */;
+        f[3] = (cur >> 20) /* overflow from x^300 */;
 
-        next1 = next2;
-        next2 = next3 ^ a1;
-        next3 = next4 ^ a2;
-        next4 = next5 ^ a3;
-        next5 = a4;
+        acc[0] = acc[1];
+        acc[1] = acc[2] ^ f[0];
+        acc[2] = acc[3] ^ f[1];
+        acc[3] = acc[4] ^ f[2];
+        acc[4] = f[3];
     }
 
-    std::memcpy(final, ucBuffer_ + i, uiCount_ - i);
-    final[0] ^= next1;
-    final[1] ^= next2;
-    final[2] ^= next3;
-    final[3] ^= next4;
-    final[4] ^= next5;
+    uint64_t leftover[6] = {0};
+    std::memcpy(leftover, ucBuffer_ + i, uiCount_ - i);
+    for (size_t j = 0; j < 5; j++) { leftover[j] ^= acc[j]; }
 
-    return novatel::edie::CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(reinterpret_cast<const unsigned char*>(final), uiCount_ - i, 0);
+    return novatel::edie::CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(reinterpret_cast<const unsigned char*>(leftover), uiCount_ - i, 0);
 }
 } // namespace
 
@@ -110,8 +110,8 @@ constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_)
 
 constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t uiCount_, uint32_t uiInitialCrc_ = 0)
 {
-    return uiCount_ > 48 ? CalculateBlockCrc32Chorba(ucBuffer_, uiCount_, uiInitialCrc_)
-                         : CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(ucBuffer_, uiCount_, uiInitialCrc_);
+    return uiCount_ > CHORBA_WINDOW ? CalculateBlockCrc32Chorba(ucBuffer_, uiCount_, uiInitialCrc_)
+                                    : CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(ucBuffer_, uiCount_, uiInitialCrc_);
 }
 
 constexpr uint32_t CalculateBlockCrc32(std::string_view buffer_) { return CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(buffer_); }
