@@ -812,7 +812,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
                    : eFormat == DECODE_FORMAT::ASCII     ? ENCODE_FORMAT::ASCII
                    : eFormat == DECODE_FORMAT::ABB_ASCII ? ENCODE_FORMAT::ABBREV_ASCII
                    : eFormat == DECODE_FORMAT::JSON      ? ENCODE_FORMAT::JSON
-                                                        : ENCODE_FORMAT::ASCII; // Default to ASCII
+                                                         : ENCODE_FORMAT::ASCII; // Default to ASCII
     }
 
     // Re-encode the data back into the range message buffer.

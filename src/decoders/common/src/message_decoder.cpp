@@ -906,8 +906,8 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, CompositeField& stI
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     const unsigned char* pucTempInData = pucMessage_;
-    if (stMetaData_.bResponse &&
-        (stMetaData_.eFormat != DECODE_FORMAT::BINARY && stMetaData_.eFormat != DECODE_FORMAT::ASCII && stMetaData_.eFormat != DECODE_FORMAT::ABB_ASCII))
+    if (stMetaData_.bResponse && (stMetaData_.eFormat != DECODE_FORMAT::BINARY && stMetaData_.eFormat != DECODE_FORMAT::ASCII &&
+                                  stMetaData_.eFormat != DECODE_FORMAT::ABB_ASCII))
     {
         return STATUS::NO_DEFINITION;
     }
