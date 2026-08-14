@@ -30,6 +30,7 @@
 #include <cassert>
 #include <charconv>
 #include <cstring>
+#include <functional>
 #include <limits>
 #include <optional>
 #include <stdexcept>
@@ -59,6 +60,8 @@ template <template <typename...> class Template, typename... Args> struct is_spe
 template <typename T, template <typename...> class Template> inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
 
 class CompositeField;
+class FieldArray;
+class FieldArrayRecordView;
 using CompositeFieldArray = std::vector<CompositeField>;
 
 // ---------------------------------------------------------------------------
@@ -435,34 +438,39 @@ template <typename T>
 }
 
 // ---------------------------------------------------------------------------
-//! \class FixedRecordView
-//! \brief A lightweight, non-owning view over a single fixed-size record (row)
-//!     within a FixedFieldRegion. Combines a row base offset with the schema so
-//!     individual fields of the row can be read without threading a base index
-//!     through the general accessor APIs.
+//! \class FieldArrayRecordView
+//! \brief A lightweight, non-owning view over a single FIELD_ARRAY element.
+//!
+//! \details Wraps either a flat fixed-field row (FixedFieldRegion + row offset)
+//!     or a CompositeField reference behind one read-only interface.
 // ---------------------------------------------------------------------------
-class FixedRecordView
+class FieldArrayRecordView
 {
   public:
-    FixedRecordView(const FixedFieldRegion& region_, size_t rowOffset_) : region(&region_), rowOffset(rowOffset_) {}
-
-    // ---------------------------------------------------------------------------
-    //! \brief Read a field of this record.
-    //!
-    //! \tparam T The value type (trivially copyable, or a TypedBuffer<E> view).
-    //! \param[in] field_ The field definition (offset relative to the row start).
-    //! \param[in] elementIndex_ Element index for fixed-length array fields.
-    // ---------------------------------------------------------------------------
-    template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const
+    struct FlatRecordView
     {
-        if constexpr (is_specialization_of_v<T, TypedBuffer>) { return LoadFixedField<T>(*region, field_, rowOffset); }
-        else if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return LoadFixedFieldElement<T>(*region, elementIndex_, field_, rowOffset); }
-        else { return LoadFixedField<T>(*region, field_, rowOffset); }
+            const FixedFieldRegion* region;
+            size_t rowOffset;
+            FieldInfo::ConstPtr fieldInfo;
+    };
+
+    class const_iterator;
+
+    FieldArrayRecordView(const FixedFieldRegion& region_, size_t rowOffset_, FieldInfo::ConstPtr fieldInfo_)
+        : record(FlatRecordView{&region_, rowOffset_, std::move(fieldInfo_)})
+    {
     }
+    FieldArrayRecordView(const CompositeField& record_) : record(std::cref(record_)) {}
+
+    template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const;
+
+    [[nodiscard]] const FieldInfo::ConstPtr& GetFieldInfo() const;
+
+    [[nodiscard]] const_iterator begin() const;
+    [[nodiscard]] const_iterator end() const;
 
   private:
-    const FixedFieldRegion* region;
-    size_t rowOffset;
+    std::variant<FlatRecordView, std::reference_wrapper<const CompositeField>> record;
 };
 
 // ---------------------------------------------------------------------------
@@ -546,12 +554,12 @@ class FlatFieldArray
     //! \brief Return a non-owning view over a single row of the flat array.
     //!
     //! \param[in] row_ The row index.
-    //! \return A FixedRecordView anchored at the row's byte offset.
+    //! \return A FieldArrayRecordView anchored at the row's byte offset.
     // ---------------------------------------------------------------------------
-    [[nodiscard]] FixedRecordView operator[](size_t row_) const
+    [[nodiscard]] FieldArrayRecordView operator[](size_t row_) const
     {
         if (row_ >= size()) { throw std::runtime_error("FlatFieldArray::operator[](): row index out of bounds"); }
-        return FixedRecordView(fields, row_ * fieldInfo->fixedFieldBytes);
+        return FieldArrayRecordView(fields, row_ * fieldInfo->fixedFieldBytes, fieldInfo);
     }
 
     // ---------------------------------------------------------------------------
@@ -637,7 +645,7 @@ class FlatFieldArray
 
     struct const_iterator
     {
-        using value_type = FixedRecordView;
+        using value_type = FieldArrayRecordView;
         using reference = value_type;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
@@ -669,8 +677,6 @@ using FieldValueVariant =
                  TypedBuffer<int64_t>, TypedBuffer<uint64_t>, TypedBuffer<float>, TypedBuffer<double>, std::vector<int8_t>, std::vector<int16_t>,
                  std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>,
                  std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::string, FlatFieldArray, CompositeFieldArray>;
-
-using FieldValueEntry = std::pair<BaseField::ConstPtr, FieldValueVariant>;
 
 //! Shared implementation for the LoadVariant overloads: select the concrete element type from the
 //! schema via SimpleTypeVisitor and let the caller-supplied loader build the variant payload.
@@ -879,6 +885,21 @@ class CompositeField
             if constexpr (std::is_same_v<T, std::string>) { return std::get<std::string>(varFields[field_.index]); }
             else { throw std::runtime_error("GetFieldValue<T>(): non-string type provided for string field"); }
         case FIELD_TYPE::FIELD_ARRAY:
+            if constexpr (std::is_same_v<T, FieldArray>)
+            {
+                const auto* fieldArrayDef = dynamic_cast<const FieldArrayField*>(&field_);
+                return std::visit(
+                    [&](const auto& value) -> FieldArray {
+                        using ValueT = std::decay_t<decltype(value)>;
+                        if constexpr (std::is_same_v<ValueT, FlatFieldArray> || std::is_same_v<ValueT, CompositeFieldArray>)
+                        {
+                            return FieldArray(value, fieldArrayDef != nullptr ? fieldArrayDef->fieldInfo : nullptr);
+                        }
+                        else { throw std::runtime_error("GetFieldValue<T>(): field array storage is not a FlatFieldArray or CompositeFieldArray"); }
+                    },
+                    varFields[field_.index]);
+            }
+            else
             if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
             {
                 return std::get<T>(varFields[field_.index]);
@@ -1321,7 +1342,7 @@ class CompositeField
 
     struct const_iterator
     {
-        using value_type = FieldValueEntry;
+        using value_type = std::pair<BaseField::ConstPtr, FieldValueVariant>;
         using reference = value_type;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
@@ -1358,6 +1379,216 @@ class CompositeField
         if (fieldInfo == nullptr) { throw std::runtime_error("end(): field definitions not set"); }
         return const_iterator(this, fieldInfo->messageOrderedFields.size());
     }
+};
+
+class FieldArrayRecordView::const_iterator
+{
+  public:
+    using value_type = std::pair<BaseField::ConstPtr, FieldValueVariant>;
+    using reference = value_type;
+    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::forward_iterator_tag;
+
+  private:
+    const FieldArrayRecordView* recordView;
+    size_t index;
+
+    const_iterator(const FieldArrayRecordView* recordView_, size_t index_) : recordView(recordView_), index(index_) {}
+
+    friend class FieldArrayRecordView;
+
+  public:
+    reference operator*() const
+    {
+        const auto& fieldInfo = recordView->GetFieldInfo();
+        if (fieldInfo == nullptr)
+        {
+            throw std::runtime_error("FieldArrayRecordView::const_iterator::operator*(): field definitions not set");
+        }
+        if (index >= fieldInfo->messageOrderedFields.size())
+        {
+            throw std::runtime_error("FieldArrayRecordView::const_iterator::operator*(): iterator out of bounds");
+        }
+
+        const auto& fieldDef = fieldInfo->messageOrderedFields[index];
+        const auto value = std::visit(
+            [&](const auto& record_) -> FieldValueVariant {
+                using RecordT = std::decay_t<decltype(record_)>;
+                if constexpr (std::is_same_v<RecordT, FieldArrayRecordView::FlatRecordView>)
+                {
+                    const auto* fieldPtr = record_.region->data() + record_.rowOffset + fieldDef->index;
+                    if (fieldDef->type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
+                    {
+                        const auto* arrayField = dynamic_cast<const ArrayField*>(fieldDef.get());
+                        if (arrayField == nullptr)
+                        {
+                            throw std::runtime_error("FieldArrayRecordView::const_iterator::operator*(): missing fixed array metadata");
+                        }
+                        return LoadVariant(*arrayField, fieldPtr);
+                    }
+                    return LoadVariant(*fieldDef, fieldPtr);
+                }
+                else { return record_.get().GetFieldValueVariant(*fieldDef); }
+            },
+            recordView->record);
+
+        return {fieldDef, value};
+    }
+
+    const_iterator& operator++()
+    {
+        ++index;
+        return *this;
+    }
+
+    bool operator==(const const_iterator& other) const { return recordView == other.recordView && index == other.index; }
+
+    bool operator!=(const const_iterator& other) const { return !(*this == other); }
+};
+
+inline FieldArrayRecordView::const_iterator FieldArrayRecordView::begin() const
+{
+    return const_iterator(this, 0);
+}
+
+inline FieldArrayRecordView::const_iterator FieldArrayRecordView::end() const
+{
+    const auto& fieldInfo = GetFieldInfo();
+    if (fieldInfo == nullptr) { throw std::runtime_error("FieldArrayRecordView::end(): field definitions not set"); }
+    return const_iterator(this, fieldInfo->messageOrderedFields.size());
+}
+
+template <typename T> inline T FieldArrayRecordView::GetFieldValue(const BaseField& field_, size_t elementIndex_) const
+{
+    return std::visit(
+        [&](const auto& record_) -> T {
+            using RecordT = std::decay_t<decltype(record_)>;
+            if constexpr (std::is_same_v<RecordT, FlatRecordView>)
+            {
+                if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>)
+                {
+                    if constexpr (is_specialization_of_v<T, TypedBuffer>)
+                    {
+                        return LoadFixedField<T>(*record_.region, field_, record_.rowOffset);
+                    }
+                    else if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
+                    {
+                        return LoadFixedFieldElement<T>(*record_.region, elementIndex_, field_, record_.rowOffset);
+                    }
+                    else { return LoadFixedField<T>(*record_.region, field_, record_.rowOffset); }
+                }
+                else
+                {
+                    throw std::runtime_error("FieldArrayRecordView::GetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization");
+                }
+            }
+            else { return record_.get().GetFieldValue<T>(field_, elementIndex_); }
+        },
+        record);
+}
+
+inline const FieldInfo::ConstPtr& FieldArrayRecordView::GetFieldInfo() const
+{
+    return std::visit(
+        [](const auto& record_) -> const FieldInfo::ConstPtr& {
+            using RecordT = std::decay_t<decltype(record_)>;
+            if constexpr (std::is_same_v<RecordT, FlatRecordView>) { return record_.fieldInfo; }
+            else { return record_.get().GetFieldInfo(); }
+        },
+        record);
+}
+
+// ---------------------------------------------------------------------------
+//! \class FieldArray
+//! \brief A lightweight, non-owning wrapper over either FIELD_ARRAY storage
+//!     representation.
+//!
+//! \details This lets callers read FIELD_ARRAY contents without knowing
+//!     whether the underlying representation is FlatFieldArray or
+//!     CompositeFieldArray.
+// ---------------------------------------------------------------------------
+class FieldArray
+{
+  public:
+    FieldArray(const FlatFieldArray& fieldArray_, FieldInfo::ConstPtr fieldInfo_ = nullptr)
+        : fieldArray(&fieldArray_), fieldInfo(fieldInfo_ != nullptr ? std::move(fieldInfo_) : fieldArray_.GetFieldInfo())
+    {
+    }
+
+    FieldArray(const CompositeFieldArray& fieldArray_, FieldInfo::ConstPtr fieldInfo_ = nullptr)
+        : fieldArray(&fieldArray_), fieldInfo(std::move(fieldInfo_))
+    {
+    }
+
+    [[nodiscard]] size_t size() const
+    {
+        return std::visit(
+            [](const auto* value_) -> size_t { return value_->size(); },
+            fieldArray);
+    }
+
+    [[nodiscard]] bool empty() const { return size() == 0; }
+
+    [[nodiscard]] FieldInfo::ConstPtr GetFieldInfo() const
+    {
+        return std::visit(
+            [&](const auto* value_) -> FieldInfo::ConstPtr {
+                using ValueT = std::remove_cv_t<std::remove_pointer_t<decltype(value_)>>;
+                if constexpr (std::is_same_v<ValueT, FlatFieldArray>) { return value_->GetFieldInfo(); }
+                else
+                {
+                    if (fieldInfo != nullptr) { return fieldInfo; }
+                    if (value_->empty()) { return nullptr; }
+                    return (*value_)[0].GetFieldInfo();
+                }
+            },
+            fieldArray);
+    }
+
+    template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_ = 0) const
+    {
+        return (*this)[index_].GetFieldValue<T>(field_, elementIndex_);
+    }
+
+    [[nodiscard]] FieldArrayRecordView operator[](size_t index_) const
+    {
+        return std::visit(
+            [&](const auto* value_) -> FieldArrayRecordView {
+                return FieldArrayRecordView((*value_)[index_]);
+            },
+            fieldArray);
+    }
+
+    struct const_iterator
+    {
+        using value_type = FieldArrayRecordView;
+        using reference = value_type;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::forward_iterator_tag;
+
+        const FieldArray* fieldArray;
+        size_t index;
+
+        const_iterator(const FieldArray* fieldArray_, size_t index_ = 0) : fieldArray(fieldArray_), index(index_) {}
+
+        reference operator*() const { return (*fieldArray)[index]; }
+
+        const_iterator& operator++()
+        {
+            ++index;
+            return *this;
+        }
+
+        bool operator==(const const_iterator& other) const { return fieldArray == other.fieldArray && index == other.index; }
+        bool operator!=(const const_iterator& other) const { return !(*this == other); }
+    };
+
+    [[nodiscard]] const_iterator begin() const { return const_iterator(this); }
+    [[nodiscard]] const_iterator end() const { return const_iterator(this, size()); }
+
+  private:
+    std::variant<const FlatFieldArray*, const CompositeFieldArray*> fieldArray;
+    FieldInfo::ConstPtr fieldInfo;
 };
 
 //============================================================================
