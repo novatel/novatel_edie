@@ -451,23 +451,15 @@ class FieldArrayRecordView
     {
             const FixedFieldRegion* region;
             size_t rowOffset;
-            FieldInfo::ConstPtr fieldInfo;
     };
 
-    class const_iterator;
-
-    FieldArrayRecordView(const FixedFieldRegion& region_, size_t rowOffset_, FieldInfo::ConstPtr fieldInfo_)
-        : record(FlatRecordView{&region_, rowOffset_, std::move(fieldInfo_)})
+    FieldArrayRecordView(const FixedFieldRegion& region_, size_t rowOffset_)
+        : record(FlatRecordView{&region_, rowOffset_})
     {
     }
     FieldArrayRecordView(const CompositeField& record_) : record(std::cref(record_)) {}
 
     template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const;
-
-    [[nodiscard]] const FieldInfo::ConstPtr& GetFieldInfo() const;
-
-    [[nodiscard]] const_iterator begin() const;
-    [[nodiscard]] const_iterator end() const;
 
   private:
     std::variant<FlatRecordView, std::reference_wrapper<const CompositeField>> record;
@@ -559,7 +551,7 @@ class FlatFieldArray
     [[nodiscard]] FieldArrayRecordView operator[](size_t row_) const
     {
         if (row_ >= size()) { throw std::runtime_error("FlatFieldArray::operator[](): row index out of bounds"); }
-        return FieldArrayRecordView(fields, row_ * fieldInfo->fixedFieldBytes, fieldInfo);
+        return FieldArrayRecordView(fields, row_ * fieldInfo->fixedFieldBytes);
     }
 
     // ---------------------------------------------------------------------------
@@ -1381,83 +1373,6 @@ class CompositeField
     }
 };
 
-class FieldArrayRecordView::const_iterator
-{
-  public:
-    using value_type = std::pair<BaseField::ConstPtr, FieldValueVariant>;
-    using reference = value_type;
-    using difference_type = std::ptrdiff_t;
-    using iterator_category = std::forward_iterator_tag;
-
-  private:
-    const FieldArrayRecordView* recordView;
-    size_t index;
-
-    const_iterator(const FieldArrayRecordView* recordView_, size_t index_) : recordView(recordView_), index(index_) {}
-
-    friend class FieldArrayRecordView;
-
-  public:
-    reference operator*() const
-    {
-        const auto& fieldInfo = recordView->GetFieldInfo();
-        if (fieldInfo == nullptr)
-        {
-            throw std::runtime_error("FieldArrayRecordView::const_iterator::operator*(): field definitions not set");
-        }
-        if (index >= fieldInfo->messageOrderedFields.size())
-        {
-            throw std::runtime_error("FieldArrayRecordView::const_iterator::operator*(): iterator out of bounds");
-        }
-
-        const auto& fieldDef = fieldInfo->messageOrderedFields[index];
-        const auto value = std::visit(
-            [&](const auto& record_) -> FieldValueVariant {
-                using RecordT = std::decay_t<decltype(record_)>;
-                if constexpr (std::is_same_v<RecordT, FieldArrayRecordView::FlatRecordView>)
-                {
-                    const auto* fieldPtr = record_.region->data() + record_.rowOffset + fieldDef->index;
-                    if (fieldDef->type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
-                    {
-                        const auto* arrayField = dynamic_cast<const ArrayField*>(fieldDef.get());
-                        if (arrayField == nullptr)
-                        {
-                            throw std::runtime_error("FieldArrayRecordView::const_iterator::operator*(): missing fixed array metadata");
-                        }
-                        return LoadVariant(*arrayField, fieldPtr);
-                    }
-                    return LoadVariant(*fieldDef, fieldPtr);
-                }
-                else { return record_.get().GetFieldValueVariant(*fieldDef); }
-            },
-            recordView->record);
-
-        return {fieldDef, value};
-    }
-
-    const_iterator& operator++()
-    {
-        ++index;
-        return *this;
-    }
-
-    bool operator==(const const_iterator& other) const { return recordView == other.recordView && index == other.index; }
-
-    bool operator!=(const const_iterator& other) const { return !(*this == other); }
-};
-
-inline FieldArrayRecordView::const_iterator FieldArrayRecordView::begin() const
-{
-    return const_iterator(this, 0);
-}
-
-inline FieldArrayRecordView::const_iterator FieldArrayRecordView::end() const
-{
-    const auto& fieldInfo = GetFieldInfo();
-    if (fieldInfo == nullptr) { throw std::runtime_error("FieldArrayRecordView::end(): field definitions not set"); }
-    return const_iterator(this, fieldInfo->messageOrderedFields.size());
-}
-
 template <typename T> inline T FieldArrayRecordView::GetFieldValue(const BaseField& field_, size_t elementIndex_) const
 {
     return std::visit(
@@ -1483,17 +1398,6 @@ template <typename T> inline T FieldArrayRecordView::GetFieldValue(const BaseFie
                 }
             }
             else { return record_.get().GetFieldValue<T>(field_, elementIndex_); }
-        },
-        record);
-}
-
-inline const FieldInfo::ConstPtr& FieldArrayRecordView::GetFieldInfo() const
-{
-    return std::visit(
-        [](const auto& record_) -> const FieldInfo::ConstPtr& {
-            using RecordT = std::decay_t<decltype(record_)>;
-            if constexpr (std::is_same_v<RecordT, FlatRecordView>) { return record_.fieldInfo; }
-            else { return record_.get().GetFieldInfo(); }
         },
         record);
 }
