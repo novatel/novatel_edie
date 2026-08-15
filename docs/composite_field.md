@@ -28,7 +28,7 @@ A `CompositeField` stores the decoded contents of a message. It holds:
 #### Field arrays
 
 - Stored as `FlatFieldArray` if every field has fixed size
-- Stored as `NestedFieldArray = std::vector<CompositeField>` otherwise
+- Stored as `CompositeFieldArray = std::vector<CompositeField>` otherwise
 
 ### Reading fields
 

@@ -251,69 +251,108 @@ Run the resulting executable with the following command: `rxconfig_handler.exe <
 
 ### Accessing Message Fields
 
-There are a few ways to access a message's fields after decoding.
-The following examples show how to access the "latitude" field of a BESTPOS message:
+Use `GetFieldValue<T>` with a field definition whenever possible. The definition already identifies the field's type and storage location, so it avoids searching for the definition on every access. This is the recommended approach for loops and other performance-sensitive code.
 
-#### Approach 1: Get value with templated type (recommended)
+`GetFieldValueByName<T>` is a convenient alternative when the definition is not readily available, but it searches `FieldInfo` for the definition on every call. Resolve the definition once and reuse it when reading the same field repeatedly.
 
-Use `CompositeField::GetFieldValue<T>(const BaseField& field_)` to get the value of `field_`.
-
-**✅ Advantages:**
-- Mostly type safe (will throw a runtime error if you attempt to extract the wrong type)
-- If you keep a reference to the field definition, no further lookups are required
-- No `std::variant` construction
-
-**⚠️ Disadvantages:**
-- Need to know the type of the requested field at compile time
-
-**Example:**
+#### Access by field definition
 
 ```cpp
 const auto db = LoadJsonDbFile("database/database.json");
-const auto& bestposDef = db.GetMsgDef("BESTPOS");
+const auto &bestposDef = db.GetMsgDef("BESTPOS");
+const auto &bestposFields = bestposDef->fieldInfo.at(bestposDef->latestMessageCrc);
+const auto &latitudeDef = bestposFields->GetFieldDefByName("latitude");
+if (latitudeDef == nullptr) { throw std::runtime_error("latitude field not found"); }
 
-// Get a reference to a field definition
-const auto& latDef = bestposDef->fieldInfo.at(bestposDef->latestMessageCrc)->GetFieldDefByName("latitude");
-if (!latDef) { throw std::runtime_error("Could not find latitude definition!"); }
+CompositeField message;
+eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, message, stMetaData);
 
-CompositeField stMessage;
-eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
-
-if (eDecoderStatus == STATUS::SUCCESS) {
-    if (stMetaData.usMessageId == 42 /*BESTPOS*/) {
-        auto latVal = stMessage.GetFieldValue<double>(*latDef);
-    }
+if (eDecoderStatus == STATUS::SUCCESS)
+{
+    const auto latitude = message.GetFieldValue<double>(*latitudeDef);
 }
-``````
+```
 
-#### Approach 2: Get value variant (convenient but slower)
+#### Access by field name
 
-Use `CompositeField::GetFieldValueVariant(const BaseField& field_)` to get the value of `field_` wrapped in a `std::variant`.
-
-**✅ Advantages:**
-- Mostly type safe (will throw a `std::bad_variant_access` exception if you attempt to `std::get` the wrong type from `val_`)
-- Do not need to know the field type at compile time; concrete field value can be extracted via `std::visit` or `std::get`
-
-**⚠️ Disadvantages:**
-- Need to construct and copy value to `FieldValueVariant` (slight overhead)
-
-
-**Example:**
+Use `GetFieldValueByName<T>` to lookup a field's definition and get its value in a single step. This is less efficient if you need to repeatedly access a particular field across many messages/field array elements.
 
 ```cpp
-...
+const auto latitude = message.GetFieldValueByName<double>("latitude");
+```
 
-if (eDecoderStatus == STATUS::SUCCESS) {
-    if (stMetaData.usMessageId == 42 /*BESTPOS*/) {
-        FieldValueVariant latVariant = stMessage.GetFieldValueVariant(*latDef);
-        double latValue = std::get<double>(latVariant);
+For repeated access, lookup the definition once and reuse it:
+
+```cpp
+const auto &latitudeDef = bestposFields->GetFieldDefByName("latitude");
+
+for (const auto& bestposMessage : bestposMessages)
+{
+    const auto latitude = bestposMessage.GetFieldValue<double>(*latitudeDef);
+    // Process latitude.
+}
+```
+
+#### Selecting the template type
+
+The template argument `T` is the C++ type returned by `GetFieldValue<T>`:
+
+| Field type | `T` for the complete field |
+| --- | --- |
+| `FIELD_ARRAY` | `FieldArray` |
+| `FIELD_ARRAY` with direct representation access (advanced users) | `CompositeFieldArray` or `FlatFieldArray` |
+| `VARIABLE_LENGTH_ARRAY` | `std::vector<T>` |
+| `FIXED_LENGTH_ARRAY` | `TypedBuffer<T>` |
+| `STRING` or `RESPONSE_STR` | `std::string` |
+| Scalar, enum, or response ID | The corresponding C++ type, such as `bool`, `uint32_t`, `int32_t`, `float`, or `double` |
+
+For an individual variable-length or fixed-length array element, pass the element index as the second argument and use the element type rather than the container type:
+
+```cpp
+const auto variableElement = message.GetFieldValue<float>(*variableArrayDef, elementIndex);
+const auto fixedElement = message.GetFieldValue<uint32_t>(*fixedArrayDef, elementIndex);
+```
+
+Use `TypedBuffer<T>` to inspect a complete fixed-length array without copying it. Use `std::vector<T>` to retrieve a complete variable-length array.
+
+#### Reading field-array elements
+
+Obtain the field-array definition from the database, then read the array as `FieldArray` and iterate over its elements. For best performance, resolve the definitions once before the main loop over the messages:
+
+```cpp
+// Set up EDIE components, i.e. Parser, FileParser, or Framer/HeaderDecoder/Decoder
+
+// Obtain references to all needed message/field definitions
+const auto &pstRangeDef = pclMsgDb->GetMsgDef("RANGE");
+const auto &pstObsDef = pstRangeDef->fieldInfo.at(pstRangeDef->latestMessageCrc)->GetFieldDefByName("obs");
+const auto &pstObsFieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(pstObsDef);
+const auto &pstCnoDef = pstObsFieldArrayDef->fieldInfo->GetFieldDefByName("C_No");
+
+STATUS eStatus = STATUS::UNKNOWN;
+while (eStatus != STATUS::STREAM_EMPTY)
+{
+    MetaDataStruct stMetaData;
+    MessageDataStruct stMessageData;
+    CompositeField stMessage;
+    IntermediateHeader stHeader;
+
+    eStatus = clFileParser.ReadIntermediate(stMessageData, stHeader, stMessage, stMetaData);
+    if (eStatus == STATUS::SUCCESS)
+    {
+        for (const auto& obs : stMessage.GetFieldValue<FieldArray>(*pstObsDef))
+        {
+            const auto cno = obs.GetFieldValue<float>(*pstCnoDef);
+            // Process cno.
+        }
     }
 }
-``````
+```
 
-#### Approach 3: Cast to generated struct (specialized use cases)
+The same accesses can use `stMessage.GetFieldValueByName<FieldArray>("obs")` and `obs.GetFieldValueByName<float>("C_No")`, but that performs a definition search for every access and is slower. Advanced users can request `CompositeFieldArray` or `FlatFieldArray` directly when the concrete storage representation matters. `FieldArray` is preferred when code should work with either representation.
 
-If your input data is in the flattened binary format then, after decoding a message's header, you may cast it to the appropriate struct and access its fields as member variables.
+#### Copy to generated struct (specialized use cases)
+
+If your input data is in the flattened binary format then, after decoding a message's header, you may copy it to the appropriate struct and access its fields as member variables.
 Struct definitions are generated by running
 
 ```
@@ -347,24 +386,7 @@ if (eDecoderStatus == STATUS::SUCCESS)
         latitude = bestposLog->latitude;
     }
 }
-``````
-
-#### Iterating over fields
-
-`CompositeField` also provides an interface for iterating over field (definition, value) pairs.
-
-**Example:**
-
-```cpp
-for (const auto& [def, val] : stMessage)
-{
-    if (def->name == "latitude")
-    {
-        double latVal = std::get<double>(val);
-        ...
-    }
-}
-``````
+```
 
 ## Code Style
 
