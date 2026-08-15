@@ -340,7 +340,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 // Store flat FIELD_ARRAY directly as std::vector<std::byte>
                 std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
                                                      reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
-                clCompField_.SetFieldValue(*field, FlatFieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo));
+                clCompField_.SetFieldValue(*field, FlatFieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo.get()));
                 *ppucLogBuf_ += totalBytes;
             }
             else
