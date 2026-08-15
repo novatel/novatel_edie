@@ -456,6 +456,10 @@ class FieldArrayRecordView
 
     template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const;
 
+    [[nodiscard]] const FieldInfo* GetFieldInfo() const { return fieldInfo; }
+
+    template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const;
+
   private:
     const FieldInfo* fieldInfo = nullptr;
 
@@ -542,6 +546,14 @@ class FlatFieldArray
     template <typename T> T GetFieldValue(const BaseField& field_, size_t index_) const
     {
         return LoadFixedField<T>(fields, field_, index_ * fieldInfo->fixedFieldBytes);
+    }
+
+    template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t index_) const
+    {
+        if (fieldInfo == nullptr) { throw std::runtime_error("FlatFieldArray::GetFieldValueByName(): field info is not set"); }
+        const auto field = fieldInfo->GetFieldDefByName(name_);
+        if (field == nullptr) { throw std::runtime_error("FlatFieldArray::GetFieldValueByName(): field not found: " + name_); }
+        return GetFieldValue<T>(*field, index_);
     }
 
     // ---------------------------------------------------------------------------
@@ -900,6 +912,14 @@ class CompositeField
             }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type T for given FIELD_TYPE"); }
         }
+    }
+
+    template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const
+    {
+        if (fieldInfo == nullptr) { throw std::runtime_error("CompositeField::GetFieldValueByName(): field info is not set"); }
+        const auto field = fieldInfo->GetFieldDefByName(name_);
+        if (field == nullptr) { throw std::runtime_error("CompositeField::GetFieldValueByName(): field not found: " + name_); }
+        return GetFieldValue<T>(*field, elementIndex_);
     }
 
     // ---------------------------------------------------------------------------
@@ -1389,10 +1409,13 @@ template <typename T> inline T FieldArrayRecordView::GetFieldValue(const BaseFie
     throw std::runtime_error("FieldArrayRecordView::GetFieldValue<T>(): record storage is not initialized");
 }
 
-// template <typename T> inline T FieldArrayRecordView::GetFieldValueByName(std::string_view name, size_t elementIndex_) const
-// {
-
-// }
+template <typename T> inline T FieldArrayRecordView::GetFieldValueByName(const std::string& name_, size_t elementIndex_) const
+{
+    if (fieldInfo == nullptr) { throw std::runtime_error("FieldArrayRecordView::GetFieldValueByName(): field info is not set"); }
+    const auto field = fieldInfo->GetFieldDefByName(name_);
+    if (field == nullptr) { throw std::runtime_error("FieldArrayRecordView::GetFieldValueByName(): field not found: " + name_); }
+    return GetFieldValue<T>(*field, elementIndex_);
+}
 
 // ---------------------------------------------------------------------------
 //! \class FieldArray
@@ -1426,6 +1449,14 @@ class FieldArray
     template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_ = 0) const
     {
         return (*this)[index_].GetFieldValue<T>(field_, elementIndex_);
+    }
+
+    template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t index_, size_t elementIndex_ = 0) const
+    {
+        if (fieldInfo == nullptr) { throw std::runtime_error("FieldArray::GetFieldValueByName(): field info is not set"); }
+        const auto field = fieldInfo->GetFieldDefByName(name_);
+        if (field == nullptr) { throw std::runtime_error("FieldArray::GetFieldValueByName(): field not found: " + name_); }
+        return GetFieldValue<T>(*field, index_, elementIndex_);
     }
 
     [[nodiscard]] FieldArrayRecordView operator[](size_t index_) const
