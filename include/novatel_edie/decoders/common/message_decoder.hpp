@@ -448,11 +448,11 @@ class FieldArrayRecordView
 {
   public:
     FieldArrayRecordView(const FixedFieldRegion& region_, size_t rowOffset_, const FieldInfo* fieldInfo_)
-        : ffRegion(&region_), rowOffset(rowOffset_), fieldInfo(fieldInfo_)
+        : fieldInfo(fieldInfo_), ffRegion(&region_), rowOffset(rowOffset_)
     {
     }
 
-    FieldArrayRecordView(const CompositeField& record_, const FieldInfo* fieldInfo_) : cfRecord(&record_), fieldInfo(fieldInfo_) {}
+    FieldArrayRecordView(const CompositeField& record_, const FieldInfo* fieldInfo_) : fieldInfo(fieldInfo_), cfRecord(&record_) {}
 
     template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const;
 
@@ -897,7 +897,7 @@ class CompositeField
             {
                 const auto* fieldArrayDef = dynamic_cast<const FieldArrayField*>(&field_);
                 if (fieldArrayDef == nullptr) { throw std::runtime_error("GetFieldValue<T>(): missing field array metadata"); }
-                return FieldArray(varFields[field_.index], fieldArrayDef->fieldInfo.get());
+                return T(varFields[field_.index], fieldArrayDef->fieldInfo.get());
             }
             else if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
             {
