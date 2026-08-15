@@ -493,7 +493,7 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsFlatBackedFieldArra
     CompositeField body(rootFieldInfo);
     body.SetFieldValue(*fieldArrayField, stored);
 
-    const FieldArray wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
+    const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     ASSERT_EQ(wrapped.size(), 2U);
     EXPECT_EQ(wrapped.GetFieldInfo(), nestedFieldInfo.get());
     EXPECT_EQ(wrapped.GetFieldValue<uint32_t>(*nestedU32, 0), 11U);
@@ -533,7 +533,7 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsCompositeBackedFiel
     CompositeField body(rootFieldInfo);
     body.SetFieldValue(*fieldArrayField, CompositeFieldArray{row0, row1});
 
-    const FieldArray wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
+    const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     ASSERT_EQ(wrapped.size(), 2U);
     EXPECT_EQ(wrapped.GetFieldInfo(), nestedFieldInfo.get());
     EXPECT_EQ(wrapped.GetFieldValue<uint32_t>(*nestedU32, 0), 10U);
@@ -561,7 +561,7 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperPreservesSchemaForEmptyC
     CompositeField body(rootFieldInfo);
     body.SetFieldValue(*fieldArrayField, CompositeFieldArray{});
 
-    const FieldArray wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
+    const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     EXPECT_TRUE(wrapped.empty());
     EXPECT_EQ(wrapped.GetFieldInfo(), nestedFieldInfo.get());
 }
