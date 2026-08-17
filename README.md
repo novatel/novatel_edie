@@ -349,6 +349,21 @@ while (eStatus != STATUS::STREAM_EMPTY)
 
 The same accesses can use `stMessage.GetFieldValueByName<FieldArray>("obs")` and `obs.GetFieldValueByName<float>("C_No")`, but that performs a definition search for every access and is slower. Advanced users can request `CompositeFieldArray` or `FlatFieldArray` directly when the concrete storage representation is known. `FieldArray` is preferred when code should work with either representation.
 
+> [!WARNING]
+> The `CompositeField` that owns a message's data must remain alive for as long as any field values obtained from that message are being used.
+> For example, the following code is unsafe:
+
+```
+FieldArray obsArr;
+if (...)
+{
+    CompositeField stMessage;
+    ...
+    obsArr = stMessage.GetFieldValueByName<FieldArray>("obs");
+} // Lifetime of stMessage ends after this block
+obsArr.GetFieldValueByName<float>("C_No"); // BAD - undefined behaviour!
+```
+
 #### Copy to generated struct (specialized use cases)
 
 If your input data is in the flattened binary format then, after decoding a message's header, you may copy it to the appropriate struct and access its fields as member variables.
