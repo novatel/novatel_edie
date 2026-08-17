@@ -306,14 +306,13 @@ The template argument `T` is the C++ type returned by `GetFieldValue<T>`:
 | `STRING` or `RESPONSE_STR` | `std::string` |
 | Scalar, enum, or response ID | The corresponding C++ type, such as `bool`, `uint32_t`, `int32_t`, `float`, or `double` |
 
-For an individual variable-length or fixed-length array element, pass the element index as the second argument and use the element type rather than the container type:
+For an individual variable-length or fixed-length array element, you may also pass the element index as the second argument and use the element type rather than the container type:
 
 ```cpp
 const auto variableElement = message.GetFieldValue<float>(*variableArrayDef, elementIndex);
 const auto fixedElement = message.GetFieldValue<uint32_t>(*fixedArrayDef, elementIndex);
 ```
 
-Use `TypedBuffer<T>` to inspect a complete fixed-length array without copying it. Use `std::vector<T>` to retrieve a complete variable-length array.
 
 #### Reading field-array elements
 
@@ -348,7 +347,7 @@ while (eStatus != STATUS::STREAM_EMPTY)
 }
 ```
 
-The same accesses can use `stMessage.GetFieldValueByName<FieldArray>("obs")` and `obs.GetFieldValueByName<float>("C_No")`, but that performs a definition search for every access and is slower. Advanced users can request `CompositeFieldArray` or `FlatFieldArray` directly when the concrete storage representation matters. `FieldArray` is preferred when code should work with either representation.
+The same accesses can use `stMessage.GetFieldValueByName<FieldArray>("obs")` and `obs.GetFieldValueByName<float>("C_No")`, but that performs a definition search for every access and is slower. Advanced users can request `CompositeFieldArray` or `FlatFieldArray` directly when the concrete storage representation is known. `FieldArray` is preferred when code should work with either representation.
 
 #### Copy to generated struct (specialized use cases)
 
@@ -365,7 +364,7 @@ This will generate a header file called `novatel_message_definitions.hpp` in you
 - Direct access to fields via member variables (very fast)
 
 **⚠️ Disadvantages:**
-- Only works with the flattened binary format
+- Only works with the flattened binary format (if your data is in a different format, you must first encode it to flattened binary)
 - Requires running Python script to generate structs
 - No feedback if you copy data into the wrong message type
 

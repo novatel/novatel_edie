@@ -458,7 +458,13 @@ class FieldArrayRecordView
 
     [[nodiscard]] const FieldInfo* GetFieldInfo() const { return fieldInfo; }
 
-    template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const;
+    template <typename T> inline T GetFieldValueByName(const std::string& name_, size_t elementIndex_) const
+    {
+        if (fieldInfo == nullptr) { throw std::runtime_error("FieldArrayRecordView::GetFieldValueByName(): field info is not set"); }
+        const auto field = fieldInfo->GetFieldDefByName(name_);
+        if (field == nullptr) { throw std::runtime_error("FieldArrayRecordView::GetFieldValueByName(): field not found: " + name_); }
+        return GetFieldValue<T>(*field, elementIndex_);
+    }
 
   private:
     const FieldInfo* fieldInfo = nullptr;
@@ -1407,14 +1413,6 @@ template <typename T> inline T FieldArrayRecordView::GetFieldValue(const BaseFie
     }
 
     throw std::runtime_error("FieldArrayRecordView::GetFieldValue<T>(): record storage is not initialized");
-}
-
-template <typename T> inline T FieldArrayRecordView::GetFieldValueByName(const std::string& name_, size_t elementIndex_) const
-{
-    if (fieldInfo == nullptr) { throw std::runtime_error("FieldArrayRecordView::GetFieldValueByName(): field info is not set"); }
-    const auto field = fieldInfo->GetFieldDefByName(name_);
-    if (field == nullptr) { throw std::runtime_error("FieldArrayRecordView::GetFieldValueByName(): field not found: " + name_); }
-    return GetFieldValue<T>(*field, elementIndex_);
 }
 
 // ---------------------------------------------------------------------------
