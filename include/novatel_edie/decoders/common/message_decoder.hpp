@@ -260,7 +260,7 @@ class FixedFieldRegion
     // ---------------------------------------------------------------------------
     template <typename T> [[nodiscard]] T Load(size_t byteOffset_) const
     {
-        static_assert(std::is_trivially_copyable_v<T>, "Load only supports trivially copyable types");
+        static_assert(std::is_trivially_copyable_v<T> && !is_specialization_of_v<T, TypedBuffer>, "Load only supports trivially copyable types");
         T value;
         std::memcpy(&value, data() + byteOffset_, sizeof(T));
         return value;
@@ -348,7 +348,8 @@ class FixedFieldRegion
 // ---------------------------------------------------------------------------
 template <typename T> [[nodiscard]] inline T LoadScalarField(const FixedFieldRegion& region_, const BaseField& field_, size_t baseIndex_ = 0)
 {
-    static_assert(std::is_trivially_copyable_v<T>, "LoadScalarField only supports trivially copyable types");
+    static_assert(std::is_trivially_copyable_v<T> && !is_specialization_of_v<T, TypedBuffer>,
+                  "LoadScalarField only supports trivially copyable types");
 #ifndef NDEBUG
     AssertFixedFieldType<T>(field_);
 #endif
@@ -454,11 +455,23 @@ class FieldArrayRecordView
 
     FieldArrayRecordView(const CompositeField& record_, const FieldInfo* fieldInfo_) : fieldInfo(fieldInfo_), cfRecord(&record_) {}
 
-    template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const;
-
     [[nodiscard]] const FieldInfo* GetFieldInfo() const { return fieldInfo; }
 
-    template <typename T> inline T GetFieldValueByName(const std::string& name_, size_t elementIndex_) const
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value by its definition.
+    //!
+    //! \param[in] field_ The definition of the field to retrieve.
+    //! \param[in] elementIndex_ The index of the element within the field to
+    //!     retrieve. Ignored if field is not FIXED/VARIABLE_LENGTH_ARRAY.
+    //! \return A FieldValueVariant containing the field value.
+    // ---------------------------------------------------------------------------
+    template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const;
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value by its name.
+    //! \see FieldArrayRecordView::GetFieldValue
+    // ---------------------------------------------------------------------------
+    template <typename T> inline T GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const
     {
         if (fieldInfo == nullptr) { throw std::runtime_error("FieldArrayRecordView::GetFieldValueByName(): field info is not set"); }
         const auto field = fieldInfo->GetFieldDefByName(name_);
@@ -554,6 +567,10 @@ class FlatFieldArray
         return LoadFixedField<T>(fields, field_, index_ * fieldInfo->fixedFieldBytes);
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value at the given index by its name.
+    //! \see FlatFieldArray::GetFieldValue
+    // ---------------------------------------------------------------------------
     template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t index_) const
     {
         if (fieldInfo == nullptr) { throw std::runtime_error("FlatFieldArray::GetFieldValueByName(): field info is not set"); }
@@ -884,7 +901,7 @@ class CompositeField
                 }
                 return static_cast<bool>(vec[elementIndex_]);
             }
-            else if constexpr (std::is_trivially_copyable_v<T> && !std::is_same_v<T, FieldArray>)
+            else if constexpr (std::is_trivially_copyable_v<T> && !std::is_same_v<T, FieldArray> && !is_specialization_of_v<T, TypedBuffer>)
             {
                 const auto& vec = std::get<std::vector<T>>(varFields[field_.index]);
                 if (elementIndex_ >= vec.size())
@@ -911,15 +928,18 @@ class CompositeField
             }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
         default:
-            if constexpr (std::is_trivially_copyable_v<T> && !std::is_same_v<T, FieldArray>)
+            if constexpr (std::is_trivially_copyable_v<T> && !std::is_same_v<T, FieldArray> && !is_specialization_of_v<T, TypedBuffer>)
             {
-                if (elementIndex_ != 0) { throw std::runtime_error("GetFieldValue<T>(): element index must be zero for scalar field"); }
                 return LoadScalarField<T>(fixedFields, field_);
             }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type T for given FIELD_TYPE"); }
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value by its name.
+    //! \see CompositeField::GetFieldValue
+    // ---------------------------------------------------------------------------
     template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const
     {
         if (fieldInfo == nullptr) { throw std::runtime_error("CompositeField::GetFieldValueByName(): field info is not set"); }
@@ -1444,11 +1464,24 @@ class FieldArray
 
     [[nodiscard]] const FieldInfo* GetFieldInfo() const { return fieldInfo; }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value by its definition.
+    //!
+    //! \param[in] field_ The definition of the field to retrieve.
+    //! \param[in] index_ The index of the row in the field array.
+    //! \param[in] elementIndex_ The index of the element within the field to
+    //!     retrieve. Ignored if field is not FIXED/VARIABLE_LENGTH_ARRAY.
+    //! \return A FieldValueVariant containing the field value.
+    // ---------------------------------------------------------------------------
     template <typename T> [[nodiscard]] T GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_ = 0) const
     {
         return (*this)[index_].GetFieldValue<T>(field_, elementIndex_);
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value by its name.
+    //! \see FieldArray::GetFieldValue
+    // ---------------------------------------------------------------------------
     template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t index_, size_t elementIndex_ = 0) const
     {
         if (fieldInfo == nullptr) { throw std::runtime_error("FieldArray::GetFieldValueByName(): field info is not set"); }

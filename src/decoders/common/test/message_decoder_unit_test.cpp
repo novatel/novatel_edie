@@ -545,8 +545,14 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsCompositeBackedFiel
 
     auto it = wrapped.begin();
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 10U);
+    EXPECT_EQ((*it).GetFieldValue<std::string>(*nestedStr), "ten");
+    
     ++it;
+    EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 20U);
     EXPECT_EQ((*it).GetFieldValue<std::string>(*nestedStr), "twenty");
+
+    ++it;
+    EXPECT_EQ(it, wrapped.end());
 }
 
 TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperPreservesSchemaForEmptyCompositeFieldArray)
@@ -675,4 +681,42 @@ TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorRequiresFieldInfo)
     CompositeField body;
     EXPECT_THROW(body.begin(), std::runtime_error);
     EXPECT_THROW(body.end(), std::runtime_error);
+}
+
+TEST(MessageDecoderContainerTypesTest, CompositeFieldGetFieldValueByName)
+{
+    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto f1 = std::make_shared<BaseField>("str", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
+
+    const auto fieldInfo = BuildFieldInfo({f0, f1});
+    CompositeField stMessage(fieldInfo);
+
+    stMessage.SetFieldValue(*f0, uint32_t{10});
+    stMessage.SetFieldValue(*f1, std::string("ten"));
+
+    EXPECT_EQ(stMessage.GetFieldValueByName<uint32_t>("u32"), 10);
+    EXPECT_EQ(stMessage.GetFieldValueByName<std::string>("str"), "ten");
+    EXPECT_THROW((void)stMessage.GetFieldValueByName<uint8_t>("error"), std::runtime_error);
+}
+
+TEST(MessageDecoderContainerTypesTest, FlatFieldArrayRecordViewGetFieldValueByName)
+{
+    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto f1 = std::make_shared<ArrayField>("arr", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%s", DATA_TYPE::UCHAR, 7);
+    const auto fieldInfo = BuildFieldInfo({f0, f1});
+
+    FlatFieldArray ffa(2, fieldInfo.get());
+    ffa.SetFieldValue(0, *f0, 10U);
+    ffa.SetFieldValue(0, *f1, std::string("ten"));
+    ffa.SetFieldValue(1, *f0, 20U);
+    ffa.SetFieldValue(1, *f1, std::string("twenty"));
+
+    auto tenStr = std::string("ten");
+    auto twentyStr = std::string("twenty");
+    EXPECT_EQ(ffa[0].GetFieldValueByName<uint32_t>("u32"), 10);
+    const auto arr1 = ffa[0].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
+    for (size_t i = 0; i < tenStr.size(); i++) { EXPECT_EQ(arr1[i], static_cast<uint8_t>(tenStr[i])); }
+    EXPECT_EQ(ffa[1].GetFieldValueByName<uint32_t>("u32"), 20);
+    const auto arr2 = ffa[1].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
+    for (size_t i = 0; i < twentyStr.size(); i++) { EXPECT_EQ(arr2[i], static_cast<uint8_t>(twentyStr[i])); }
 }
