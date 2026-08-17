@@ -66,8 +66,8 @@ using CompositeFieldArray = std::vector<CompositeField>;
 
 // ---------------------------------------------------------------------------
 //! \class TypedBuffer
-//! \brief A lightweight wrapper around a byte buffer that allows for typed access to its elements.
-//!     Used for fixed-length array fields in the message body.
+//! \brief A lightweight wrapper around a byte buffer that allows for typed
+//!     access to its elements. Used for fields of type FIXED_LENGTH_ARRAY.
 // ---------------------------------------------------------------------------
 template <typename T> class TypedBuffer
 {
