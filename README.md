@@ -259,9 +259,9 @@ Use `GetFieldValue<T>` with a field definition whenever possible. The definition
 
 ```cpp
 const auto db = LoadJsonDbFile("database/database.json");
-const auto &bestposDef = db.GetMsgDef("BESTPOS");
-const auto &bestposFields = bestposDef->fieldInfo.at(bestposDef->latestMessageCrc);
-const auto &latitudeDef = bestposFields->GetFieldDefByName("latitude");
+const auto bestposDef = db->GetMsgDef("BESTPOS");
+const auto bestposFields = bestposDef->fieldInfo.at(bestposDef->latestMessageCrc);
+const auto latitudeDef = bestposFields->GetFieldDefByName("latitude");
 if (latitudeDef == nullptr) { throw std::runtime_error("latitude field not found"); }
 
 CompositeField message;
@@ -284,7 +284,7 @@ const auto latitude = message.GetFieldValueByName<double>("latitude");
 For repeated access, lookup the definition once and reuse it:
 
 ```cpp
-const auto &latitudeDef = bestposFields->GetFieldDefByName("latitude");
+const auto latitudeDef = bestposFields->GetFieldDefByName("latitude");
 
 for (const auto& bestposMessage : bestposMessages)
 {
@@ -302,15 +302,20 @@ The template argument `T` is the C++ type returned by `GetFieldValue<T>`:
 | `FIELD_ARRAY` | `FieldArray` |
 | `FIELD_ARRAY` with direct representation access (advanced users) | `CompositeFieldArray` or `FlatFieldArray` |
 | `VARIABLE_LENGTH_ARRAY` | `std::vector<T>` |
-| `FIXED_LENGTH_ARRAY` | `TypedBuffer<T>` |
+| `FIXED_LENGTH_ARRAY` | `TypedBuffer<T>` (*see below) |
 | `STRING` or `RESPONSE_STR` | `std::string` |
 | Scalar, enum, or response ID | The corresponding C++ type, such as `bool`, `uint32_t`, `int32_t`, `float`, or `double` |
 
-For an individual variable-length or fixed-length array element, you may also pass the element index as the second argument and use the element type rather than the container type:
+*A `TypedBuffer<T>` is a simple read-only wrapper around an array of simple data elements of type `T`. Much like `std::vector`, it supports iteration and element access via `operator[]`, e.g.:
 
-```cpp
-const auto variableElement = message.GetFieldValue<float>(*variableArrayDef, elementIndex);
-const auto fixedElement = message.GetFieldValue<uint32_t>(*fixedArrayDef, elementIndex);
+```
+const auto baseIdVal = bestposMessage.GetFieldValue<TypedBuffer<uint8_t>>(*baseIdDef);
+const auto elem = baseIdVal[0]; // element access via operator[]
+const auto sz = baseIdVal.size(); // get number of elements via size()
+for (const auto c : baseIdVal) // iteration
+{
+    ...
+}
 ```
 
 
@@ -321,11 +326,11 @@ Obtain the field-array definition from the database, then read the array as `Fie
 ```cpp
 // Set up EDIE components, i.e. Parser, FileParser, or Framer/HeaderDecoder/Decoder
 
-// Obtain references to all needed message/field definitions
-const auto &pstRangeDef = pclMsgDb->GetMsgDef("RANGE");
-const auto &pstObsDef = pstRangeDef->fieldInfo.at(pstRangeDef->latestMessageCrc)->GetFieldDefByName("obs");
-const auto &pstObsFieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(pstObsDef);
-const auto &pstCnoDef = pstObsFieldArrayDef->fieldInfo->GetFieldDefByName("C_No");
+// Obtain all needed message/field definitions
+const auto pstRangeDef = pclMsgDb->GetMsgDef("RANGE");
+const auto pstObsDef = pstRangeDef->fieldInfo.at(pstRangeDef->latestMessageCrc)->GetFieldDefByName("obs");
+const auto pstObsFieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(pstObsDef);
+const auto pstCnoDef = pstObsFieldArrayDef->fieldInfo->GetFieldDefByName("C_No");
 
 STATUS eStatus = STATUS::UNKNOWN;
 while (eStatus != STATUS::STREAM_EMPTY)
@@ -338,7 +343,7 @@ while (eStatus != STATUS::STREAM_EMPTY)
     eStatus = clFileParser.ReadIntermediate(stMessageData, stHeader, stMessage, stMetaData);
     if (eStatus == STATUS::SUCCESS)
     {
-        for (const auto& obs : stMessage.GetFieldValue<FieldArray>(*pstObsDef))
+        for (const auto obs : stMessage.GetFieldValue<FieldArray>(*pstObsDef))
         {
             const auto cno = obs.GetFieldValue<float>(*pstCnoDef);
             // Process cno.
@@ -353,7 +358,7 @@ The same accesses can use `stMessage.GetFieldValueByName<FieldArray>("obs")` and
 > The `CompositeField` that owns a message's data must remain alive for as long as any field values obtained from that message are being used.
 > For example, the following code is unsafe:
 
-```
+```cpp
 FieldArray obsArr;
 if (...)
 {
@@ -362,6 +367,19 @@ if (...)
     obsArr = stMessage.GetFieldValueByName<FieldArray>("obs");
 } // Lifetime of stMessage ends after this block
 obsArr.GetFieldValueByName<float>("C_No"); // BAD - undefined behaviour!
+```
+
+> To avoid this, make sure the `CompositeField` stays alive while its data is being accessed. For example:
+
+```cpp
+CompositeField stMessage;
+FieldArray obsArr;
+if (...)
+{
+    ...
+    obsArr = stMessage.GetFieldValueByName<FieldArray>("obs");
+}
+obsArr.GetFieldValueByName<float>("C_No"); // GOOD - stMessage is still alive
 ```
 
 #### Copy to generated struct (specialized use cases)
@@ -379,7 +397,7 @@ This will generate a header file called `novatel_message_definitions.hpp` in you
 - Direct access to fields via member variables (very fast)
 
 **⚠️ Disadvantages:**
-- Only works with the flattened binary format (if your data is in a different format, you must first encode it to flattened binary)
+- Only works with the flattened binary format (if your data is in a different format, you must first encode it to `ENCODE_FORMAT::FLATTENED_BINARY`)
 - Requires running Python script to generate structs
 - No feedback if you copy data into the wrong message type
 
