@@ -95,3 +95,70 @@ def test_file_parser_iterator(fp):
 
     assert msgs[1].header.milliseconds == pytest.approx(172189053)
     assert len(msgs[1].to_ascii().message) == 195
+
+
+# The file holds one VERSION log and one BESTUTM log, both in ASCII format.
+# The name of the file says BIN, but the logs inside it are ASCII.
+VERSION_ID = 37
+BESTUTM_ID = 726
+
+
+def expected_file_counts():
+    return {
+        (VERSION_ID, ne.HEADER_FORMAT.ASCII, 0): 1,
+        (BESTUTM_ID, ne.HEADER_FORMAT.ASCII, 0): 1,
+    }
+
+
+def read_whole_file(fp):
+    """Read every message in the file and return the messages."""
+    msgs = []
+    while True:
+        try:
+            msg = fp.read()
+            if isinstance(msg, oem.Message):
+                msgs.append(msg)
+        except ne.StreamEmptyException:
+            break
+    return msgs
+
+
+def test_message_counts_empty_before_reading(fp):
+    """Tests that a new FileParser has no message counts."""
+    assert fp.message_counts == {}
+
+
+def test_message_counts_cover_the_whole_file(fp):
+    """Tests that every message read from the file has a count."""
+    # Act
+    msgs = read_whole_file(fp)
+    # Assert
+    assert len(msgs) == 2
+    assert fp.message_counts == expected_file_counts()
+    assert sum(fp.message_counts.values()) == len(msgs)
+
+
+def test_reset_clears_message_counts(fp):
+    """Tests that a reset rewinds the file and starts new counts."""
+    # Arrange
+    read_whole_file(fp)
+    assert fp.message_counts
+    # Act
+    fp.reset()
+    # Assert
+    assert fp.message_counts == {}
+    # A second pass over the same file gives the same counts.
+    assert len(read_whole_file(fp)) == 2
+    assert fp.message_counts == expected_file_counts()
+
+
+def test_reset_message_counts_keeps_the_file_position(fp):
+    """Tests that clearing the counts does not rewind the file."""
+    # Arrange
+    read_whole_file(fp)
+    # Act
+    fp.reset_message_counts()
+    # Assert
+    assert fp.message_counts == {}
+    assert read_whole_file(fp) == []
+    assert fp.message_counts == {}

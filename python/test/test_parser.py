@@ -150,3 +150,76 @@ def test_nmea_parsed_as_unknown_bytes(parser: oem.Parser):
     assert isinstance(msgs[0], ne.UnknownBytes)
     assert msgs[0].reason == ne.UNKNOWN_REASON.NMEA
     assert msgs[0].data == b'$GPHDT,265.1253,T*01\r\n'
+
+
+BESTPOS_ASCII = (
+    b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;"
+    b"SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,"
+    b'WGS84,1.3648,1.1806,3.1112,"",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n'
+)
+BESTPOS_ID = 42
+
+
+def test_message_counts_empty_before_parsing(parser: oem.Parser):
+    """Tests that a new Parser has no message counts."""
+    assert parser.message_counts == {}
+
+
+def test_message_counts_one_key_per_message(parser: oem.Parser):
+    """Tests that each decoded message increments one count."""
+    # Arrange
+    parser.write(BESTPOS_ASCII * 3)
+    # Act
+    msgs = [msg for msg in parser if isinstance(msg, oem.Message)]
+    # Assert
+    assert len(msgs) == 3
+    assert parser.message_counts == {(BESTPOS_ID, ne.HEADER_FORMAT.ASCII, 0): 3}
+
+
+def test_message_counts_key_holds_the_format(parser: oem.Parser):
+    """Tests that one message in two formats gives two counts."""
+    # Arrange
+    abbrev_ascii = (
+        b"<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
+        b"<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 "
+        b'-17.0000 WGS84 0.9038 0.8534 1.7480 "" 0.000 0.000 35 30 30 30 00 06 39 33\r\n'
+    )
+    # An abbreviated ASCII message has no terminating delimiter. The framer knows
+    # the message is complete only when data follows it, or when the Parser is
+    # flushed. The trailing prompt is that following data.
+    parser.write(BESTPOS_ASCII + abbrev_ascii + b"[COM1]")
+    # Act
+    list(parser)
+    # Assert
+    assert parser.message_counts == {
+        (BESTPOS_ID, ne.HEADER_FORMAT.ASCII, 0): 1,
+        (BESTPOS_ID, ne.HEADER_FORMAT.ABB_ASCII, 0): 1,
+    }
+
+
+def test_message_counts_keys_match_filter_message_ids(parser: oem.Parser):
+    """Tests that a count key can be used directly against Filter.message_ids."""
+    # Arrange
+    filter = oem.Filter()
+    filter.add_message_id(BESTPOS_ID, ne.HEADER_FORMAT.ASCII, 0)
+    parser.write(BESTPOS_ASCII)
+    # Act
+    list(parser)
+    # Assert
+    assert set(parser.message_counts) == set(filter.message_ids)
+
+
+def test_reset_message_counts(parser: oem.Parser):
+    """Tests that resetting the counts sets them all back to 0."""
+    # Arrange
+    parser.write(BESTPOS_ASCII)
+    list(parser)
+    assert parser.message_counts
+    # Act
+    parser.reset_message_counts()
+    # Assert
+    assert parser.message_counts == {}
+    # Counting starts again from 0.
+    parser.write(BESTPOS_ASCII)
+    list(parser)
+    assert parser.message_counts == {(BESTPOS_ID, ne.HEADER_FORMAT.ASCII, 0): 1}

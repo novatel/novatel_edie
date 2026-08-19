@@ -144,6 +144,23 @@ template <typename ParserT, typename FilterT, typename MetaDataT, typename Inter
     // ---------------------------------------------------------------------------
     MessageDatabase::ConstPtr MessageDb() const { return this->clMyParser.MessageDb(); }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get the counts of decoded messages tracked by the underlying parser.
+    //
+    //! \details The \a ParserT template parameter defines the key type of the
+    //! returned map. The counts cover the reads since the last Reset(),
+    //! SetStream() or ResetMessageCounts() call.
+    //
+    //! \return A const reference to the parser's map of message counts. The caller
+    //! cannot modify the returned counts.
+    // ---------------------------------------------------------------------------
+    [[nodiscard]] decltype(auto) GetMessageCounts() const { return this->clMyParser.GetMessageCounts(); }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Clear all message counts tracked by the underlying parser.
+    // ---------------------------------------------------------------------------
+    void ResetMessageCounts() { this->clMyParser.ResetMessageCounts(); }
+
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
     //
@@ -278,11 +295,15 @@ template <typename ParserT, typename FilterT, typename MetaDataT, typename Inter
     //! \brief Reset the InputFileStream, and flush all bytes from the internal
     //! FileParser.
     //
+    //! \details This method also clears the message counts. A new pass over the
+    //! stream therefore starts from a count of 0.
+    //
     //! \return A boolean describing if the operation was successful.
     //----------------------------------------------------------------------------
     bool Reset()
     {
         Flush();
+        ResetMessageCounts();
         if (pclMyInputStream != nullptr)
         {
             pclMyInputStream->clear();

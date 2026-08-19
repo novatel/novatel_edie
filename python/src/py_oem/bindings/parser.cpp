@@ -7,6 +7,7 @@
 #include "py_common/unknown_bytes.hpp"
 #include "py_oem/filter.hpp"
 #include "py_oem/init_bindings.hpp"
+#include "py_oem/message_counts.hpp"
 #include "py_oem/message_database.hpp"
 #include "py_oem/message_db_singleton.hpp"
 #include "py_oem/parser.hpp"
@@ -17,8 +18,9 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_, CompositeField&& message_fields_,
-                                          oem::MetaDataStruct& metadata_, py_common::PyMessageDatabase::ConstPtr database_)
+nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_,
+                                          CompositeField&& message_fields_, oem::MetaDataStruct& metadata_,
+                                          py_common::PyMessageDatabase::ConstPtr database_)
 {
     header_.format = metadata_.eFormat;
     switch (status_)
@@ -125,9 +127,31 @@ void py_oem::init_novatel_parser(nb::module_& m)
             "The filter which controls which data is skipped over.")
         .def_prop_ro("available_space", &py_oem::PyParser::GetAvailableSpace,
                      "The number of bytes in the Parser's internal buffer available for writing new data.")
+        .def_prop_ro(
+            "message_counts", [](const py_oem::PyParser& self) { return py_oem::CreatePyMessageCounts(self.GetMessageCounts()); },
+            R"doc(
+            The number of times the Parser has decoded each message.
+
+            The keys are `(message_id, format, source)` tuples, the same shape
+            that `Filter.message_ids` uses. The values are counts.
+
+            One message in two formats has two keys, and therefore two counts.
+            The same is true of one message from two sources. A message whose ID
+            the Parser could not resolve is not counted.
+
+            The counts cover every message since the Parser was created or since
+            the last `reset_message_counts()` call.
+            )doc")
+        .def(
+            "reset_message_counts", [](py_oem::PyParser& self) { self.ResetMessageCounts(); },
+            R"doc(
+            Sets every message count back to 0.
+            )doc")
         .def(
             "write",
-            [](py_oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const unsigned char*>(data.c_str()), data.size()); },
+            [](py_oem::PyParser& self, const nb::bytes& data) {
+                return self.Write(reinterpret_cast<const unsigned char*>(data.c_str()), data.size());
+            },
             R"doc(
              Writes data to the Parser's internal buffer allowing it to later be parsed.
 

@@ -109,6 +109,21 @@ class Parser
     // ---------------------------------------------------------------------------
     MessageDatabase::ConstPtr MessageDb() const;
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get the counts of decoded messages, keyed by format, message ID and sibling ID.
+    //
+    //! \details The counts are cumulative. Call ResetMessageCounts() to clear them.
+    //
+    //! \return A const reference to the map of message counts. The caller cannot
+    //! modify the returned counts.
+    // ---------------------------------------------------------------------------
+    [[nodiscard]] const HeaderDecoder::MessageCountsMap& GetMessageCounts() const { return clMyHeaderDecoder.GetMessageCounts(); }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Clear all tracked message counts.
+    // ---------------------------------------------------------------------------
+    void ResetMessageCounts() { clMyHeaderDecoder.ResetMessageCounts(); }
+
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
     //
