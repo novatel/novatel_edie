@@ -178,7 +178,7 @@ inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
 //! \enum HEADER_FORMAT
 //! \brief Header formats of messages.
 //-----------------------------------------------------------------------
-enum class HEADER_FORMAT
+enum class HEADER_FORMAT : uint8_t
 {
     UNKNOWN = 1,
     BINARY,
