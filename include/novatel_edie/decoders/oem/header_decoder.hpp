@@ -27,8 +27,12 @@
 #ifndef NOVATEL_HEADER_DECODER_HPP
 #define NOVATEL_HEADER_DECODER_HPP
 
+#include <cstddef>
+#include <tuple>
+
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
+#include "novatel_edie/decoders/common/message_counts_tracker.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 
@@ -40,29 +44,42 @@ namespace novatel::edie::oem {
 //============================================================================
 class HeaderDecoder
 {
-  private:
+  public:
     //! \brief Type alias for message counts key.
-    //! \details Tuple containing: format (ASCII, binary, etc.), message ID (uint16_t), sibling ID (uint8_t).
+    //! \details Tuple containing: format (ASCII, binary, and more), message ID (uint16_t), sibling ID (uint8_t).
+    //! The same message in two formats has two keys, and therefore two counts.
     using MessageCountsKey = std::tuple<HEADER_FORMAT, uint16_t, uint8_t>;
 
+    //! \brief Hash functor for MessageCountsKey.
+    //! \details Each field of the key gets its own bits of the hash value: the
+    //! sibling ID in bits 0 to 7, the message ID in bits 8 to 23, and the format
+    //! above them. The fields do not overlap, so two different keys always have
+    //! two different hash values.
     struct MessageCountsKeyHash
     {
         std::size_t operator()(const MessageCountsKey& key) const
         {
-            auto h1 = std::hash<int>{}(static_cast<int>(std::get<0>(key)));
-            auto h2 = std::hash<uint16_t>{}(std::get<1>(key));
-            auto h3 = std::hash<uint8_t>{}(std::get<2>(key));
-            return h1 ^ (h2 << 1) ^ (h3 << 2);
+            return (static_cast<std::size_t>(std::get<0>(key)) << 24) | (static_cast<std::size_t>(std::get<1>(key)) << 8) |
+                   static_cast<std::size_t>(std::get<2>(key));
         }
     };
 
+    //! \brief Type alias for the message counts tracker of this decoder.
+    //! \details The name has a T suffix. The suffix prevents a name conflict with
+    //! the novatel::edie::MessageCountsTracker template.
+    using MessageCountsTrackerT = novatel::edie::MessageCountsTracker<MessageCountsKey, MessageCountsKeyHash>;
+
+    //! \brief Type alias for the map that GetMessageCounts() returns.
+    using MessageCountsMap = MessageCountsTrackerT::CountsMap;
+
+  private:
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("novatel_header_decoder")};
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
     MessageDefinition stMyResponseDefinition;
-    mutable std::unordered_map<MessageCountsKey, uint64_t, MessageCountsKeyHash> mapMyMessageCounts{};
+    mutable MessageCountsTrackerT clMyMessageCounts{};
 
     // Decode novatel headers
     template <const char pcDelimiter[], ASCII_HEADER eField>
@@ -117,6 +134,24 @@ class HeaderDecoder
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the counts of decoded messages, keyed by format, message ID and sibling ID.
+    //
+    //! \details Decode() increments the count of each header that it decodes with a
+    //! message ID of more than 0. The counts are cumulative. Call ResetMessageCounts()
+    //! to clear them. The reference stays valid until the decoder is destroyed, but
+    //! the counts change with each call to Decode().
+    //
+    //! \return A const reference to the map of message counts. The caller cannot
+    //! modify the returned counts.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] const MessageCountsMap& GetMessageCounts() const { return clMyMessageCounts.GetCounts(); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Clear all tracked message counts.
+    //----------------------------------------------------------------------------
+    void ResetMessageCounts() { clMyMessageCounts.Reset(); }
 };
 
 } // namespace novatel::edie::oem

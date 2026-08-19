@@ -6,6 +6,7 @@
 #include "py_oem/file_parser.hpp"
 #include "py_oem/filter.hpp"
 #include "py_oem/init_bindings.hpp"
+#include "py_oem/message_counts.hpp"
 #include "py_oem/message_db_singleton.hpp"
 #include "py_oem/parser.hpp"
 #include "py_oem/py_message_objects.hpp"
@@ -171,9 +172,29 @@ void py_oem::init_novatel_file_parser(nb::module_& m)
             Returns:
                 An iterator that directly converts messages.
             )doc")
+        .def_prop_ro(
+            "message_counts", [](const py_oem::PyFileParser& self) { return py_oem::CreatePyMessageCounts(self.GetMessageCounts()); },
+            R"doc(
+            The number of times the FileParser has decoded each message.
+
+            The keys are `(message_id, format, source)` tuples, the same shape
+            that `Filter.message_ids` uses. The values are counts.
+
+            One message in two formats has two keys, and therefore two counts.
+            The same is true of one message from two sources. A message whose ID
+            the FileParser could not resolve is not counted.
+
+            The counts cover the messages read since the last `reset()` or
+            `reset_message_counts()` call.
+            )doc")
+        .def(
+            "reset_message_counts", [](py_oem::PyFileParser& self) { self.ResetMessageCounts(); },
+            R"doc(
+            Sets every message count back to 0. The file position does not change.
+            )doc")
         .def("reset", &py_oem::PyFileParser::Reset,
              R"doc(
-            Resets the FileParser, clearing its internal state.
+            Resets the FileParser, clearing its internal state and its message counts.
             )doc")
         .def(
             "flush",
