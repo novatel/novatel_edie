@@ -33,6 +33,7 @@
 #include <simdjson.h>
 
 #include "novatel_edie/decoders/oem/common.hpp"
+#include "novatel_edie/decoders/oem/crc.hpp"
 
 using namespace novatel::edie::oem;
 

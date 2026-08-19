@@ -30,6 +30,8 @@
 #include <charconv>
 #include <cstring>
 
+#include "novatel_edie/decoders/oem/crc.hpp"
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 

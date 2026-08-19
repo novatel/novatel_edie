@@ -30,6 +30,7 @@
 
 #include "novatel_edie/decoders/common/framer.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
+#include "novatel_edie/decoders/oem/crc.hpp"
 
 namespace novatel::edie::oem {
 
