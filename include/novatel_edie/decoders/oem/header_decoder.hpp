@@ -46,9 +46,10 @@ class HeaderDecoder
 {
   public:
     //! \brief Type alias for message counts key.
-    //! \details Tuple containing: format (ASCII, binary, and more), message ID (uint16_t), sibling ID (uint8_t).
+    //! \details Tuple containing: message ID (uint16_t), format (ASCII, binary, and more), sibling ID (uint8_t).
+    //! The fields are in the order that Filter::IncludeMessageId() takes them.
     //! The same message in two formats has two keys, and therefore two counts.
-    using MessageCountsKey = std::tuple<HEADER_FORMAT, uint16_t, uint8_t>;
+    using MessageCountsKey = std::tuple<uint16_t, HEADER_FORMAT, uint8_t>;
 
     //! \brief Hash functor for MessageCountsKey.
     //! \details Each field of the key gets its own bits of the hash value: the
@@ -59,7 +60,7 @@ class HeaderDecoder
     {
         std::size_t operator()(const MessageCountsKey& key) const
         {
-            return (static_cast<std::size_t>(std::get<0>(key)) << 24) | (static_cast<std::size_t>(std::get<1>(key)) << 8) |
+            return (static_cast<std::size_t>(std::get<1>(key)) << 24) | (static_cast<std::size_t>(std::get<0>(key)) << 8) |
                    static_cast<std::size_t>(std::get<2>(key));
         }
     };
@@ -136,7 +137,7 @@ class HeaderDecoder
     [[nodiscard]] STATUS Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Get the counts of decoded messages, keyed by format, message ID and sibling ID.
+    //! \brief Get the counts of decoded messages, keyed by message ID, format and sibling ID.
     //
     //! \details Decode() increments the count of each header that it decodes with a
     //! message ID of more than 0. The counts are cumulative. Call ResetMessageCounts()

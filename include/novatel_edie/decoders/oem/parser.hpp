@@ -110,7 +110,7 @@ class Parser
     MessageDatabase::ConstPtr MessageDb() const;
 
     // ---------------------------------------------------------------------------
-    //! \brief Get the counts of decoded messages, keyed by format, message ID and sibling ID.
+    //! \brief Get the counts of decoded messages, keyed by message ID, format and sibling ID.
     //
     //! \details The counts are cumulative. Call ResetMessageCounts() to clear them.
     //

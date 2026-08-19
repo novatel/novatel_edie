@@ -6,7 +6,6 @@
 #include "py_oem/file_parser.hpp"
 #include "py_oem/filter.hpp"
 #include "py_oem/init_bindings.hpp"
-#include "py_oem/message_counts.hpp"
 #include "py_oem/message_db_singleton.hpp"
 #include "py_oem/parser.hpp"
 #include "py_oem/py_message_objects.hpp"
@@ -172,13 +171,13 @@ void py_oem::init_novatel_file_parser(nb::module_& m)
             Returns:
                 An iterator that directly converts messages.
             )doc")
-        .def_prop_ro(
-            "message_counts", [](const py_oem::PyFileParser& self) { return py_oem::CreatePyMessageCounts(self.GetMessageCounts()); },
-            R"doc(
+        .def_prop_ro("message_counts", &py_oem::PyFileParser::GetMessageCounts,
+                     R"doc(
             The number of times the FileParser has decoded each message.
 
             The keys are `(message_id, format, source)` tuples, the same shape
-            that `Filter.message_ids` uses. The values are counts.
+            that `Filter.message_ids` uses. The values are counts. The order of
+            the keys is arbitrary.
 
             One message in two formats has two keys, and therefore two counts.
             The same is true of one message from two sources. A message whose ID
