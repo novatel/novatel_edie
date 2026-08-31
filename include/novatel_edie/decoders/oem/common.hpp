@@ -184,7 +184,9 @@ constexpr std::string_view HeaderTypeToString(const HEADER_TYPE eHeaderType_)
 //! points rather than silently processed as though they had a standard header.
 //-----------------------------------------------------------------------
 constexpr bool IsSupportedHeaderType(const HEADER_TYPE eHeaderType_)
-{ return eHeaderType_ == HEADER_TYPE::STANDARD || eHeaderType_ == HEADER_TYPE::SHORT; }
+{
+    return eHeaderType_ == HEADER_TYPE::STANDARD || eHeaderType_ == HEADER_TYPE::SHORT;
+}
 
 //-----------------------------------------------------------------------
 //! \brief Throw if the given header type is one EDIE does not support.

@@ -282,11 +282,15 @@ void Encoder::InitFieldMaps()
 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
-{ return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, Oem4BinaryHeader(stInterHeader_)); }
+{
+    return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, Oem4BinaryHeader(stInterHeader_));
+}
 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
-{ return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, Oem4BinaryShortHeader(stInterHeader_)); }
+{
+    return CopyToBuffer(ppucOutBuf_, uiBytesLeft_, Oem4BinaryShortHeader(stInterHeader_));
+}
 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const

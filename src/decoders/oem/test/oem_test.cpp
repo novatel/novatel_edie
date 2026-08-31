@@ -112,7 +112,9 @@ template <typename FramerType> class FramerTest : public ::testing::Test
     }
 
     static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_)
-    { ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_) == uiNumBytes_); }
+    {
+        ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_) == uiNumBytes_);
+    }
 
     static void FlushFramer()
     {

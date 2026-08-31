@@ -88,14 +88,18 @@ void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
 
 //-----------------------------------------------------------------------
 bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
-{ return (usMessageId_ == US_RX_CONFIG_MSG_ID || usMessageId_ == US_RX_CONFIG_USER_MSG_ID); }
+{
+    return (usMessageId_ == US_RX_CONFIG_MSG_ID || usMessageId_ == US_RX_CONFIG_USER_MSG_ID);
+}
 
 // -------------------------------------------------------------------------------------------------------
 size_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
-{ return pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc)->messageOrderedFields.at(0); }
+{
+    return pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc)->messageOrderedFields.at(0);
+}
 
 // -------------------------------------------------------------------------------------------------------
 // Converts shared pointer into an r-value and increments reference count without invalidating original.
@@ -115,10 +119,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
         if (!pclRxConfigUserFieldDef) { return STATUS::NO_DEFINITION; }
         pclFieldDef = pclRxConfigUserFieldDef;
     }
-    else
-    {
-        return STATUS::UNSUPPORTED;
-    }
+    else { return STATUS::UNSUPPORTED; }
 
     const unsigned char* pucTempMessagePointer = pucMessage_;
     std::vector<uint8_t> stEmbeddedMessageData;
