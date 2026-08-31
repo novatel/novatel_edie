@@ -50,6 +50,7 @@ from .common_bindings import (
     FramerManager, MetaDataBase
 )
 EnummeratorDefinition = EnumDefinition
+HEADER_FORMAT = DECODE_FORMAT
 
 from .oem.oem_bindings import get_builtin_database
 

@@ -38,6 +38,7 @@ from novatel_edie import STATUS, ENCODE_FORMAT
 def parser():
     return oem.Parser()
 
+
 @pytest.fixture(scope="module")
 def test_gps_file(decoders_test_resources):
     return decoders_test_resources / "BESTUTMBIN.GPS"
@@ -73,7 +74,6 @@ def test_parse_file_with_filter(parser, test_gps_file):
             parser.write(chunk)
             msgs.extend([msg for msg in parser if isinstance(msg, oem.Message)])
 
-
     assert len(msgs) == 2
 
     assert msgs[0].header.milliseconds == pytest.approx(270605000)
@@ -82,6 +82,7 @@ def test_parse_file_with_filter(parser, test_gps_file):
     assert msgs[1].header.milliseconds == pytest.approx(172189053)
     assert len(msgs[1].to_ascii().message) == 195
     assert parser.flush(return_flushed_bytes=True) == b""
+
 
 @pytest.mark.parametrize("ignore_responses", [True, False])
 @pytest.mark.parametrize("response_str, context", [("OK", b"\r\n<OK\r\nfdfa")])
@@ -110,13 +111,14 @@ def test_parse_abbrev_ascii_resp(response_str, context, ignore_responses, parser
                 assert responses[0].response_string == response_str
         except AssertionError as e:
             raise AssertionError(
-                f"Failure at permutation {permutations[i]}: {e}") from e
+                f"Failure at permutation {permutations[i]}: {e}"
+            ) from e
 
 
 def test_write_max_num_bytes(parser: oem.Parser):
     """Tests that data with length matching available space can be written."""
     # Arrange
-    data = b'a' * parser.available_space
+    data = b"a" * parser.available_space
     # Act
     bytes_written = parser.write(data)
     # Assert
@@ -129,7 +131,7 @@ def test_write_exceeding_max_num_bytes(parser: oem.Parser):
     Whether data is partially written is not defined in the spec.
     """
     # Arrange
-    data = b'a' * (parser.available_space + 1)
+    data = b"a" * (parser.available_space + 1)
     # Act
     bytes_written = parser.write(data)
     # Assert
@@ -140,7 +142,7 @@ def test_nmea_parsed_as_unknown_bytes(parser: oem.Parser):
     """Tests that unrecognized NMEA sentences are returned as UnknownBytes with NMEA reason."""
     # Arrange
     parser.return_unknown_bytes = True
-    parser.write(b'$GPHDT,265.1253,T*01\r\n')
+    parser.write(b"$GPHDT,265.1253,T*01\r\n")
 
     # Act
     msgs = list(parser)
@@ -149,7 +151,7 @@ def test_nmea_parsed_as_unknown_bytes(parser: oem.Parser):
     assert len(msgs) == 1
     assert isinstance(msgs[0], ne.UnknownBytes)
     assert msgs[0].reason == ne.UNKNOWN_REASON.NMEA
-    assert msgs[0].data == b'$GPHDT,265.1253,T*01\r\n'
+    assert msgs[0].data == b"$GPHDT,265.1253,T*01\r\n"
 
 
 BESTPOS_ASCII = (
@@ -173,7 +175,7 @@ def test_message_counts_one_key_per_message(parser: oem.Parser):
     msgs = [msg for msg in parser if isinstance(msg, oem.Message)]
     # Assert
     assert len(msgs) == 3
-    assert parser.message_counts == {(BESTPOS_ID, ne.HEADER_FORMAT.ASCII, 0): 3}
+    assert parser.message_counts == {(BESTPOS_ID, ne.DECODE_FORMAT.ASCII, 0): 3}
 
 
 def test_message_counts_key_holds_the_format(parser: oem.Parser):
@@ -192,8 +194,8 @@ def test_message_counts_key_holds_the_format(parser: oem.Parser):
     list(parser)
     # Assert
     assert parser.message_counts == {
-        (BESTPOS_ID, ne.HEADER_FORMAT.ASCII, 0): 1,
-        (BESTPOS_ID, ne.HEADER_FORMAT.ABB_ASCII, 0): 1,
+        (BESTPOS_ID, ne.DECODE_FORMAT.ASCII, 0): 1,
+        (BESTPOS_ID, ne.DECODE_FORMAT.ABB_ASCII, 0): 1,
     }
 
 
@@ -201,7 +203,7 @@ def test_message_counts_keys_match_filter_message_ids(parser: oem.Parser):
     """Tests that a count key can be used directly against Filter.message_ids."""
     # Arrange
     filter = oem.Filter()
-    filter.add_message_id(BESTPOS_ID, ne.HEADER_FORMAT.ASCII, 0)
+    filter.add_message_id(BESTPOS_ID, ne.DECODE_FORMAT.ASCII, 0)
     parser.write(BESTPOS_ASCII)
     # Act
     list(parser)
@@ -222,4 +224,4 @@ def test_reset_message_counts(parser: oem.Parser):
     # Counting starts again from 0.
     parser.write(BESTPOS_ASCII)
     list(parser)
-    assert parser.message_counts == {(BESTPOS_ID, ne.HEADER_FORMAT.ASCII, 0): 1}
+    assert parser.message_counts == {(BESTPOS_ID, ne.DECODE_FORMAT.ASCII, 0): 1}
