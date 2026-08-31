@@ -90,7 +90,7 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
     {
         status = extras.rxConfigHandler->Encode(&buf_ptr, buf_size, this->header, owned_fields(), message_data, format);
     }
-    else { status = extras.encoder->Encode(&buf_ptr, buf_size, this->header, owned_fields(), message_data, this->header.format, format); }
+    else { status = extras.encoder->Encode(&buf_ptr, buf_size, this->header, owned_fields(), message_data, format); }
     throw_exception_from_status(status);
     return py_common::PyMessageData(message_data);
 }
@@ -132,7 +132,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, CompositeFi
 
         nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
-        bool is_complete = (metadata.eFormat != HEADER_FORMAT::ABB_ASCII);
+        bool is_complete = (metadata.eFormat != DECODE_FORMAT::ABB_ASCII);
         new (response_cinst) PyResponse(message_fields, database, header, is_complete, msgDef, metadata.uiMessageCrc);
         nb::inst_mark_ready(response_pyinst);
 
@@ -362,10 +362,9 @@ void py_oem::init_header_objects(nb::module_& m)
                     "time_status: common_bindings.TIME_STATUS | int = common_bindings.TIME_STATUS.UNKNOWN, "
                     "week: int = 0, milliseconds: float = 0.0, receiver_status: RecieverStatus | int = 0, "
                     "receiver_sw_version: int = 0) -> None"),
-            nb::kw_only(), "message_type"_a = py_oem::PyMessageTypeField(0), "port_address"_a = uint32_t{0},
-            "sequence"_a = uint16_t{0}, "idle_time"_a = uint8_t{0}, "time_status"_a = static_cast<uint32_t>(TIME_STATUS::UNKNOWN),
-            "week"_a = uint16_t{0}, "milliseconds"_a = double{0.0}, "receiver_status"_a = uint32_t{0},
-            "receiver_sw_version"_a = uint16_t{0})
+            nb::kw_only(), "message_type"_a = py_oem::PyMessageTypeField(0), "port_address"_a = uint32_t{0}, "sequence"_a = uint16_t{0},
+            "idle_time"_a = uint8_t{0}, "time_status"_a = static_cast<uint32_t>(TIME_STATUS::UNKNOWN), "week"_a = uint16_t{0},
+            "milliseconds"_a = double{0.0}, "receiver_status"_a = uint32_t{0}, "receiver_sw_version"_a = uint16_t{0})
         .def_ro("message_id", &py_oem::PyHeader::usMessageId, "The Message ID number.")
         .def_prop_rw(
             "message_type", &py_oem::PyHeader::GetPyMessageType,

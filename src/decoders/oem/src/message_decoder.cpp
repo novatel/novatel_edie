@@ -37,10 +37,12 @@
 
 using namespace novatel::edie::oem;
 
-// Register the OEM alignment function with the MessageDatabase at static initialization time
+// Register the OEM alignment function and header type mapping with the MessageDatabase at static
+// initialization time, so that both are in place before any database is read.
 namespace {
-const bool kRegisteredOemAlignment = [] {
+const bool kRegisteredOemFamily = [] {
     novatel::edie::MessageDatabase::RegisterAlignmentFunction("OEM", novatel::edie::oem::OemAlignmentFunction);
+    novatel::edie::MessageDatabase::RegisterHeaderTypeMapping("OEM", novatel::edie::oem::OemHeaderTypeMapping());
     return true;
 }();
 } // namespace
@@ -285,5 +287,12 @@ novatel::edie::MessageDefinition::ConstPtr MessageDecoder::GetMessageDefinition(
         pResponseDefinition = responseDefinition;
         return pResponseDefinition;
     }
-    return MessageDecoderBase::GetMessageDefinition(stMetaData_);
+    const auto pclMsgDef = MessageDecoderBase::GetMessageDefinition(stMetaData_);
+
+    // Reject header types the decoder cannot handle here, on the sole Decode() path into this hook,
+    // rather than letting them fall through and be decoded as though they had a standard header.
+    // A missing definition is left to Decode(), which reports it as NO_DEFINITION.
+    ThrowIfUnsupportedHeaderType(pclMsgDef != nullptr ? GetHeaderType(*pclMsgDef) : HEADER_TYPES::STANDARD);
+
+    return pclMsgDef;
 }

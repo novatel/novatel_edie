@@ -34,6 +34,8 @@
 
 #include <simdjson.h>
 
+#include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/common/version_string.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 
 namespace novatel::edie {
@@ -43,6 +45,23 @@ namespace {
 using simdjson::dom::array;
 using simdjson::dom::element;
 using simdjson::dom::object;
+
+//! Oldest database schema version this reader accepts at all.
+constexpr VersionId MIN_SUPPORTED_DB_VERSION{1, 0, 0};
+
+//! Oldest database schema version this reader can make full use of. Anything older loads but is incomplete.
+constexpr VersionId MIN_FULLY_SUPPORTED_DB_VERSION{1, 1, 0};
+
+//! First database schema version this reader cannot read; a major version bump is a breaking change.
+constexpr VersionId FIRST_UNSUPPORTED_DB_VERSION{2, 0, 0};
+
+//! Logger for this translation unit. Registered on first use rather than at namespace scope so that an
+//! embedding API (e.g. the Python bindings) has already installed its own LoggerManager by the time we ask.
+const std::shared_ptr<spdlog::logger>& JsonDbLogger()
+{
+    static const auto logger = GetBaseLoggerManager()->RegisterLogger("JsonDbReader");
+    return logger;
+}
 
 //-----------------------------------------------------------------------
 // Small helpers providing required-member, optional-member and null-aware
@@ -101,7 +120,7 @@ void ParseEnumField(element j_, EnumField& f_);
 void ParseArrayField(element j_, ArrayField& fd_);
 void ParseFieldArrayField(element j_, FieldArrayField& fd_, const AlignFunction& alignFn_);
 void ParseEnumDefinition(element j_, EnumDefinition& ed_);
-void ParseDbMetadata(element j_, DbMetadata& dbm_);
+void ParseDbMetadata(element j_, DbMetadata& dbm_, std::string_view errorContext_);
 
 // Forward declaration of parse_fields and parse_enumerators
 uint32_t ParseFields(element j_, FieldInfo& vFields_, const AlignFunction& alignFn_ = MessageDatabase::NoAlign);
@@ -198,10 +217,49 @@ void ParseEnumDefinition(element j_, EnumDefinition& ed_)
 }
 
 //-----------------------------------------------------------------------
-void ParseDbMetadata(element j_, DbMetadata& dbm_)
+void ParseDbMetadata(element j_, DbMetadata& dbm_, std::string_view errorContext_)
 {
+    // Validated up front so that a non-object "meta" is not reported as a set of missing members.
+    if (!j_.is_object()) { throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, errorContext_, "The \"meta\" field must be a JSON object"); }
+
+    element version;
+    if (j_["version"].get(version) != simdjson::SUCCESS)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, errorContext_, "Database metadata must include the \"version\" field");
+    }
+
+    const auto versionString = AsString(version);
+    const auto parsedVersion = parse_version(versionString);
+    if (!parsedVersion)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, errorContext_, ("Invalid \"meta.version\" value: " + versionString).c_str());
+    }
+
+    const VersionId& dbVersion = *parsedVersion;
+
+    if (dbVersion < MIN_SUPPORTED_DB_VERSION)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, errorContext_,
+                                  ("Database schema " + dbVersion.to_string() +
+                                   " is outdated. This version of EDIE can only work with versions >=" + MIN_SUPPORTED_DB_VERSION.to_string() +
+                                   ". Consider using a different database or downgrading your version of EDIE.")
+                                      .c_str());
+    }
+    if (dbVersion >= FIRST_UNSUPPORTED_DB_VERSION)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, errorContext_,
+                                  ("Database schema " + dbVersion.to_string() +
+                                   " is unsupported. This version of EDIE can only work with schema versions <" +
+                                   FIRST_UNSUPPORTED_DB_VERSION.to_string() + ". Consider upgrading to the latest release.")
+                                      .c_str());
+    }
+    if (dbVersion < MIN_FULLY_SUPPORTED_DB_VERSION)
+    {
+        SPDLOG_LOGGER_WARN(JsonDbLogger(), "Database schema {} predates {}; some values may be defaulted in an inaccurate way.",
+                           dbVersion.to_string(), MIN_FULLY_SUPPORTED_DB_VERSION.to_string());
+    }
+
     dbm_.subset = StringOr(j_, "subset", "");
-    dbm_.version = StringOr(j_, "version", "0.0.0");
     dbm_.messageFamily = StringOr(j_, "messageFamily", "");
 }
 
@@ -292,13 +350,21 @@ void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_)
 }
 
 //-----------------------------------------------------------------------
-std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot_, const AlignFunction& alignFn_)
+std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot_, const AlignFunction& alignFn_, HeaderTypeMap headerTypes_)
 {
     array data;
     if (Member(jRoot_, "messages").get(data) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'messages' to be a JSON array"); }
 
     std::vector<MessageDefinition::ConstPtr> res;
     res.reserve(data.size());
+
+    // Resolved against the mapping the caller already looked up, rather than through
+    // MessageDatabase::ResolveHeaderType, to keep the per-message cost to a single lookup.
+    // An empty mapping leaves every definition at DEFAULT_HEADER_TYPE.
+    const auto resolveHeaderType = [&headerTypes_](const std::string& headerType_) {
+        const auto it = headerTypes_.find(headerType_);
+        return it != headerTypes_.end() ? it->second : DEFAULT_HEADER_TYPE;
+    };
 
     for (const auto& j_ : data)
     {
@@ -308,6 +374,8 @@ std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot
         md->name = AsString(Member(j_, "name"));
         md->description = AsStringOrEmpty(Member(j_, "description"));
         md->latestMessageCrc = std::stoul(AsString(Member(j_, "latestMsgDefCrc")));
+        md->headerType = StringOr(j_, "headerType", ""); // Absent in schema versions before 1.1.0.
+        md->eMessageType = resolveHeaderType(md->headerType);
 
         object fields;
         if (Member(j_, "fields").get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON object"); }
@@ -352,25 +420,42 @@ MessageDatabase::Ptr ParseJsonDbImpl(simdjson::padded_string source, std::string
         element root;
         if (parser.parse(source).get(root) != simdjson::SUCCESS) { throw std::runtime_error("Failed to parse JSON database"); }
 
-        DbMetadata::Ptr dbMeta;
         element meta;
-        if (root["meta"].get(meta) == simdjson::SUCCESS)
+        // A failure here is either a genuinely absent "meta" key or a root that is not a JSON object at all,
+        // so the two cases must be distinguished to avoid reporting the latter as the former.
+        const auto metaError = root["meta"].get(meta);
+        if (metaError == simdjson::NO_SUCH_FIELD)
         {
-            dbMeta = std::make_shared<DbMetadata>();
-            ParseDbMetadata(meta, *dbMeta);
+            throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, errorContext, "Database must include the \"meta\" field");
+        }
+        if (metaError != simdjson::SUCCESS)
+        {
+            throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, errorContext,
+                                      ("Failed to read the \"meta\" field: " + std::string(simdjson::error_message(metaError))).c_str());
         }
 
+        auto dbMeta = std::make_shared<DbMetadata>();
+        ParseDbMetadata(meta, *dbMeta, errorContext);
+
         AlignFunction alignFn = MessageDatabase::NoAlign;
-        if (dbMeta && !dbMeta->messageFamily.empty())
+        HeaderTypeMap headerTypes;
+        if (!dbMeta->messageFamily.empty())
         {
             const auto it = MessageDatabase::GetAlignmentFunctions().find(dbMeta->messageFamily);
             if (it != MessageDatabase::GetAlignmentFunctions().end()) { alignFn = it->second; }
+
+            const auto headerTypeIt = MessageDatabase::GetHeaderTypeMappings().find(dbMeta->messageFamily);
+            if (headerTypeIt != MessageDatabase::GetHeaderTypeMappings().end()) { headerTypes = headerTypeIt->second; }
         }
 
-        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root, std::cref(alignFn));
+        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root, std::cref(alignFn), std::move(headerTypes));
         auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, root);
 
         return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get(), dbMeta);
+    }
+    catch (const JsonDbReaderFailure&)
+    {
+        throw; // Already carries file, line and context; re-wrapping would nest a second prefix in the message.
     }
     catch (const std::exception& e)
     {
