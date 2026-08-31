@@ -33,6 +33,42 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+namespace {
+enum class HEADER_FORMAT
+{
+    UNKNOWN = 1,
+    BINARY,
+    SHORT_BINARY,
+    PROPRIETARY_BINARY,
+    ASCII,
+    SHORT_ASCII,
+    ABB_ASCII,
+    NMEA,
+    JSON,
+    SHORT_ABB_ASCII,
+    ALL
+};
+
+DECODE_FORMAT headerFormatToDecodeFormat(HEADER_FORMAT headerFormat_)
+{
+    switch (headerFormat_)
+    {
+    case HEADER_FORMAT::UNKNOWN: return DECODE_FORMAT::UNKNOWN;
+    case HEADER_FORMAT::BINARY: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_BINARY: [[fallthrough]];
+    case HEADER_FORMAT::PROPRIETARY_BINARY: return DECODE_FORMAT::BINARY;
+    case HEADER_FORMAT::ASCII: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_ASCII: return DECODE_FORMAT::ASCII;
+    case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_ABB_ASCII: return DECODE_FORMAT::ABB_ASCII;
+    case HEADER_FORMAT::NMEA: return DECODE_FORMAT::NMEA;
+    case HEADER_FORMAT::JSON: return DECODE_FORMAT::JSON;
+    case HEADER_FORMAT::ALL: return DECODE_FORMAT::ALL;
+    default: return DECODE_FORMAT::UNKNOWN;
+    }
+}
+} // namespace
+
 // -------------------------------------------------------------------------------------------------------
 HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
 {
@@ -195,9 +231,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, c
 // -------------------------------------------------------------------------------------------------------
 template <const char pcDelimiter[], ASCII_HEADER... eFields>
 bool HeaderDecoder::DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const
-{
-    return (DecodeAsciiHeaderField<pcDelimiter, eFields>(stInterHeader_, ppcLogBuf_) && ...);
-}
+{ return (DecodeAsciiHeaderField<pcDelimiter, eFields>(stInterHeader_, ppcLogBuf_) && ...); }
 
 // -------------------------------------------------------------------------------------------------------
 void HeaderDecoder::DecodeJsonHeader(std::string_view pcTempBuf_, IntermediateHeader& stInterHeader_) const
