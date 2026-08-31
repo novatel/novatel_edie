@@ -156,7 +156,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                      MessageDataStruct& stMessageData_, HEADER_TYPES eHeaderType_, ENCODE_FORMAT eFormat_,
+                                      MessageDataStruct& stMessageData_, HEADER_TYPE eHeaderType_, ENCODE_FORMAT eFormat_,
                                       bool bIsEmbeddedHeader_ = false) const;
 
     //----------------------------------------------------------------------------
@@ -189,7 +189,7 @@ class Encoder : public EncoderBase<Encoder>
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const CompositeField& stMessage_,
                                     const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_,
-                                    HEADER_TYPES eHeaderType_, ENCODE_FORMAT eFormat_) const;
+                                    HEADER_TYPE eHeaderType_, ENCODE_FORMAT eFormat_) const;
 
     friend class EncoderBase<Encoder>;
 };

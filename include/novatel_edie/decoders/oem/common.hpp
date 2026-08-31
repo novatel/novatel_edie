@@ -128,7 +128,7 @@ inline DECODE_FORMAT headerFormatToDecodeFormat(HEADER_FORMAT headerFormat_)
 //! definition whose header type could not be resolved. New header types must
 //! therefore be appended rather than inserted at the front.
 //-----------------------------------------------------------------------
-enum class HEADER_TYPES
+enum class HEADER_TYPE
 {
     STANDARD = 0,
     SHORT = 1,
@@ -145,10 +145,10 @@ enum class HEADER_TYPES
 //-----------------------------------------------------------------------
 inline const HeaderTypeMap& OemHeaderTypeMapping()
 {
-    static const HeaderTypeMap mapping = {{"STANDARD", static_cast<int>(HEADER_TYPES::STANDARD)},
-                                          {"SHORT", static_cast<int>(HEADER_TYPES::SHORT)},
-                                          {"STANDARD_ENCRYPTED", static_cast<int>(HEADER_TYPES::STANDARD_ENCRYPTED)},
-                                          {"NOVATELX", static_cast<int>(HEADER_TYPES::NOVATELX)}};
+    static const HeaderTypeMap mapping = {{"STANDARD", static_cast<int>(HEADER_TYPE::STANDARD)},
+                                          {"SHORT", static_cast<int>(HEADER_TYPE::SHORT)},
+                                          {"STANDARD_ENCRYPTED", static_cast<int>(HEADER_TYPE::STANDARD_ENCRYPTED)},
+                                          {"NOVATELX", static_cast<int>(HEADER_TYPE::NOVATELX)}};
     return mapping;
 }
 
@@ -161,16 +161,16 @@ inline const HeaderTypeMap& OemHeaderTypeMapping()
 //!     the OEM mapping does not list, holds DEFAULT_HEADER_TYPE and so reads back
 //!     as HEADER_TYPES::STANDARD.
 //-----------------------------------------------------------------------
-inline HEADER_TYPES GetHeaderType(const MessageDefinition& def_) { return static_cast<HEADER_TYPES>(def_.eMessageType); }
+inline HEADER_TYPE GetHeaderType(const MessageDefinition& def_) { return static_cast<HEADER_TYPE>(def_.eMessageType); }
 
-constexpr std::string_view HeaderTypeToString(const HEADER_TYPES eHeaderType_)
+constexpr std::string_view HeaderTypeToString(const HEADER_TYPE eHeaderType_)
 {
     switch (eHeaderType_)
     {
-    case HEADER_TYPES::STANDARD: return "STANDARD";
-    case HEADER_TYPES::SHORT: return "SHORT";
-    case HEADER_TYPES::STANDARD_ENCRYPTED: return "STANDARD_ENCRYPTED";
-    case HEADER_TYPES::NOVATELX: return "NOVATELX";
+    case HEADER_TYPE::STANDARD: return "STANDARD";
+    case HEADER_TYPE::SHORT: return "SHORT";
+    case HEADER_TYPE::STANDARD_ENCRYPTED: return "STANDARD_ENCRYPTED";
+    case HEADER_TYPE::NOVATELX: return "NOVATELX";
     }
 
     return "UNKNOWN";
@@ -183,10 +183,8 @@ constexpr std::string_view HeaderTypeToString(const HEADER_TYPES eHeaderType_)
 //! not yet handled by the decoder or encoder. They are rejected at those entry
 //! points rather than silently processed as though they had a standard header.
 //-----------------------------------------------------------------------
-constexpr bool IsSupportedHeaderType(const HEADER_TYPES eHeaderType_)
-{
-    return eHeaderType_ == HEADER_TYPES::STANDARD || eHeaderType_ == HEADER_TYPES::SHORT;
-}
+constexpr bool IsSupportedHeaderType(const HEADER_TYPE eHeaderType_)
+{ return eHeaderType_ == HEADER_TYPE::STANDARD || eHeaderType_ == HEADER_TYPE::SHORT; }
 
 //-----------------------------------------------------------------------
 //! \brief Throw if the given header type is one EDIE does not support.
@@ -194,7 +192,7 @@ constexpr bool IsSupportedHeaderType(const HEADER_TYPES eHeaderType_)
 //! \param[in] eHeaderType_ The header type to check.
 //! \throws std::runtime_error If the header type is not supported.
 //-----------------------------------------------------------------------
-inline void ThrowIfUnsupportedHeaderType(const HEADER_TYPES eHeaderType_)
+inline void ThrowIfUnsupportedHeaderType(const HEADER_TYPE eHeaderType_)
 {
     if (IsSupportedHeaderType(eHeaderType_)) { return; }
 

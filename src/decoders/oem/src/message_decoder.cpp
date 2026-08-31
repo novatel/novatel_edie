@@ -49,9 +49,7 @@ const bool kRegisteredOemFamily = [] {
 
 // -------------------------------------------------------------------------------------------------------
 MessageDecoder::MessageDecoder(const MessageDatabase::Ptr& pclMessageDb_) : MessageDecoderBase("OEM", pclMessageDb_, OemAlignmentFunction)
-{
-    InitOemFieldMaps();
-}
+{ InitOemFieldMaps(); }
 
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoder::InitOemFieldMaps()
@@ -66,7 +64,10 @@ void MessageDecoder::InitOemFieldMaps()
         // if (!isprint(**ppcToken_)) { throw ... }
         const auto value = static_cast<uint32_t>(static_cast<unsigned char>(**ppcToken_));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
     asciiFieldMap[CalculateBlockCrc32("k")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("lk")] = SimpleAsciiMapEntry<double>();
@@ -76,7 +77,10 @@ void MessageDecoder::InitOemFieldMaps()
                                                    [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         const uint32_t value = static_cast<uint32_t>(std::bitset<8>(*ppcToken_).to_ulong());
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
 
     asciiFieldMap[CalculateBlockCrc32("T")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
@@ -87,7 +91,10 @@ void MessageDecoder::InitOemFieldMaps()
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse double value"); }
         const auto converted = static_cast<uint32_t>(std::llround(value * SEC_TO_MILLI_SEC));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, converted); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, converted); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, converted);
+        }
     };
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
@@ -95,7 +102,10 @@ void MessageDecoder::InitOemFieldMaps()
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         const uint32_t value = pclMsgDb_.MsgNameToMsgId(std::string(*ppcToken_, tokenLength_));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
 
     asciiFieldMap[CalculateBlockCrc32("id")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
@@ -122,7 +132,10 @@ void MessageDecoder::InitOemFieldMaps()
 
         const uint32_t uiSatId = usSlot | (sFreq << 16);
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, uiSatId); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, uiSatId); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, uiSatId);
+        }
     };
 
     asciiFieldMap[CalculateBlockCrc32("R")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
@@ -132,7 +145,10 @@ void MessageDecoder::InitOemFieldMaps()
         MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(std::string_view(*ppcToken_ + 1, tokenLength_ - 2)); // + 1 to Skip the '#'
         const uint32_t value = pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, 0, 1, 0) : 0;
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
 
     // =========================================================
@@ -152,7 +168,10 @@ void MessageDecoder::InitOemFieldMaps()
         }
         const auto value = static_cast<uint32_t>(std::bitset<8>(std::string(sValue)).to_ulong());
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
 
     jsonFieldMap[CalculateBlockCrc32("m")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_,
@@ -165,7 +184,10 @@ void MessageDecoder::InitOemFieldMaps()
         }
         const auto value = pclMsgDb_.MsgNameToMsgId(std::string(sValue));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
 
     jsonFieldMap[CalculateBlockCrc32("T")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_,
@@ -178,7 +200,10 @@ void MessageDecoder::InitOemFieldMaps()
         }
         const auto value = static_cast<uint32_t>(std::llround(dValue * SEC_TO_MILLI_SEC));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
 
     jsonFieldMap[CalculateBlockCrc32("id")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_,
@@ -228,7 +253,10 @@ void MessageDecoder::InitOemFieldMaps()
 
         const uint32_t uiSatId = (usSlot | (sFreq << 16));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, uiSatId); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, uiSatId); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, uiSatId);
+        }
     };
 
     jsonFieldMap[CalculateBlockCrc32("R")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_,
@@ -242,7 +270,10 @@ void MessageDecoder::InitOemFieldMaps()
         MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(sValue);
         const auto value = pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, 0, 1, 0) : 0;
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
 }
 
@@ -292,7 +323,7 @@ novatel::edie::MessageDefinition::ConstPtr MessageDecoder::GetMessageDefinition(
     // Reject header types the decoder cannot handle here, on the sole Decode() path into this hook,
     // rather than letting them fall through and be decoded as though they had a standard header.
     // A missing definition is left to Decode(), which reports it as NO_DEFINITION.
-    ThrowIfUnsupportedHeaderType(pclMsgDef != nullptr ? GetHeaderType(*pclMsgDef) : HEADER_TYPES::STANDARD);
+    ThrowIfUnsupportedHeaderType(pclMsgDef != nullptr ? GetHeaderType(*pclMsgDef) : HEADER_TYPE::STANDARD);
 
     return pclMsgDef;
 }

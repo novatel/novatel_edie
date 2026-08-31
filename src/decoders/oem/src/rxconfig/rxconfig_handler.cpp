@@ -88,18 +88,14 @@ void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
 
 //-----------------------------------------------------------------------
 bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
-{
-    return (usMessageId_ == US_RX_CONFIG_MSG_ID || usMessageId_ == US_RX_CONFIG_USER_MSG_ID);
-}
+{ return (usMessageId_ == US_RX_CONFIG_MSG_ID || usMessageId_ == US_RX_CONFIG_USER_MSG_ID); }
 
 // -------------------------------------------------------------------------------------------------------
 size_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
-{
-    return pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc)->messageOrderedFields.at(0);
-}
+{ return pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc)->messageOrderedFields.at(0); }
 
 // -------------------------------------------------------------------------------------------------------
 // Converts shared pointer into an r-value and increments reference count without invalidating original.
@@ -119,7 +115,10 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
         if (!pclRxConfigUserFieldDef) { return STATUS::NO_DEFINITION; }
         pclFieldDef = pclRxConfigUserFieldDef;
     }
-    else { return STATUS::UNSUPPORTED; }
+    else
+    {
+        return STATUS::UNSUPPORTED;
+    }
 
     const unsigned char* pucTempMessagePointer = pucMessage_;
     std::vector<uint8_t> stEmbeddedMessageData;
@@ -216,7 +215,7 @@ STATUS RxConfigHandler::EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t u
     if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"({"header": )")) { return STATUS::BUFFER_FULL; }
 
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::JSON);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPE::STANDARD, ENCODE_FORMAT::JSON);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 
@@ -250,7 +249,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
     // Abuse the fact that header format is only used for determining whether the header is long or short
     stMessageData_.pucMessageHeader = *ppucBuffer_;
     eStatus =
-        clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::ABBREV_ASCII);
+        clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPE::STANDARD, ENCODE_FORMAT::ABBREV_ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 
@@ -265,7 +264,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
 
     const MessageDefinition* def = pclMyMsgDb->GetMsgDef(stEmbeddedHeader_.usMessageId).get();
     // Without a definition assume a normal header
-    const HEADER_TYPES eEmbeddedHeaderType = def != nullptr ? GetHeaderType(*def) : HEADER_TYPES::STANDARD;
+    const HEADER_TYPE eEmbeddedHeaderType = def != nullptr ? GetHeaderType(*def) : HEADER_TYPE::STANDARD;
     ThrowIfUnsupportedHeaderType(eEmbeddedHeaderType);
 
     eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedHeader_, stEmbeddedMessageData_, eEmbeddedHeaderType,
@@ -311,7 +310,7 @@ STATUS RxConfigHandler::EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t 
     // -- Encode RXConfig Header --
     // Abuse the fact that header format is only used for determining whether the header is long or short
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::ASCII);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPE::STANDARD, ENCODE_FORMAT::ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 
@@ -360,7 +359,7 @@ STATUS RxConfigHandler::EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t
 
     // -- Encode RXConfig Header --
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPES::STANDARD, ENCODE_FORMAT::BINARY);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, HEADER_TYPE::STANDARD, ENCODE_FORMAT::BINARY);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 

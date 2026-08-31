@@ -112,9 +112,7 @@ template <typename FramerType> class FramerTest : public ::testing::Test
     }
 
     static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_)
-    {
-        ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_) == uiNumBytes_);
-    }
+    { ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_) == uiNumBytes_); }
 
     static void FlushFramer()
     {
@@ -3131,9 +3129,9 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
 
     ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, ENCODE_FORMAT::UNSPECIFIED));
     ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData,
-                                                              HEADER_TYPES::STANDARD, ENCODE_FORMAT::UNSPECIFIED));
+                                                              HEADER_TYPE::STANDARD, ENCODE_FORMAT::UNSPECIFIED));
     ASSERT_EQ(STATUS::UNSUPPORTED,
-              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, HEADER_TYPES::STANDARD,
+              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, HEADER_TYPE::STANDARD,
                                        ENCODE_FORMAT::UNSPECIFIED));
 }
 
