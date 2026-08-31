@@ -105,7 +105,7 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
         // Datasets ending with an Abbreviated ASCII message will always return an incomplete framing status
         // as there is no delimiter marking the end of the log.
         // If bDecodeIncompleteAbbreviated is set, the Framer status is STATUS::INCOMPLETE, and MetaData
-        // eFormat is HEADER_FORMAT::ABB_ASCII or HEADER_FORMAT::SHORT_ABB_ASCII then flush the framer
+        // eFormat is DECODE_FORMAT::ABB_ASCII then flush the framer
         // and attempt to decode that data.
 
         if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE && (stMetaData_.eFormat == DECODE_FORMAT::ABB_ASCII))

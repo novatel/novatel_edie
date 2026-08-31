@@ -76,44 +76,6 @@ constexpr uint16_t OEM4_SHORT_BINARY_HEADER_LENGTH = 12;
 constexpr uint8_t OEM4_PROPRIETARY_BINARY_SYNC2 = 0x45;
 
 //-----------------------------------------------------------------------
-// Header types
-//-----------------------------------------------------------------------
-
-enum class HEADER_FORMAT
-{
-    UNKNOWN = 1,
-    BINARY,
-    SHORT_BINARY,
-    PROPRIETARY_BINARY,
-    ASCII,
-    SHORT_ASCII,
-    ABB_ASCII,
-    NMEA,
-    JSON,
-    SHORT_ABB_ASCII,
-    ALL // Used in filters to indicate all filter types : all new enums should be added before this value
-};
-
-inline DECODE_FORMAT headerFormatToDecodeFormat(HEADER_FORMAT headerFormat_)
-{
-    switch (headerFormat_)
-    {
-    case HEADER_FORMAT::UNKNOWN: return DECODE_FORMAT::UNKNOWN;
-    case HEADER_FORMAT::BINARY: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_BINARY: [[fallthrough]];
-    case HEADER_FORMAT::PROPRIETARY_BINARY: return DECODE_FORMAT::BINARY;
-    case HEADER_FORMAT::ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ASCII: return DECODE_FORMAT::ASCII;
-    case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ABB_ASCII: return DECODE_FORMAT::ABB_ASCII;
-    case HEADER_FORMAT::NMEA: return DECODE_FORMAT::NMEA;
-    case HEADER_FORMAT::JSON: return DECODE_FORMAT::JSON;
-    case HEADER_FORMAT::ALL: return DECODE_FORMAT::ALL;
-    default: return DECODE_FORMAT::UNKNOWN;
-    }
-}
-
-//-----------------------------------------------------------------------
 //! \enum HEADER_TYPES
 //! \brief The kind of header an OEM message is framed with, as recorded by its
 //!     message definition in the database.
