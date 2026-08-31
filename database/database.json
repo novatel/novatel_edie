@@ -91966,185 +91966,184 @@
             "fields": {
                 "43122": [
                     {
-                        "arrayLength": 37,
+                        "arrayLength": 33,
                         "dataType": {
                             "description": "Class Array",
                             "length": 4,
                             "name": "FieldArray"
                         },
                         "description": "",
-                        "name": "port_statistics",
-                        "type": "FIELD_ARRAY",
                         "fields": [
                             {
                                 "arrayLength": null,
+                                "conversionString": "%d",
                                 "dataType": {
                                     "description": "[Brief Description]",
                                     "length": 4,
                                     "name": "ENUM"
                                 },
-                                "description": "",
-                                "name": "port",
-                                "conversionString": "%d",
                                 "defaultValue": 6,
+                                "description": "",
+                                "enumID": "c12e1e24c2ce86486f31bac998890319a16926da",
                                 "maxValue": null,
                                 "minValue": null,
-                                "type": "ENUM",
-                                "enumID": "c12e1e24c2ce86486f31bac998890319a16926da"
+                                "name": "port",
+                                "type": "ENUM"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
+                                "defaultValue": 0,
                                 "description": "",
+                                "maxValue": 4294967295,
+                                "minValue": 0,
                                 "name": "rx_chars",
-                                "conversionString": "%u",
-                                "defaultValue": 0,
-                                "maxValue": 4294967295,
-                                "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "type": "SIMPLE"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
+                                "defaultValue": 0,
                                 "description": "",
+                                "maxValue": 4294967295,
+                                "minValue": 0,
                                 "name": "tx_chars",
-                                "conversionString": "%u",
-                                "defaultValue": 0,
-                                "maxValue": 4294967295,
-                                "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "type": "SIMPLE"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
+                                "defaultValue": 0,
                                 "description": "",
+                                "maxValue": 4294967295,
+                                "minValue": 0,
                                 "name": "good_rx_chars",
-                                "conversionString": "%u",
-                                "defaultValue": 0,
-                                "maxValue": 4294967295,
-                                "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "type": "SIMPLE"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
+                                "defaultValue": 0,
                                 "description": "",
+                                "maxValue": 4294967295,
+                                "minValue": 0,
                                 "name": "dropped_chars",
-                                "conversionString": "%u",
-                                "defaultValue": 0,
-                                "maxValue": 4294967295,
-                                "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "type": "SIMPLE"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
+                                "defaultValue": 0,
                                 "description": "",
+                                "maxValue": 4294967295,
+                                "minValue": 0,
                                 "name": "interrupts",
-                                "conversionString": "%u",
-                                "defaultValue": 0,
-                                "maxValue": 4294967295,
-                                "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "type": "SIMPLE"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
+                                "defaultValue": 0,
                                 "description": "",
+                                "maxValue": 4294967295,
+                                "minValue": 0,
                                 "name": "breaks",
-                                "conversionString": "%u",
-                                "defaultValue": 0,
-                                "maxValue": 4294967295,
-                                "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "type": "SIMPLE"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
+                                "defaultValue": 0,
                                 "description": "",
+                                "maxValue": 4294967295,
+                                "minValue": 0,
                                 "name": "parity_errors",
-                                "conversionString": "%u",
-                                "defaultValue": 0,
-                                "maxValue": 4294967295,
-                                "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "type": "SIMPLE"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
+                                "defaultValue": 0,
                                 "description": "",
+                                "maxValue": 4294967295,
+                                "minValue": 0,
                                 "name": "framing_errors",
-                                "conversionString": "%u",
-                                "defaultValue": 0,
-                                "maxValue": 4294967295,
-                                "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "type": "SIMPLE"
                             },
                             {
                                 "arrayLength": null,
+                                "bitMasks": [],
+                                "conversionString": "%u",
                                 "dataType": {
                                     "description": "ULONG base type",
                                     "length": 4,
                                     "name": "ULONG"
                                 },
-                                "description": "",
-                                "name": "over_runs",
-                                "conversionString": "%u",
                                 "defaultValue": 0,
+                                "description": "",
                                 "maxValue": 4294967295,
                                 "minValue": 0,
-                                "type": "SIMPLE",
-                                "bitMasks": []
+                                "name": "over_runs",
+                                "type": "SIMPLE"
                             }
-                        ]
+                        ],
+                        "name": "port_statistics",
+                        "type": "FIELD_ARRAY"
                     }
                 ]
             },
             "latestMsgDefCrc": "43122",
             "messageID": 72,
             "name": "PORTSTATS",
-            "saveconfigable": false,
-            "headerType": "STANDARD"
+            "saveconfigable": false
         },
         {
             "_id": "b69797745ebebac23970c6b567156f1a34a24f3f",
