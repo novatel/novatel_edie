@@ -76,7 +76,7 @@ constexpr uint16_t OEM4_SHORT_BINARY_HEADER_LENGTH = 12;
 constexpr uint8_t OEM4_PROPRIETARY_BINARY_SYNC2 = 0x45;
 
 //-----------------------------------------------------------------------
-//! \enum HEADER_TYPES
+//! \enum HEADER_TYPE
 //! \brief The kind of header an OEM message is framed with, as recorded by its
 //!     message definition in the database.
 //!
@@ -103,7 +103,7 @@ enum class HEADER_TYPE
 //!
 //! Registered with MessageDatabase::RegisterHeaderTypeMapping so that the
 //! database reader can resolve each message definition's `headerType` string into
-//! its HEADER_TYPES value.
+//! its HEADER_TYPE value.
 //-----------------------------------------------------------------------
 inline const HeaderTypeMap& OemHeaderTypeMapping()
 {
@@ -118,10 +118,10 @@ inline const HeaderTypeMap& OemHeaderTypeMapping()
 //! \brief Get the header type of a message definition.
 //!
 //! \param[in] def_ The message definition to read.
-//! \return The HEADER_TYPES value cached in the definition's eMessageType.
+//! \return The HEADER_TYPE value cached in the definition's eMessageType.
 //!     A definition whose header type was absent from the database, or was a name
 //!     the OEM mapping does not list, holds DEFAULT_HEADER_TYPE and so reads back
-//!     as HEADER_TYPES::STANDARD.
+//!     as HEADER_TYPE::STANDARD.
 //-----------------------------------------------------------------------
 inline HEADER_TYPE GetHeaderType(const MessageDefinition& def_) { return static_cast<HEADER_TYPE>(def_.eMessageType); }
 
