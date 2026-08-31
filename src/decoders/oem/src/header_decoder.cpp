@@ -231,7 +231,9 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, c
 // -------------------------------------------------------------------------------------------------------
 template <const char pcDelimiter[], ASCII_HEADER... eFields>
 bool HeaderDecoder::DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const
-{ return (DecodeAsciiHeaderField<pcDelimiter, eFields>(stInterHeader_, ppcLogBuf_) && ...); }
+{
+    return (DecodeAsciiHeaderField<pcDelimiter, eFields>(stInterHeader_, ppcLogBuf_) && ...);
+}
 
 // -------------------------------------------------------------------------------------------------------
 void HeaderDecoder::DecodeJsonHeader(std::string_view pcTempBuf_, IntermediateHeader& stInterHeader_) const
