@@ -12,7 +12,7 @@ dependencies = [
 [build-system]
 requires = [
     "scikit-build-core >=0.4.3",
-    "nanobind >=2.0.0",
+    "nanobind >=2.0.0,<3",
     "conan >=2.4.0",
     "typer >=0.15",
     "typing_extensions >=4.15.0"
