@@ -6,6 +6,7 @@ Scope:
  - Encode/decode round-trip after Python-side mutation
  - Variable-length array setter on a real message (PASSCOM1)
  - Array-specific validation on a real message (RANGE)
+ - Short vs. standard header selection on encode (RAWIMUSX, BESTPOS)
  - General validation (unknown kwarg / unknown setattr / type mismatch) on
    a real message (BESTPOS)
 """
@@ -14,7 +15,7 @@ import pytest
 
 import novatel_edie.oem as oem
 from novatel_edie import ENCODE_FORMAT
-from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, RANGE, PASSCOM1, RANGE_obs_Field
+from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, RANGE, PASSCOM1, RANGE_obs_Field, RAWIMUSX
 from novatel_edie.oem.enums import SolStatus, SolType, Datum
 
 
@@ -141,6 +142,75 @@ class TestRoundTrip:
         header_length = len(bytes(encoded.header))
         assert parsed.header.length == len(raw) - header_length - CRC_LENGTH
         assert len(raw) == header_length + parsed.header.length + CRC_LENGTH
+
+
+class TestHeaderTypeOnEncode:
+    """Short vs. standard header selection when encoding a message built in Python.
+
+    A message constructed in Python was never decoded from raw bytes, so nothing
+    records the shape of an original header; the encoder takes the header type from
+    the message definition in the database. RAWIMUSX is declared SHORT there,
+    BESTPOS is STANDARD.
+    """
+
+    WEEK = 2300
+    MILLISECONDS = 345600.0
+    RAWIMUSX_MESSAGE_ID = 1462
+
+    @pytest.fixture
+    def short_header_message(self) -> RAWIMUSX:
+        """A RAWIMUSX with a header timestamp, so the short header's week/ms are observable."""
+        return RAWIMUSX(
+            header=oem.Header(week=self.WEEK, milliseconds=self.MILLISECONDS),
+            gps_week=self.WEEK,
+            gps_seconds=self.MILLISECONDS / 1000.0,
+        )
+
+    @pytest.mark.parametrize('message_type,expected_length', [
+        pytest.param(RAWIMUSX, oem.OEM4_SHORT_BINARY_HEADER_LENGTH, id='short'),
+        pytest.param(BESTPOS, oem.OEM4_BINARY_HEADER_LENGTH, id='standard'),
+    ])
+    def test_binary_header_length(self, message_type: type, expected_length: int):
+        # Act
+        encoded = message_type().encode(ENCODE_FORMAT.BINARY)
+        # Assert
+        assert len(bytes(encoded.header)) == expected_length
+
+    def test_binary_header_is_short(self, short_header_message: RAWIMUSX):
+        # Act
+        encoded = short_header_message.encode(ENCODE_FORMAT.BINARY)
+        raw_header = bytes(encoded.header)
+        # Assert
+        assert len(raw_header) == oem.OEM4_SHORT_BINARY_HEADER_LENGTH
+        header = oem.Oem4BinaryShortHeader(raw_header)
+        assert header.sync1 == oem.OEM4_BINARY_SYNC1
+        assert header.sync2 == oem.OEM4_BINARY_SYNC2
+        # Short binary is distinguished from standard binary by its third sync byte.
+        assert header.sync3 == oem.OEM4_BINARY_SYNC3 + 1
+        assert header.message_id == self.RAWIMUSX_MESSAGE_ID
+        assert header.week_no == self.WEEK
+        assert header.week_msec == self.MILLISECONDS
+        # The short header carries no port, sequence, idle time, status, or CRC fields.
+        assert header.length == len(bytes(encoded.message)) - oem.OEM4_SHORT_BINARY_HEADER_LENGTH - oem.OEM4_BINARY_CRC_LENGTH
+
+    def test_ascii_header_is_short(self, short_header_message: RAWIMUSX):
+        # Act
+        encoded = short_header_message.encode(ENCODE_FORMAT.ASCII)
+        # Assert
+        # Short ASCII syncs on '%' and carries only the name, week, and seconds.
+        assert bytes(encoded.header) == b'%RAWIMUSXA,2300,345.600;'
+
+    def test_short_binary_header_round_trips(self, short_header_message: RAWIMUSX):
+        # Act
+        parser = oem.Parser()
+        parser.write(short_header_message.encode(ENCODE_FORMAT.BINARY).message)
+        parsed = parser.read()
+        # Assert
+        assert isinstance(parsed, RAWIMUSX)
+        assert parsed.header.week == self.WEEK
+        assert parsed.header.milliseconds == self.MILLISECONDS
+        assert parsed.gps_week == self.WEEK
+        assert parsed.gps_seconds == pytest.approx(self.MILLISECONDS / 1000.0)
 
 
 class TestVariableLengthArray:

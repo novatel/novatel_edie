@@ -49,7 +49,7 @@ class HeaderDecoder
     //! \details Tuple containing: message ID (uint16_t), format (ASCII, binary, and more), sibling ID (uint8_t).
     //! The fields are in the order that Filter::IncludeMessageId() takes them.
     //! The same message in two formats has two keys, and therefore two counts.
-    using MessageCountsKey = std::tuple<uint16_t, HEADER_FORMAT, uint8_t>;
+    using MessageCountsKey = std::tuple<uint16_t, DECODE_FORMAT, uint8_t>;
 
     //! \brief Hash functor for MessageCountsKey.
     //! \details Each field of the key gets its own bits of the hash value: the

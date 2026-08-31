@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
                             MessageDataStruct stMessageData;
                             // Encode our message now that we have everything we need.
                             eStatus = clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData,
-                                                       stMetaData.eFormat, eEncodeFormat);
+                                                       eEncodeFormat);
                             if (eStatus == STATUS::SUCCESS)
                             {
                                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';

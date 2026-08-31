@@ -105,8 +105,8 @@ BESTUTM_ID = 726
 
 def expected_file_counts():
     return {
-        (VERSION_ID, ne.HEADER_FORMAT.ASCII, 0): 1,
-        (BESTUTM_ID, ne.HEADER_FORMAT.ASCII, 0): 1,
+        (VERSION_ID, ne.DECODE_FORMAT.ASCII, 0): 1,
+        (BESTUTM_ID, ne.DECODE_FORMAT.ASCII, 0): 1,
     }
 
 

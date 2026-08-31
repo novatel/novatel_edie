@@ -14,7 +14,7 @@ PYCOMMON_EXPORT nb::object py_common::create_unknown_bytes(nb::bytes data, const
     nb::handle data_pytype = nb::type<py_common::PyUnknownBytes>();
     nb::object data_pyinst = nb::inst_alloc(data_pytype);
     py_common::PyUnknownBytes* data_cinst = nb::inst_ptr<py_common::PyUnknownBytes>(data_pyinst);
-    UNKNOWN_REASON reason = metadata.eFormat == HEADER_FORMAT::NMEA ? UNKNOWN_REASON::NMEA : UNKNOWN_REASON::UNKNOWN;
+    UNKNOWN_REASON reason = metadata.eFormat == DECODE_FORMAT::NMEA ? UNKNOWN_REASON::NMEA : UNKNOWN_REASON::UNKNOWN;
     new (data_cinst) py_common::PyUnknownBytes(data, reason);
     nb::inst_mark_ready(data_pyinst);
     return data_pyinst;
