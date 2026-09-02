@@ -26,6 +26,47 @@ using OwnedFieldArrayData = std::unique_ptr<FieldValueVariant>;
 class PyFieldArray;
 
 //============================================================================
+//! \class PyBitField
+//! \brief A python representation of a bitfield.
+//!
+//! Contains an integer value from a field and a BitMaskMap that helps to
+//! interpret it. Sub-mask access extracts the relevant bits; when a sub-mask
+//! carries an enum meaning, the value is returned as the matching Python
+//! IntEnum member rather than a raw int.
+//============================================================================
+struct PyBitField
+{
+    uint32_t val;
+    BitMaskMap::ConstPtr interpretation;
+    py_common::PyMessageDatabase::ConstPtr parentDb;
+
+    nb::object getattr(nb::str field_name) const
+    {
+        // A BitField constructed directly from an int has no bitmask interpretation,
+        // so it exposes no named sub-masks.
+        if (!interpretation) { throw nb::attribute_error(field_name.c_str()); }
+        auto it = interpretation->masks.find(field_name.c_str());
+        if (it == interpretation->masks.end()) { throw nb::attribute_error("No such attribute"); }
+        const BitMaskMapEntry& mapEntry = it->second;
+        const uint32_t extracted = ExtractBitMask(mapEntry.bitfield, val);
+
+        // When the sub-mask has an enum meaning, return the typed IntEnum member,
+        // mirroring the ENUM branch of PyField::convert_field.
+        if (mapEntry.enumDef && parentDb)
+        {
+            nb::object enum_type = parentDb->GetEnumType(mapEntry.enumDef.get());
+            if (!enum_type.is_none())
+            {
+                if (mapEntry.enumDef->valueName.count(extracted) > 0) { return enum_type(extracted); }
+                return enum_type(mapEntry.enumDef->unknownValue);
+            }
+        }
+
+        return nb::cast(extracted);
+    }
+};
+
+//============================================================================
 //! \class PyField
 //! \brief A python representation for a single message or message field.
 //!
