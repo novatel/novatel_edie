@@ -42,6 +42,7 @@ int py_common::db_tp_traverse(PyObject* self, visitproc visit, void* arg)
     }
     for (auto& field_type : db->field_types) { Py_VISIT(field_type.second.ptr()); }
     for (auto& enum_type : db->enum_types) { Py_VISIT(enum_type.second.ptr()); }
+    for (auto& bitfield_type : db->bitfield_types) { Py_VISIT(bitfield_type.second.ptr()); }
 
     return 0;
 }
@@ -55,9 +56,11 @@ int py_common::db_tp_clear(PyObject* self)
     db->messages_types.clear();
     db->field_types.clear();
     db->enum_types.clear();
+    db->bitfield_types.clear();
     db->message_type_lookup_.clear();
     db->field_type_lookup_.clear();
     db->enum_type_lookup_.clear();
+    db->bitfield_type_lookup_.clear();
 
     return 0;
 }
@@ -89,7 +92,6 @@ void py_common::init_common_message_database(nb::module_& m)
     nb::enum_<FIELD_TYPE>(m, "FIELD_TYPE", "The abstracted types of a message field.", nb::is_arithmetic())
         .value("SIMPLE", FIELD_TYPE::SIMPLE, "A value with a simple data type such as a integer or float.")
         .value("ENUM", FIELD_TYPE::ENUM, "An enum value.")
-        .value("BITFIELD", FIELD_TYPE::BITFIELD, "A bitfield value.")
         .value("FIXED_LENGTH_ARRAY", FIELD_TYPE::FIXED_LENGTH_ARRAY, "An array with a pre-determined length.")
         .value("VARIABLE_LENGTH_ARRAY", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "An array whose length length may differ across different messages.")
         .value("STRING", FIELD_TYPE::STRING, "A string value.")

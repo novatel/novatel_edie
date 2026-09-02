@@ -149,7 +149,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
         if (enumField == nullptr) { throw std::runtime_error("PyField::convert_field(): enum metadata not found"); }
 
         const EnumDefinition* enumDef = parentDb->GetEnumDefId(enumField->enumId).get();
-        nb::object enum_type = parentDb->GetEnumType(enumField->enumDef.get());
+        nb::object enum_type = parentDb->GetEnumType(enumDef);
         if (enum_type.is_none())
         {
             throw std::runtime_error("Enum definition for " + field.name + " field with ID '" + enumField->enumId +
@@ -176,6 +176,30 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
         sat_id.usPrnOrSlot = temp_id & 0x0000FFFF;
         sat_id.sFrequencyChannel = (temp_id & 0xFFFF0000) >> 16;
         return nb::cast(sat_id);
+    }
+
+    if (field.bitMasks != nullptr)
+    {
+        const uint32_t val = std::visit(
+            [&](auto&& value) -> uint32_t {
+                using T = std::decay_t<decltype(value)>;
+                if constexpr (std::is_integral_v<T>) { return static_cast<uint32_t>(value); }
+                else { throw nb::type_error(("Bitmask field \"" + field.name + "\" has a non-integral value type.").c_str()); }
+            },
+            fieldValue);
+
+        // Return the concrete PyBitField subtype registered for this bitmask so type()/isinstance
+        // reflect the specific bitfield, mirroring PyFieldArray::getitem. Fall back to the base
+        // BitField if the bitmask has no registered type (e.g. an unregistered custom database).
+        nb::handle bitfield_ptype = parentDb->GetBitFieldType(field.bitMasks.get());
+        if (bitfield_ptype.is_valid() && !bitfield_ptype.is_none())
+        {
+            nb::object pyinst = nb::inst_alloc(bitfield_ptype);
+            new (nb::inst_ptr<PyBitField>(pyinst)) PyBitField{val, field.bitMasks, parentDb};
+            nb::inst_mark_ready(pyinst);
+            return pyinst;
+        }
+        return nb::cast(PyBitField{val, field.bitMasks, parentDb});
     }
 
     return std::visit(

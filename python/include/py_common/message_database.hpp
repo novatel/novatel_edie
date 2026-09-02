@@ -154,6 +154,12 @@ class PyMessageDatabase
         return it == enum_type_lookup_.end() ? nullptr : it->second;
     }
 
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitFieldTypeLookup(nb::handle cls) const
+    {
+        auto it = bitfield_type_lookup_.find(cls);
+        return it == bitfield_type_lookup_.end() ? nullptr : it->second;
+    }
+
     [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return field_types; }
 
     [[nodiscard]] const FieldNameMap* GetFieldNameMap(const BaseField* field) const
@@ -179,6 +185,13 @@ class PyMessageDatabase
     }
     [[nodiscard]] nb::object GetEnumTypeByName(const std::string& name) const { return GetEnumType(GetEnumDefName(name).get()); }
     [[nodiscard]] nb::object GetEnumTypeById(const std::string& id) const { return GetEnumType(GetEnumDefId(id).get()); }
+
+    [[nodiscard]] nb::object GetBitFieldType(const BitMaskMap* bitMask) const
+    {
+        if (bitMask == nullptr) { return nb::none(); }
+        auto it = bitfield_types.find(bitMask);
+        return it == bitfield_types.end() ? nb::none() : it->second;
+    }
 
     [[nodiscard]] std::string GetMessageFamily() const;
     void SetMessageFamily(const std::string& messageFamily);
@@ -228,6 +241,8 @@ class PyMessageDatabase
             messageMod_.attr(message_def->name.c_str()) = message_version_defs.at(message_def->latestMessageCrc);
             addFieldAliasToModule(messageMod_, latestDef, message_def->name);
         }
+        // Bitfield types live in the messages module alongside message types.
+        for (const auto& [bit_mask, bitfield_type] : bitfield_types) { messageMod_.attr(bit_mask->name.c_str()) = bitfield_type; }
         for (const auto& [enum_def, enum_type] : enum_types) { enumsMod_.attr(enum_def->name.c_str()) = enum_type; }
     }
 
@@ -253,6 +268,10 @@ class PyMessageDatabase
     void AppendEnumTypes(const std::vector<EnumDefinition::ConstPtr>& enum_defs);
     void RemoveEnumType(const std::string& enum_name);
     //-----------------------------------------------------------------------
+    //! \brief Creates Python BitField subtypes for multiple bitmask definitions.
+    //-----------------------------------------------------------------------
+    void AppendBitFieldTypes(const std::vector<BitMaskMap::ConstPtr>& bit_masks);
+    //-----------------------------------------------------------------------
     //! \brief Creates Python types for multiple message definitions and their fields.
     //-----------------------------------------------------------------------
     void AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs);
@@ -260,6 +279,7 @@ class PyMessageDatabase
     void RemoveFieldTypes(const std::vector<BaseField::ConstPtr>& fieldDefs);
 
     void UpdatePythonEnums();
+    void UpdatePythonBitFields();
     void UpdatePythonMessageTypes();
     void AddFieldType(std::vector<BaseField::ConstPtr> fields, std::string base_name, std::string parent_message, nb::handle type_cons);
 
@@ -267,11 +287,13 @@ class PyMessageDatabase
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_types{};
     std::unordered_map<const BaseField*, nb::object> field_types{};
     std::unordered_map<const EnumDefinition*, nb::object> enum_types{};
+    std::unordered_map<const BitMaskMap*, nb::object> bitfield_types{};
     std::unordered_map<const BaseField*, FieldNameMap> field_name_maps_{};
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, FieldNameMap>> message_field_name_maps_{};
     std::unordered_map<nb::handle, MessageTypeLookupEntry, HandlePtrHash, HandlePtrEq> message_type_lookup_{};
     std::unordered_map<nb::handle, BaseField::ConstPtr, HandlePtrHash, HandlePtrEq> field_type_lookup_{};
     std::unordered_map<nb::handle, const EnumDefinition*, HandlePtrHash, HandlePtrEq> enum_type_lookup_{};
+    std::unordered_map<nb::handle, BitMaskMap::ConstPtr, HandlePtrHash, HandlePtrEq> bitfield_type_lookup_{};
 
     std::unique_ptr<MessageDBExtrasBase> extras_;
     MessageDatabase::Ptr core_;

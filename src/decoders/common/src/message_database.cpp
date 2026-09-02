@@ -227,7 +227,6 @@ FieldInfo::ConstPtr BuildFieldInfo(std::vector<BaseField::Ptr> fields, std::stri
     {
         switch (f->type)
         {
-        case FIELD_TYPE::BITFIELD: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_ID: [[fallthrough]];
         case FIELD_TYPE::SIMPLE: [[fallthrough]];
         case FIELD_TYPE::ENUM:
