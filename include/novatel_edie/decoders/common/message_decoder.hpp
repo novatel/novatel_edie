@@ -72,17 +72,21 @@ using CompositeFieldArray = std::vector<CompositeField>;
 template <typename T> class TypedBuffer
 {
   private:
-    const std::byte* data;
+    const std::byte* dataptr;
     size_t sz;
 
   public:
-    TypedBuffer(const std::byte* data_, size_t sz_) : data(data_), sz(sz_) {}
+    using value_type = T;
+
+    TypedBuffer(const std::byte* data_, size_t sz_) : dataptr(data_), sz(sz_) {}
 
     T operator[](size_t index) const
     {
         if (index >= sz) { throw std::runtime_error("TypedBuffer<T>::operator[](): index out of bounds"); }
-        return LoadValueFromBuffer<T>(data + (index * sizeof(T)));
+        return LoadValueFromBuffer<T>(dataptr + (index * sizeof(T)));
     }
+
+    constexpr const std::byte* data() const { return dataptr; }
 
     constexpr size_t size() const { return sz; }
 
@@ -294,7 +298,11 @@ class FixedFieldRegion
     template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
     void SetFieldValue(const size_t startIndex_, const T& value_, size_t n = 1)
     {
-        SetFieldValue(startIndex_, &value_, n);
+        if constexpr (is_specialization_of_v<T, TypedBuffer>)
+        {
+            SetFieldValue(startIndex_, value_.data(), value_.size() * sizeof(typename T::value_type));
+        }
+        else { SetFieldValue(startIndex_, &value_, n); }
     }
 
     // ---------------------------------------------------------------------------
@@ -302,10 +310,10 @@ class FixedFieldRegion
     //!
     //! \tparam T The element type (must be trivially copyable and not bool).
     //! \param[in] startIndex_ The index in the byte region.
-    //! \param[in] values_ Rvalue reference to vector of values to copy.
+    //! \param[in] values_ Vector of values to copy.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
-    template <typename T> void SetFieldValue(const size_t startIndex_, std::vector<T>&& values_)
+    template <typename T> void SetFieldValue(const size_t startIndex_, const std::vector<T>& values_)
     {
         static_assert(std::is_trivially_copyable_v<T>, "SetFieldValue only supports trivially copyable vector element types");
         static_assert(!std::is_same_v<T, bool>, "SetFieldValue does not support std::vector<bool>");
@@ -318,18 +326,28 @@ class FixedFieldRegion
         std::memcpy(byteRegion.data() + startIndex_, values_.data(), values_.size() * sizeof(T));
     }
 
+    template <typename T> void SetFieldValue(const size_t startIndex_, std::vector<T>&& values_)
+    {
+        SetFieldValue(startIndex_, static_cast<const std::vector<T>&>(values_));
+    }
+
     // ---------------------------------------------------------------------------
     //! \brief Set field values from a string.
     //!
     //! \param[in] startIndex_ The index in the byte region.
-    //! \param[in] value_ Rvalue reference to string to copy.
+    //! \param[in] value_ String to copy.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
-    void SetFieldValue(const size_t startIndex_, std::string&& value_)
+    void SetFieldValue(const size_t startIndex_, const std::string& value_)
     {
         assert(!IsView() && "SetFieldValue() is not permitted on a non-owning FixedFieldRegion view");
         if (startIndex_ + value_.size() > byteRegion.size()) { throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion"); }
         std::memcpy(byteRegion.data() + startIndex_, value_.data(), value_.size());
+    }
+
+    void SetFieldValue(const size_t startIndex_, std::string&& value_)
+    {
+        SetFieldValue(startIndex_, static_cast<const std::string&>(value_));
     }
 };
 
@@ -1159,7 +1177,8 @@ class CompositeField
     template <bool Fixed = true, typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
     void SetFieldValue(const size_t startIndex_, const T& value_)
     {
-        SetFieldValue<Fixed>(startIndex_, &value_);
+        if constexpr (Fixed) { fixedFields.SetFieldValue(startIndex_, value_); }
+        else { SetFieldValue<Fixed>(startIndex_, &value_); }
     }
 
     // ---------------------------------------------------------------------------
@@ -1168,9 +1187,23 @@ class CompositeField
     //! \tparam Fixed True for fixed fields, false for variable-length fields.
     //! \tparam T The element type (must be trivially copyable and not bool).
     //! \param[in] startIndex_ The index in the target field storage.
-    //! \param[in] values_ Rvalue reference to vector of values to move.
+    //! \param[in] values_ Vector of values to copy or move.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
+    template <bool Fixed = true, typename T> void SetFieldValue(const size_t startIndex_, const std::vector<T>& values_)
+    {
+        static_assert(std::is_trivially_copyable_v<T>, "SetFieldValue only supports trivially copyable vector element types");
+        static_assert(!std::is_same_v<T, bool>, "SetFieldValue does not support std::vector<bool>");
+
+        if constexpr (Fixed) { fixedFields.SetFieldValue(startIndex_, values_); }
+        else
+        {
+            if (startIndex_ >= varFields.size()) { throw std::runtime_error("SetFieldValue(): varFields index is out of range"); }
+
+            varFields[startIndex_] = values_;
+        }
+    }
+
     template <bool Fixed = true, typename T> void SetFieldValue(const size_t startIndex_, std::vector<T>&& values_)
     {
         static_assert(std::is_trivially_copyable_v<T>, "SetFieldValue only supports trivially copyable vector element types");
@@ -1190,9 +1223,20 @@ class CompositeField
     //!
     //! \tparam Fixed True for fixed fields, false for variable-length fields.
     //! \param[in] startIndex_ The index in the target field storage.
-    //! \param[in] value_ Rvalue reference to string to move.
+    //! \param[in] value_ String to copy or move.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
+    template <bool Fixed = true> void SetFieldValue(const size_t startIndex_, const std::string& value_)
+    {
+        if constexpr (Fixed) { fixedFields.SetFieldValue(startIndex_, value_); }
+        else
+        {
+            if (startIndex_ >= varFields.size()) { throw std::runtime_error("SetFieldValue(): varFields index is out of range"); }
+
+            varFields[startIndex_] = value_;
+        }
+    }
+
     template <bool Fixed = true> void SetFieldValue(const size_t startIndex_, std::string&& value_)
     {
         if constexpr (Fixed) { fixedFields.SetFieldValue(startIndex_, std::move(value_)); }
@@ -1219,6 +1263,14 @@ class CompositeField
                       "SetFieldValue does not support std::vector<bool>. Use std::vector<uint8_t> instead.");
         switch (fieldDef_.type)
         {
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY:
+            if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, TypedBuffer> ||
+                          (is_specialization_of_v<ValueT, std::vector> && !std::is_same_v<ValueT, CompositeFieldArray>))
+            {
+                SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
+            }
+            else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIXED_LENGTH_ARRAY"); }
+            break;
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
         case FIELD_TYPE::STRING:
@@ -1238,11 +1290,11 @@ class CompositeField
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
             break;
         default:
-            if constexpr (std::is_trivially_copyable_v<ValueT> || is_specialization_of_v<ValueT, TypedBuffer>)
+            if constexpr (std::is_trivially_copyable_v<ValueT>)
             {
                 SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
             }
-            else { throw std::runtime_error("SetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization"); }
+            else { throw std::runtime_error("SetFieldValue<T>(): type T must be trivially copyable for SIMPLE fields"); }
         }
     }
 
