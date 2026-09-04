@@ -9,6 +9,7 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
 
+#include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 #include "py_common/bindings_core.hpp"
@@ -539,7 +540,16 @@ void py_oem::init_message_objects(nb::module_& m)
         .def("to_ascii", &py_oem::PyResponse::to_ascii)
         .def("to_abbrev_ascii", &py_oem::PyResponse::to_abbrev_ascii)
         .def("to_binary", &py_oem::PyResponse::to_binary)
-        .def("to_flattended_binary", &py_oem::PyResponse::to_flattened_binary)
+        .def("to_flattened_binary", &py_oem::PyResponse::to_flattened_binary)
+        .def(
+            "to_flattended_binary",
+            [](py_oem::PyResponse& self) {
+                GetBaseLoggerManager()
+                    ->RegisterLogger("deprecation_warning")
+                    ->warn("Response.to_flattended_binary() is deprecated; use Response.to_flattened_binary() instead.");
+                return self.to_flattened_binary();
+            },
+            "Deprecated alias for to_flattened_binary(); use to_flattened_binary() instead.")
         .def("to_json", &py_oem::PyResponse::to_json)
         .def(
             "to_dict",
