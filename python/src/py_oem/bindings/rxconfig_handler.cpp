@@ -1,5 +1,7 @@
 #include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
 
+#include "novatel_edie/common/logger.hpp"
+
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
 #include "py_common/py_message_data.hpp"
@@ -20,8 +22,10 @@ void py_oem::init_novatel_rxconfig_handler(nb::module_& m)
                 if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); };
                 message_db->Lock();
                 new (t) oem::RxConfigHandler(message_db->core());
-                t->GetLogger()->warn(
-                    "The RXConfigHandler interface is currently unstable! It may undergo breaking changes between minor version increments.");
+                GetBaseLoggerManager()
+                    ->RegisterLogger("deprecation_warning")
+                    ->warn("RxConfigHandler is deprecated. Decode RXCONFIG messages with a Parser, FileParser or Decoder and read "
+                           "RXCONFIG.embedded_message_data instead.");
             },
             nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
         .def("write",

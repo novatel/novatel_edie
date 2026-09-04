@@ -58,6 +58,7 @@ EDIE is a C++ 17 project which uses a [CMake](https://cmake.org/) build system d
         - Install the toolchains for g++ or clang using your distribution's package manager.
 - [CMake (>=3.15)](https://cmake.org/)
     - Installers can be found on [the downloads page](https://cmake.org/download/). For Linux it is recommended to use your distribution's package manager instead.
+    - Building the Python module requires CMake >=3.24, as specified by `cmake.version` in `pyproject.toml`.
 - [Conan (>=2.4.0)](https://docs.conan.io/2/introduction.html)
     - Follow the [installation instructions](https://docs.conan.io/2/installation.html) from the Conan 2 documentation.
 - [nanobind (>=2.0.0)](https://nanobind.readthedocs.io/en/latest/)
@@ -164,7 +165,7 @@ flowchart TD
     DECODE -->|Byte stream| PARSER[Parser]:::cppclass
     DECODE --> MORE_CONTROL(I need more control)
     MORE_CONTROL -->|I only want the<br/>type of message| FRAMER[Framer]:::cppclass
-    MORE_CONTROL -->|I only want the<br/>JSON database| JSON_READER[JsonReader]:::cppclass
+    MORE_CONTROL -->|I only want the<br/>JSON database| MESSAGE_DATABASE[MessageDatabase]:::cppclass
     MORE_CONTROL -->|I only want the<br/>message header| HEADER_DECODER[HeaderDecoder]:::cppclass
     MORE_CONTROL -->|I only want the<br/>message body| MESSAGE_DECODER[MessageDecoder]:::cppclass
     MORE_CONTROL -->|I only want messages<br/>with a specific ID, time,<br/>decimation, etc.| FILTER[Filter]:::cppclass
@@ -212,16 +213,24 @@ Run the resulting executable with the following command: `converter_parser.exe <
 
 [This example](./examples/novatel/converter_components/converter_components.cpp) shows how to use the individual components of the decoder stack
 in order to convert a file from one format to another.
-It demonstrates how to use the JsonReader, Framer, Filter HeaderDecoder, MessageDecoder, Encoder classes to achieve 
+It demonstrates how to use the MessageDatabase, Framer, Filter, HeaderDecoder, MessageDecoder, and Encoder classes to achieve 
 fine-grained control over the conversion process.
 
 Run the resulting executable with the following command: `converter_components.exe <path_to_json_db> <input_file> <output_format>`
 
+### Piecewise Conversion with the Framer Manager
+
+[This example](./examples/novatel/converter_components_framer_manager/converter_components_framer_manager.cpp) shows the
+same piecewise conversion as above, but using the `FramerManager` class to frame more than one protocol from a single
+byte stream.
+
+Run the resulting executable with the following command: `converter_components_framer_manager.exe <path_to_json_db> <input_file> <output_format>`
+
 ### Adding Message Definitions
 
-[This example](./examples/novatel/json_parser/json_parser.cpp) shows how to dynamically add message definitions to the JsonReader class.
+[This example](./examples/novatel/json_parser/json_parser.cpp) shows how to dynamically add message definitions to the MessageDatabase class.
 
-Run the resulting executable with the following command: `converter_parser.exe <path_to_json_db> <input_file> <output_format> <msg_def_json_string>`
+Run the resulting executable with the following command: `json_parser.exe <path_to_json_db> <input_file> <output_format> <msg_def_json_string>`
 
 ### Decompressing Range Logs
 
@@ -415,7 +424,7 @@ if (eDecoderStatus == STATUS::SUCCESS)
     if (stMetaData.usMessageId == 42/*BESTPOS*/) {
         struct BESTPOS bestposLog;
         std::memcpy(&bestposLog, pucFrameBuffer, sizeof(struct BESTPOS));
-        latitude = bestposLog->latitude;
+        latitude = bestposLog.latitude;
     }
 }
 ```
