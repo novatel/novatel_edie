@@ -224,18 +224,19 @@ install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
 if(DEFINED SKBUILD_METADATA_DIR)
     set(license_destination "${SKBUILD_METADATA_DIR}/licenses/third_party")
 
-    # Conan dependencies, staged by NovatelEdieConan._deploy_licenses().
-    if(CONAN_ALREADY_ACTIVE)
-        set(conan_licenses "${CONAN_BUILD_DIR}/third_party_licenses")
-    elseif(USE_CONAN)
-        set(conan_licenses "${CMAKE_BINARY_DIR}/conan/build/third_party_licenses")
-    else()
-        message(WARNING "Not using Conan, third-party license texts will not be bundled.")
-    endif()
-    if(conan_licenses)
+    # Conan dependencies, staged by NovatelEdieConan._deploy_licenses() in its build folder.
+    # cmake_layout always puts the generators folder, which <pkg>_DIR names, directly inside it.
+    if(CONAN_ALREADY_ACTIVE OR USE_CONAN)
+        get_filename_component(conan_build_dir "${simdjson_DIR}" DIRECTORY)
+        set(conan_licenses "${conan_build_dir}/third_party_licenses")
+        if(NOT EXISTS "${conan_licenses}")
+            message(FATAL_ERROR "No third_party_licenses staged at ${conan_licenses}")
+        endif()
         install(DIRECTORY ${conan_licenses}/
                 DESTINATION ${license_destination}
                 COMPONENT python)
+    else()
+        message(WARNING "Not using Conan, third-party license texts will not be bundled.")
     endif()
 
     # nanobind is installed from pip so must be included seperately
