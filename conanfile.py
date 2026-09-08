@@ -3,7 +3,7 @@ import sys
 import re
 from pathlib import Path
 from conan import ConanFile
-from conan.errors import ConanInvalidConfiguration
+from conan.errors import ConanException, ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeConfigDeps
 from conan.tools.files import copy, rmdir
@@ -69,6 +69,22 @@ class NovatelEdieConan(ConanFile):
                 copy(self, "*.dylib", search_dir, third_party_dep_path)
                 copy(self, "*.so", search_dir, third_party_dep_path)
 
+    def _deploy_licenses(self):
+        """Copies the license text of every distributed dependency to a known location."""
+        licenses_path = Path(self.build_folder) / "third_party_licenses"
+        licenses_path.mkdir(parents=True, exist_ok=True)
+        for require, dep in self.dependencies.items():
+            if require.build or require.test:
+                continue
+            src = Path(dep.package_folder) / "licenses" if dep.package_folder else None
+            if src is None or not src.is_dir():
+                raise ConanException(
+                    f"{dep.ref} is distributed as part of novatel_edie but provides no "
+                    f"license text (expected {src}). Its license has to ship alongside "
+                    "the binaries, so this must be resolved before building.")
+            copy(self, "*", str(src),
+                 str(licenses_path / f"{dep.ref.name}-{dep.ref.version}"))
+
     def set_version(self):
         cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
         self.version = re.search(r"set\(RELEASE_VERSION ([\d.]+)\)", cmakelists_content).group(1)
@@ -128,6 +144,9 @@ class NovatelEdieConan(ConanFile):
         # Deploy any shared libraries
         self._deploy_shared_libs()
 
+        # Deploy the license text of every dependency we distribute
+        self._deploy_licenses()
+
         if not cmake_driven:
             # Configure a CMakeToolchain if conan is not invoked by an existing one
             tc = CMakeToolchain(self)
@@ -154,6 +173,10 @@ class NovatelEdieConan(ConanFile):
         cmake = CMake(self)
         cmake.install()
         copy(self, "LICENSE", self.source_folder, os.path.join(self.package_folder, "licenses"))
+        # Inline and template code from the dependencies below is compiled into the
+        # libraries packaged above, so their license text has to travel with them.
+        copy(self, "*", os.path.join(self.build_folder, "third_party_licenses"),
+             os.path.join(self.package_folder, "licenses", "third_party"))
         rmdir(self, os.path.join(self.source_folder, "lib", "cmake"))
 
     def package_info(self):

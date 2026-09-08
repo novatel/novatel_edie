@@ -216,3 +216,40 @@ install(FILES ${CMAKE_SOURCE_DIR}/database/database.json
 install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
+
+# --- Third-party licenses -------------------------------------------------------------
+# Licenses for all dependencies linked into the libs must be included in the distributed wheel.
+# Only collected when scikit-build-core is building one: SKBUILD_METADATA_DIR is the wheel's .dist-info. 
+# A plain CMake install produces no distribution, so there is nothing for the licenses to accompany.
+if(DEFINED SKBUILD_METADATA_DIR)
+    set(license_destination "${SKBUILD_METADATA_DIR}/licenses/third_party")
+
+    # Conan dependencies, staged by NovatelEdieConan._deploy_licenses().
+    if(CONAN_ALREADY_ACTIVE)
+        set(conan_licenses "${CONAN_BUILD_DIR}/third_party_licenses")
+    elseif(USE_CONAN)
+        set(conan_licenses "${CMAKE_BINARY_DIR}/conan/build/third_party_licenses")
+    else()
+        message(WARNING "Not using Conan, third-party license texts will not be bundled.")
+    endif()
+    if(conan_licenses)
+        install(DIRECTORY ${conan_licenses}/
+                DESTINATION ${license_destination}
+                COMPONENT python)
+    endif()
+
+    # nanobind is installed from pip so must be included seperately
+    file(GLOB nanobind_license "${NB_DIR}/../nanobind-*.dist-info/licenses/LICENSE" "${NB_DIR}/../nanobind-*.dist-info/LICENSE")
+    if(NOT nanobind_license)
+        message(FATAL_ERROR "No license text found for nanobind alongside ${NB_DIR}")
+    endif()
+    list(GET nanobind_license 0 nanobind_license)
+    install(FILES ${nanobind_license}
+            DESTINATION ${license_destination}/nanobind
+            COMPONENT python)
+
+    # nanobind uses tsl::robin_map and does not ship a license for it
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/third_party_licenses/
+            DESTINATION ${license_destination}
+            COMPONENT python)
+endif()
