@@ -100,6 +100,24 @@ def main():
     assert isinstance(decoded, oem_msgs.BESTPOS)
     print(f"Round-tripped latitude: {decoded.latitude}")
 
+    # Commands are messages too, so they are built the same way. This one
+    # requests the BESTPOS log once per second, equivalent to the abbreviated
+    # ASCII command "LOG BESTPOSB ONTIME 1".
+    log_cmd = oem_msgs.LOG(
+        log_port_address=oem_enums.PortAddress.THISPORT_ALL,
+        # The log to request is identified by its message ID, which every
+        # message type carries in its header.
+        message_id=oem_msgs.BESTPOS().header.message_id,
+        trigger=oem_enums.LogTrigger.ONTIME,
+        on_time=1.0,
+        hold=oem_enums.Hold.NOHOLD,
+    )
+    encoded_cmd = log_cmd.encode(ne.ENCODE_FORMAT.ASCII)
+    print(f"LOG command ASCII: {encoded_cmd.message}")
+
+    # Commands can be encoded to binary for sending to a receiver as well.
+    print(f"LOG command BINARY: {bytes(log_cmd.encode(ne.ENCODE_FORMAT.BINARY).message)!r}")
+
 
 if __name__ == "__main__":
     main()

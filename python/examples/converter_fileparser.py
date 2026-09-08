@@ -32,6 +32,7 @@
 import logging
 import timeit
 
+import novatel_edie as ne
 from novatel_edie import UnknownBytes
 import novatel_edie.oem as oem
 import novatel_edie.oem.messages as oem_msgs

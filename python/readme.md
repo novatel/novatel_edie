@@ -47,32 +47,31 @@ import novatel_edie.oem.enums as oem_enums
 
 ### Core Functionality Breakdown
 
-`novatel_edie` provides different classes for interfacing with messages at different levels of the decoder stack.
+`novatel_edie` converts between encoded NovAtel data and Python objects, in both directions.
+Use the following chart to find the class or method for what you are doing.
 
 ```mermaid
-flowchart TD
-    START(I have NovAtel data) --> STEP_ONE{I want to manipulate}
-    STEP_ONE --> LOGS{Logs}
-    STEP_ONE --> COMMANDS(Commands)
-    LOGS -->|Read messages| DECODE(Decode)
-    LOGS -->|Write messages| ENCODER[Encoder]:::cppclass
-    COMMANDS -->|Write commands| ENCODE(Encode)
-    DECODE -->|File| FILE_PARSER[FileParser]:::cppclass
-    DECODE -->|Byte stream| PARSER[Parser]:::cppclass
-    DECODE --> MORE_CONTROL(I need more control)
-    MORE_CONTROL -->|I only want the type of message| FRAMER[Framer]:::cppclass
-    MORE_CONTROL -->|I only want the JSON database| JSON_READER[JsonReader]:::cppclass
-    MORE_CONTROL -->|I only want to decode message components| Decoder[Decoder]:::cppclass
-    MORE_CONTROL -->|I only want messages with a specific ID, time, decimation, etc.| FILTER[Filter]:::cppclass
-        MORE_CONTROL --> SPECIAL_LOGS{Special logs}
-    SPECIAL_LOGS -->|RXConfig| RXCONFIG_HANDLER[RxConfigHandler]:::cppclass
-    SPECIAL_LOGS -->|Rangecmp| RANGE_DECOMPRESSOR[RangeDecompressor]:::cppclass
-    ENCODE -->|In Abbreviated ASCII| COMMANDER[Commander]:::cppclass
+flowchart LR
+    START{What do you want to do?}
 
-    subgraph Legend
-        CLASS[Class]:::cppclass
-        ACTION(Action)
-    end
+    START -->|Read NovAtel data into Python| DECODE(Decode)
+    START -->|Build NovAtel data from Python values| ENCODE(Encode)
+    START -->|Rewrite NovAtel data in another format| CONVERT(Convert)
+
+    DECODE -->|From a file| FILE_PARSER[FileParser]:::cppclass
+    DECODE -->|From a byte stream| PARSER[Parser]:::cppclass
+    DECODE --> MORE_CONTROL(I need more control)
+
+    ENCODE --> CONSTRUCT[Construct a type from<br/>novatel_edie.oem.messages]:::cppclass
+    CONSTRUCT --> MESSAGE_ENCODE[Message.encode]:::cppclass
+
+    CONVERT --> ITER_CONVERT[Parser.iter_convert<br/>FileParser.iter_convert]:::cppclass
+
+    MORE_CONTROL -->|Message type only| FRAMER[Framer]:::cppclass
+    MORE_CONTROL -->|Message definitions only| MESSAGE_DATABASE[MessageDatabase]:::cppclass
+    MORE_CONTROL -->|Message components only| DECODER[Decoder]:::cppclass
+    MORE_CONTROL -->|Select by ID, time, decimation| FILTER[Filter]:::cppclass
+    MORE_CONTROL -->|Decompress RANGECMP| RANGE_DECOMPRESSOR[RangeDecompressor]:::cppclass
 
     classDef cppclass fill:teal
 ```
@@ -123,7 +122,7 @@ for msg in parser:
     if isinstance(msg, ne.UnknownBytes):
         print(f"This set of bytes could not be identified as a message: {msg}")
     elif isinstance(msg, oem.UnknownMessage):
-        print(f"No definition was found for message with id: {msg.header.id}")
+        print(f"No definition was found for message with id: {msg.header.message_id}")
     elif isinstance(msg, oem.Message):
         if isinstance(msg, oem_msgs.BESTPOS):    # use this instead of 'msg.name==...' for better type-hints
             print(f"Estimated position: (lat={msg.latitude}, long={msg.longitude})")
@@ -147,7 +146,7 @@ If you just want to directly convert from one data format to another the simples
 This method returns an iterator which offers `MessageData` objects whose data reflect messages encoded into a specified format:
 
 ```python
-for ascii_msg in parser.iter_convert(ENCODE_FORMAT.ASCII):
+for ascii_msg in parser.iter_convert(ne.ENCODE_FORMAT.ASCII):
     print(ascii_msg)
 ```
 
@@ -170,15 +169,18 @@ For a `Parser` this will be `BufferEmptyException` exception and for
 a `FileParser` it will be  `StreamEmptyException`.
 
 ```python
+import logging
+
 while True:
     try:
         msg = parser.read()
     except ne.DecompressionFailureException:
         logging.error('A compressed RANGE log could not be decompressed')
-    except ne.BufferEmpty:
+    except ne.BufferEmptyException:
         if data := get_data():
             parser.write(data)
-        else break
+        else:
+            break
 ```
 
 Note: When using a `Parser` to process a byte-stream with abbreviated ascii content
@@ -201,11 +203,10 @@ Which messages are parsed can be manipulated by attaching a `Filter` to either p
 
 ```python
 bestpos_filter = oem.Filter()
-bestpos_filter.add_message_name('BESTPOS')      # Filter BESTPOS messages
-bestpos_filter.message_names_excluded = False    # Set filter to be inclusive
+bestpos_filter.add_message_name('BESTPOS')      # Only let BESTPOS messages through
 parser = oem.Parser()
 parser.filter = bestpos_filter
-for bestpos_msg in parser:
+for msg in parser:
     if isinstance(msg, oem_msgs.BESTPOS):    # still worth doing to enable type-hinting in IDE
         ...
 ```
@@ -229,8 +230,9 @@ a demonstration of how to achieve more fined grain control over parsing.
 
 ## Command Encoding
 
-Look to the [command_encoding.py](./examples/command_encoding.py) example file for 
-a demonstration of how to encode abbreviated ascii commands into other formats.
+Commands are messages, so they are built and encoded exactly like any other message.
+Look to [message_construction.py](./examples/message_construction.py) for a demonstration
+of constructing a command from scratch in Python and encoding it for a receiver.
 
 ## Data Types
 
@@ -266,7 +268,7 @@ bestpos_message
 An essential feature of `Message`s is that they can be encoded into any supported format:
 ```python
 for msg in parser:
-    if isinstance(msg, Message):
+    if isinstance(msg, oem.Message):
         ascii_msg = msg.to_ascii()
         encode_format_msg = msg.encode(encode_format)
 ```
@@ -277,12 +279,12 @@ If you wish to handle a specific message, it is highly recommended that you iden
 
 ```
 # RIGHT 
-def handle_message(msg: Message):
-    if isinstance(msg, BESTPOS):
+def handle_message(msg: oem.Message):
+    if isinstance(msg, oem_msgs.BESTPOS):
         ...
 
 # WRONG
-def handle_message(msg: Message):
+def handle_message(msg: oem.Message):
     if msg.name == "BESTPOS":
         ...
 ```
@@ -300,14 +302,14 @@ response
 ├── name
 ├── header
 ├── response_id
-├── response_str
+├── response_string
 └── response_enum
 ```
 
 `Responses` may be encoded into any supported format, the same as messages:
 ```python
 for resp in parser:
-    if isinstance(resp, Response):
+    if isinstance(resp, oem.Response):
         ascii_resp = resp.to_ascii()
         encode_format_resp = resp.encode(encode_format)
 ```
@@ -324,11 +326,14 @@ header
 ├── message_id
 ├── message_type
 │   ├── is_response
-│   ├── source
+│   ├── sibling_id
 │   └── format
 ├── port_address
 └── ...
 ```
+
+The `message_id`, `length`, and `message_definition_crc` attributes are read-only;
+the rest can be both read and written.
 
 `Header`s can be converted to a dictionary representation via `to_dict()`.
 
@@ -496,34 +501,34 @@ With these limitations in mind, it is recommended to only load databases dynamic
 
 ```python
 # Load a fully dynamic database
-custom_db = MessageDatabase('path/to/my/database')
+custom_db = ne.MessageDatabase('path/to/my/database.json')
 
 # Access values of the database
-custom_bestpos_type = custom_db.get_message_type('BESTPOS')
-sol_status_enum = db.get_enum_type_by_name('SolStatus')
+custom_bestpos_type = custom_db.get_msg_type('BESTPOS')
+sol_status_enum = custom_db.get_enum_type_by_name('SolStatus')
 
 # Parse based on different databases
-default_db_parser = FileParser("file_name")
-custom_db_parser = FileParser("file_name", message_db=custom_db)
+default_db_parser = oem.FileParser("file_name")
+custom_db_parser = oem.FileParser("file_name", message_db=custom_db)
 
 for msg in default_db_parser:
-    if isinstance(oem_msgs.BESTPOS):        # Correct
+    if isinstance(msg, oem_msgs.BESTPOS):       # Correct
         print(msg)
-    if isinstance(custom_bestpos_type): # DOES NOT WORK!
+    if isinstance(msg, custom_bestpos_type):    # DOES NOT WORK!
         print(msg)
 
 for msg in custom_db_parser:
-    if isinstance(custom_bestpos_type): # Correct
+    if isinstance(msg, custom_bestpos_type):    # Correct
         print(msg)
-    if isinstance(oem_msgs.BESTPOS):        # DOES NOT WORK!
+    if isinstance(msg, oem_msgs.BESTPOS):       # DOES NOT WORK!
         print(msg)
 ```
 
 The built-in message database can also be accessed in a similar way:
 
 ```python
-builtin_db = get_builtin_database()
-bestpos_type = builtin_db.get_message_type('BESTPOS')
+builtin_db = oem.get_builtin_database()
+bestpos_type = builtin_db.get_msg_type('BESTPOS')
 ```
 
 ### Locking

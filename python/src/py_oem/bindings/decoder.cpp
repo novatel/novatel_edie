@@ -99,17 +99,20 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 return decoder.DecodeMessage(raw_payload, header, *metadata);
             },
             "raw_body"_a, "decoded_header"_a, nb::arg("metadata") = nb::none(),
-            nb::sig("def decode_payload(self, raw_payload: bytes, header: Header, metadata: MetaData | None = None) -> Message"),
+            nb::sig("def decode_payload(self, raw_body: bytes, decoded_header: Header, metadata: MetaData | None = None) -> Message | "
+                    "UnknownMessage"),
             R"doc(
             Decode the payload of a message given the associated header.
 
             Args:
-                raw_header: A frame of raw bytes containing the payload information to decode.
+                raw_body: A frame of raw bytes containing the payload information to decode.
+                decoded_header: The already-decoded header describing the payload.
                 metadata: An optional way of supplying data to aid in decoding. If not provided
                     decoding will attempt to use only information from the header.
 
             Returns:
-                A decoded `Message`.
+                A decoded `Message`, or an `UnknownMessage` if no definition was available
+                for the message.
             )doc")
         .def(
             "decode",
@@ -136,15 +139,15 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 default: throw_exception_from_failing_status(status);
                 }
             },
-            "message"_a, nb::sig("def decode(self, raw_message: bytes) -> Message"),
+            "message"_a, nb::sig("def decode(self, message: bytes) -> Message | Response | UnknownMessage"),
             R"doc(
             Decode the message from its raw byte representation.
 
             Args:
-                raw_message: A frame of raw bytes containing the message information to decode.
+                message: A frame of raw bytes containing the message information to decode.
 
             Returns:
-                A decoded `Message` or an `UnknownMessage` whose header was identified but whose payload
-                could not be decoded due to no available message definition.
+                A decoded `Message`, a `Response`, or an `UnknownMessage` whose header was identified
+                but whose payload could not be decoded due to no available message definition.
             )doc");
 }

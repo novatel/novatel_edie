@@ -76,3 +76,8 @@ oem_bindings.MessageType.source$:
     @deprecated("MessageType.source is deprecated; use 'sibling_id' instead.")
     def source(self) -> common_bindings.MEASUREMENT_SOURCE:
         """Where the message originates from."""
+
+oem_bindings.RxConfigHandler.__init__:
+    \from typing_extensions import deprecated
+    @deprecated("RxConfigHandler is deprecated. Decode RXCONFIG messages with a Parser, FileParser or Decoder and read RXCONFIG.embedded_message_data instead.")
+    def __init__(self, message_db: common_bindings.MessageDatabase | None = None) -> None: ...

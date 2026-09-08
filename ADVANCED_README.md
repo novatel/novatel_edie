@@ -58,20 +58,26 @@ struct MessageDataStruct
 
 The `MetaDataStruct` stores message information before it was decoded, or information that is unchanged by decoding and encoding.
 
+The protocol-independent members live on `MetaDataBase`, which every framer's metadata derives from. `MetaDataStruct` is the OEM-specific derived struct and adds only the sibling ID and the GPS time status.
+
 ```cpp
-struct MetaDataStruct
+struct MetaDataBase
 {
-   HEADER_FORMAT eFormat;                               // The format of the message when it was framed.
-   MEASUREMENT_SOURCE eMeasurementSource;               // Also called the sibling ID.
-   TIME_STATUS eTimeStatus;                             // The GPS Time Status of the message.
    bool bResponse;                                      // True if the message is a response to a command.
+   HEADER_FORMAT eFormat;                               // The format of the message when it was framed.
    uint16_t usWeek;                                     // The GPS Week number.
    double dMilliseconds;                                // The GPS Milliseconds.
-   uint32_t uiBinaryMsgLength;                          // Message length according to the binary header. This field is only used if eFormat is HEADER_FORMAT::BINARY.
    uint32_t uiLength;                                   // Length of the entire message, including the header and CRC.
+   uint32_t uiBinaryMsgLength;                          // Message length according to the binary header. This field is only used if eFormat is HEADER_FORMAT::BINARY.
    uint32_t uiHeaderLength;                             // The length of the message header.
-   uint16_t usMessageID;                                // The message ID.
-   uint32_t uiMessageCRC;                               // The message definition CRC.
-   std::string messageName;                             // The name of the message
+   uint16_t usMessageId;                                // The message ID.
+   uint32_t uiMessageCrc;                               // The message definition CRC.
+   std::string messageName;                             // The name of the message.
+};
+
+struct MetaDataStruct : public MetaDataBase
+{
+   uint8_t ucSiblingId;                                 // Also called the measurement source.
+   TIME_STATUS eTimeStatus;                             // The GPS Time Status of the message.
 };
 ```

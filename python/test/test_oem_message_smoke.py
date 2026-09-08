@@ -2,7 +2,8 @@
 
 Scope:
  - Message construction with optional header + scalar/enum/string kwargs
- - setattr on SIMPLE, ENUM, STRING fields after construction
+ - setattr on SIMPLE and ENUM fields after construction
+ - STRING field setter on real messages (CONFIGCODE, SETNAV)
  - Encode/decode round-trip after Python-side mutation
  - Variable-length array setter on a real message (PASSCOM1)
  - Array-specific validation on a real message (RANGE)
@@ -14,8 +15,8 @@ import pytest
 
 import novatel_edie.oem as oem
 from novatel_edie import ENCODE_FORMAT
-from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, RANGE, PASSCOM1, RANGE_obs_Field
-from novatel_edie.oem.enums import SolStatus, SolType, Datum
+from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, RANGE, PASSCOM1, RANGE_obs_Field, CONFIGCODE, SETNAV
+from novatel_edie.oem.enums import SolStatus, SolType, Datum, Security
 
 
 class TestMessageConstruction:
@@ -141,6 +142,79 @@ class TestRoundTrip:
         header_length = len(bytes(encoded.header))
         assert parsed.header.length == len(raw) - header_length - CRC_LENGTH
         assert len(raw) == header_length + parsed.header.length + CRC_LENGTH
+
+
+class TestStringField:
+    """STRING field setter on real messages (CONFIGCODE, SETNAV).
+
+    Separate from TestVariableLengthArray because PASSCOM1.buffer and
+    BESTPOS.base_id are array fields, while these are FIELD_TYPE.STRING.
+    """
+
+    def test_string_kwargs(self):
+        m = CONFIGCODE(
+            config_state=Security.ERASE_TABLE,
+            data1='WJ4HDW',
+            description='TABLECLEAR',
+        )
+        assert m.config_state == Security.ERASE_TABLE
+        assert m.data1 == 'WJ4HDW'
+        assert m.description == 'TABLECLEAR'
+
+    def test_set_string_field(self):
+        m = CONFIGCODE()
+        m.data1 = 'ABCDEFGHIJKLMNO'
+        assert m.data1 == 'ABCDEFGHIJKLMNO'
+
+    def test_set_multiple_string_fields(self):
+        m = CONFIGCODE()
+        m.data1 = 'AAAAAAAAAA'
+        m.data2 = 'BBBBBBBBBB'
+        m.data3 = 'CCCCCCCCCC'
+        assert [m.data1, m.data2, m.data3] == ['AAAAAAAAAA', 'BBBBBBBBBB', 'CCCCCCCCCC']
+
+    def test_setnav_full(self):
+        # Act
+        m = SETNAV(
+            from_latitude=11.0,
+            from_longitude=22.0,
+            to_latitude=33.0,
+            to_longitude=44.0,
+            track_offset=55.0,
+            from_point='ALPHA',
+            to_point='BRAVO',
+        )
+        # Assert
+        assert m.from_latitude == 11.0
+        assert m.from_longitude == 22.0
+        assert m.to_latitude == 33.0
+        assert m.to_longitude == 44.0
+        assert m.track_offset == 55.0
+        assert m.from_point == 'ALPHA'
+        assert m.to_point == 'BRAVO'
+
+    @pytest.mark.parametrize('fmt', [
+        pytest.param(ENCODE_FORMAT.ASCII, id='ascii'),
+        pytest.param(ENCODE_FORMAT.BINARY, id='binary'),
+        ])
+    def test_string_round_trip(self, fmt):
+        # Arrange
+        m = CONFIGCODE(
+            config_state=Security.ERASE_TABLE,
+            data1='WJ4HDW',
+            data2='GM5Z99',
+            description='TABLECLEAR',
+        )
+        # Act
+        parser = oem.Parser()
+        parser.write(bytes(m.encode(fmt).message))
+        parsed = parser.read()
+        # Assert
+        assert isinstance(parsed, CONFIGCODE)
+        assert parsed.data1 == 'WJ4HDW'
+        assert parsed.data2 == 'GM5Z99'
+        assert parsed.description == 'TABLECLEAR'
+
 
 
 class TestVariableLengthArray:
