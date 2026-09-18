@@ -345,10 +345,7 @@ class FixedFieldRegion
         std::memcpy(byteRegion.data() + startIndex_, value_.data(), value_.size());
     }
 
-    void SetFieldValue(const size_t startIndex_, std::string&& value_)
-    {
-        SetFieldValue(startIndex_, static_cast<const std::string&>(value_));
-    }
+    void SetFieldValue(const size_t startIndex_, std::string&& value_) { SetFieldValue(startIndex_, static_cast<const std::string&>(value_)); }
 };
 
 // ---------------------------------------------------------------------------
@@ -1290,10 +1287,7 @@ class CompositeField
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
             break;
         default:
-            if constexpr (std::is_trivially_copyable_v<ValueT>)
-            {
-                SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
-            }
+            if constexpr (std::is_trivially_copyable_v<ValueT>) { SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_)); }
             else { throw std::runtime_error("SetFieldValue<T>(): type T must be trivially copyable for SIMPLE fields"); }
         }
     }
