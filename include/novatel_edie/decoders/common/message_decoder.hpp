@@ -100,14 +100,14 @@ template <typename T> class TypedBuffer
         using iterator_category = std::forward_iterator_tag;
 
       private:
-        const std::byte* data;
+        const std::byte* dataptr;
         size_t index;
 
       public:
-        const_iterator() : data(nullptr), index(0) {}
-        const_iterator(const std::byte* data_, size_t index_) : data(data_), index(index_) {}
+        const_iterator() : dataptr(nullptr), index(0) {}
+        const_iterator(const std::byte* data_, size_t index_) : dataptr(data_), index(index_) {}
 
-        reference operator*() const { return LoadValueFromBuffer<T>(data + (index * sizeof(T))); }
+        reference operator*() const { return LoadValueFromBuffer<T>(dataptr + (index * sizeof(T))); }
 
         const_iterator& operator++()
         {
@@ -122,12 +122,12 @@ template <typename T> class TypedBuffer
             return tmp;
         }
 
-        bool operator==(const const_iterator& other) const { return data == other.data && index == other.index; }
+        bool operator==(const const_iterator& other) const { return dataptr == other.dataptr && index == other.index; }
         bool operator!=(const const_iterator& other) const { return !(*this == other); }
     };
 
-    const_iterator begin() const { return const_iterator(data, 0); }
-    const_iterator end() const { return const_iterator(data, sz); }
+    const_iterator begin() const { return const_iterator(dataptr, 0); }
+    const_iterator end() const { return const_iterator(dataptr, sz); }
 };
 
 // ---------------------------------------------------------------------------
