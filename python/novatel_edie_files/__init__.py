@@ -22,9 +22,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import importlib_metadata
 import importlib_resources
 import os
 import sys
+
+def _confirm_single_distribution():
+    installed_dists = importlib_metadata.packages_distributions().get("novatel_edie", [])
+    if len(installed_dists) > 1:
+        raise ImportError(
+            "Multiple NovAtel EDIE distributions are installed "
+            f"({', '.join(installed_dists)}). Uninstall all but one."
+        )
+
+_confirm_single_distribution()
 
 if sys.platform == "win32":
     os.add_dll_directory(os.path.join(os.path.dirname(__file__), "shared_libs"))
