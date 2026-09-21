@@ -850,10 +850,11 @@ template <typename Derived> class EncoderBase
     //! \param[in] expectedMessageFamily_ The expected message family for the encoder.
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    EncoderBase(std::string expectedMessageFamily_, MessageDatabase::ConstPtr pclMessageDb_ = nullptr,
-                std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fAlignmentFunc_ = MessageDatabase::NoAlign)
-        : sMyExpectedMessageFamily(std::move(expectedMessageFamily_)), fMyAlignmentFunc(std::move(fAlignmentFunc_))
+    EncoderBase(std::string expectedMessageFamily_, MessageDatabase::ConstPtr pclMessageDb_ = nullptr)
+        : sMyExpectedMessageFamily(std::move(expectedMessageFamily_))
     {
+        const auto it = MessageDatabase::GetAlignmentFunctions().find(sMyExpectedMessageFamily);
+        if (it != MessageDatabase::GetAlignmentFunctions().end()) { fMyAlignmentFunc = it->second; }
         static_cast<Derived*>(this)->InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     }

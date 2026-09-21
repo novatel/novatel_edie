@@ -1728,13 +1728,13 @@ class MessageDecoderBase
     //! \param[in] expectedMessageFamily_ The expected message family for the encoder.
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    MessageDecoderBase(std::string expectedMessageFamily_, MessageDatabase::Ptr pclMessageDb_ = nullptr,
-                       std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fAlignmentFunc_ = MessageDatabase::NoAlign)
-        : sMyExpectedMessageFamily(std::move(expectedMessageFamily_)), fMyAlignmentFunc(std::move(fAlignmentFunc_)),
-          pclMyMsgDb(std::move(pclMessageDb_))
+    MessageDecoderBase(std::string expectedMessageFamily_, MessageDatabase::Ptr pclMessageDb_ = nullptr)
+        : sMyExpectedMessageFamily(std::move(expectedMessageFamily_)), pclMyMsgDb(std::move(pclMessageDb_))
     {
+        const auto it = MessageDatabase::GetAlignmentFunctions().find(sMyExpectedMessageFamily);
+        if (it != MessageDatabase::GetAlignmentFunctions().end()) { fMyAlignmentFunc = it->second; }
         InitFieldMaps();
-        if (pclMessageDb_ != nullptr) { LoadJsonDb(std::move(pclMessageDb_)); }
+        if (pclMyMsgDb != nullptr) { LoadJsonDb(std::move(pclMyMsgDb)); }
     }
 
     virtual ~MessageDecoderBase() = default;

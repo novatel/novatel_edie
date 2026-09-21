@@ -136,6 +136,14 @@ inline size_t OemAlignmentFunction(const size_t size, const uintptr_t start, con
     return offset == 0 ? 0 : alignment - offset;
 };
 
+// Register the OEM alignment function with the MessageDatabase at static initialization time
+namespace {
+const bool kRegisteredOemAlignment = [] {
+    novatel::edie::MessageDatabase::RegisterAlignmentFunction("OEM", novatel::edie::oem::OemAlignmentFunction);
+    return true;
+}();
+} // namespace
+
 //-----------------------------------------------------------------------
 //! \struct MetaDataStruct
 //! \brief Structure containing information about a framed and decoded
