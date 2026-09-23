@@ -24,11 +24,11 @@
 // ! \file range_cmp_test.cpp
 // ===============================================================================
 
-#include <gtest/gtest.h>
-
 #include <iomanip>
 #include <sstream>
 #include <vector>
+
+#include <gtest/gtest.h>
 
 #include "novatel_edie/common/test_utils/logger_registry_test.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
