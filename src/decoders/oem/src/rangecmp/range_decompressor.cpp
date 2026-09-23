@@ -26,6 +26,7 @@
 
 #include "novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp"
 
+#include <iterator>
 #include <stdexcept>
 
 using namespace novatel::edie;
@@ -483,16 +484,10 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 {
     using namespace rangecmp4;
 
-    const auto eSource = static_cast<MEASUREMENT_SOURCE>(stMetaData_.ucSiblingId);
+    auto& mMyReferenceBlocks = mMyPerSourceReferenceBlocks[stMetaData_.ucSiblingId];
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
-    if (std::abs(dSecondOffset) < std::numeric_limits<double>::epsilon())
-    {
-        for (auto& it : mMyReferenceBlocks)
-        {
-            if (static_cast<MEASUREMENT_SOURCE>(it.first & 1) == eSource) { it.second = {}; }
-        }
-    }
+    if (std::abs(dSecondOffset) < std::numeric_limits<double>::epsilon()) { mMyReferenceBlocks.clear(); }
 
     stRangeMessage_.uiNumberOfObservations = 0;
     uint32_t uiBitOffset = 0;
@@ -556,7 +551,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
             while (includedSignals[uiPrnIndex])
             {
                 const SIGNAL_TYPE signal = aSignals[PopLsb(includedSignals[uiPrnIndex])];
-                const uint64_t key = MakeKey(system, prn, signal, eSource);
+                const uint64_t key = MakeKey(system, prn, signal, static_cast<MEASUREMENT_SOURCE>(stMetaData_.ucSiblingId));
                 MeasurementSignalBlock stBlock;
 
                 if (stMbHeader.bIsDifferentialData) // This is a differential block.
@@ -608,7 +603,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                     PopulateNextRangeData(stRangeData, stBlock, stMetaData_, stCtStatus, prn, stMbHeader.cGlonassFrequency);
 
                     // Always store reference blocks.
-                    mMyReferenceBlocks[key] = std::pair(stMbHeader, stBlock);
+                    mMyReferenceBlocks[key] = ReferenceBlock(stMbHeader, stBlock);
                 }
             }
 

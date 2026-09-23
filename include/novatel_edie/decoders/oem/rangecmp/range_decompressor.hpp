@@ -119,7 +119,9 @@ class RangeDecompressor
 
     std::unordered_map<uint64_t, rangecmp2::LockTimeInfo> mMyRangeCmp2LockTimes;
     std::unordered_map<uint64_t, rangecmp4::LockTimeInfo> mMyRangeCmp4LockTimes;
-    std::unordered_map<uint64_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>> mMyReferenceBlocks;
+
+    using ReferenceBlock = std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>;
+    std::unordered_map<uint8_t, std::unordered_map<uint64_t, ReferenceBlock>> mMyPerSourceReferenceBlocks;
 };
 
 } // namespace novatel::edie::oem
