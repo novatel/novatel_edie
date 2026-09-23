@@ -543,7 +543,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
             }
 
             const uint32_t prn = PopLsb(satellites) + 1;
-            const uint32_t uiIncludedSignalCount = PopCount(includedSignals[uiPrnIndex]);
+            const auto uiNumRangeObsBefore = stRangeMessage_.uiNumberOfObservations;
             bool bPrimaryBlock = true;
             double primaryPseudorange{};
             double primaryDoppler{};
@@ -608,11 +608,11 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
             }
 
             // Update the grouping bit in the status word if multiple signals for this PRN are counted.
-            if (uiIncludedSignalCount > 1 && uiIncludedSignalCount <= stRangeMessage_.uiNumberOfObservations)
+            if (stRangeMessage_.uiNumberOfObservations - uiNumRangeObsBefore > 1)
             {
-                for (uint32_t uiIndex = uiIncludedSignalCount; uiIndex > 0; uiIndex--)
+                for (uint32_t uiIndex = uiNumRangeObsBefore; uiIndex < stRangeMessage_.uiNumberOfObservations; uiIndex++)
                 {
-                    stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations - uiIndex].uiChannelTrackingStatus |= CTS_GROUPING_MASK;
+                    stRangeMessage_.astRangeData[uiIndex].uiChannelTrackingStatus |= CTS_GROUPING_MASK;
                 }
             }
         }
