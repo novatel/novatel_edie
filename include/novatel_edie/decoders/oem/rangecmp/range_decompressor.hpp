@@ -58,8 +58,9 @@ class RangeDecompressor
     //! Reset the decompressor to handle new datasets.
     void Reset()
     {
-        for (auto& it : mMyRangeCmp2LockTimes) { it.second = {}; }
-        for (auto& it : mMyRangeCmp4LockTimes) { it.second = {}; }
+        mMyRangeCmp2LockTimes.clear();
+        mMyRangeCmp4LockTimes.clear();
+        mMyPerSourceReferenceBlocks.clear();
     }
 
     //! Decompresses a RANGECMP message provided in a buffer and overwrites it with the equivalent RANGE message.
