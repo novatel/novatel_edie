@@ -122,8 +122,7 @@ enum class CONSTELLATION
 };
 
 // Register the OEM alignment function with the MessageDatabase at static initialization time
-namespace {
-const bool kRegisteredOemAlignment = [] {
+inline const bool kRegisteredOemAlignment = [] {
     novatel::edie::MessageDatabase::RegisterAlignmentFunction("OEM", [](const size_t size, const uintptr_t start, const uintptr_t ptr) {
         const size_t alignment = std::min(size_t{4}, size);
         const size_t offset = (ptr - start) % alignment;
@@ -131,7 +130,6 @@ const bool kRegisteredOemAlignment = [] {
     });
     return true;
 }();
-} // namespace
 
 //-----------------------------------------------------------------------
 //! \struct MetaDataStruct
