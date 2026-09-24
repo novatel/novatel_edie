@@ -326,11 +326,6 @@ class FixedFieldRegion
         std::memcpy(byteRegion.data() + startIndex_, values_.data(), values_.size() * sizeof(T));
     }
 
-    template <typename T> void SetFieldValue(const size_t startIndex_, std::vector<T>&& values_)
-    {
-        SetFieldValue(startIndex_, static_cast<const std::vector<T>&>(values_));
-    }
-
     // ---------------------------------------------------------------------------
     //! \brief Set field values from a string.
     //!
@@ -344,8 +339,6 @@ class FixedFieldRegion
         if (startIndex_ + value_.size() > byteRegion.size()) { throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion"); }
         std::memcpy(byteRegion.data() + startIndex_, value_.data(), value_.size());
     }
-
-    void SetFieldValue(const size_t startIndex_, std::string&& value_) { SetFieldValue(startIndex_, static_cast<const std::string&>(value_)); }
 };
 
 // ---------------------------------------------------------------------------
@@ -646,33 +639,6 @@ class FlatFieldArray
     }
 
     // ---------------------------------------------------------------------------
-    //! \brief Set field values from a vector.
-    //!
-    //! \tparam T The element type (must be trivially copyable and not bool).
-    //! \param[in] fieldIndex_ The index of the field.
-    //! \param[in] startIndex_ The index in the field's byte region.
-    //! \param[in] values_ Rvalue reference to vector of values to move.
-    //! \throws std::runtime_error on buffer overflow or invalid index.
-    // ---------------------------------------------------------------------------
-    template <typename T> void SetFieldValue(const size_t fieldIndex_, const size_t startIndex_, std::vector<T>&& values_)
-    {
-        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + startIndex_, std::move(values_));
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Set field values from a string.
-    //!
-    //! \param[in] fieldIndex_ The index of the field.
-    //! \param[in] startIndex_ The index in the field's byte region.
-    //! \param[in] value_ Rvalue reference to string to move.
-    //! \throws std::runtime_error on buffer overflow or invalid index.
-    // ---------------------------------------------------------------------------
-    void SetFieldValue(const size_t fieldIndex_, const size_t startIndex_, std::string&& value_)
-    {
-        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + startIndex_, std::move(value_));
-    }
-
-    // ---------------------------------------------------------------------------
     //! \brief Set field from a given value.
     //!
     //! \tparam T The value type (must be trivially copyable).
@@ -681,9 +647,9 @@ class FlatFieldArray
     //! \param[in] value_ Rvalue reference to value to forward.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
-    template <typename T> void SetFieldValue(const size_t fieldIndex_, const BaseField& fd_, T&& value_)
+    template <typename T> void SetFieldValue(const size_t fieldIndex_, const BaseField& fd_, const T& value_)
     {
-        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + fd_.index, std::forward<T>(value_));
+        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + fd_.index, value_);
     }
 
     struct const_iterator
