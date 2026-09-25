@@ -15,10 +15,19 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build g++ jq bc
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install scipy
 
       - name: Install Conan
         uses: turtlebrowser/get-conan@main
@@ -44,4 +53,6 @@ jobs:
           cmake --build build-current --parallel --config Release
 
       - name: Compare benchmarks
-        run: python3 scripts/compare_benchmarks.py ./build-main/bin/linux-x86_64-gnu-Release/benchmark ./build-current/bin/linux-x86_64-gnu-Release/benchmark
+        run: |
+          . .venv/bin/activate
+          python3 scripts/compare_benchmarks.py ./build-main/bin/linux-x86_64-gnu-Release/benchmark ./build-current/bin/linux-x86_64-gnu-Release/benchmark
