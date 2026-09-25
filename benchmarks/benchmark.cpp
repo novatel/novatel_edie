@@ -316,13 +316,13 @@ static void DecompressRangeCmp4(benchmark::State& state) { DecompressRangeCmpGen
 static void DecompressRangeCmp5(benchmark::State& state) { DecompressRangeCmpGeneral(state, RANGECMP5_MSG_ID, rangecmp5Log.data()); }
 
 BENCHMARK(Parse);
-BENCHMARK(FrameAscii)->MinTime(2.0);
-BENCHMARK(FrameAbbAscii)->MinTime(2.0);
-BENCHMARK(FrameBinary)->MinTime(2.0);
-BENCHMARK(FrameJson)->MinTime(2.0);
-BENCHMARK(FrameAsciiFramerManager)->MinTime(2.0);
-BENCHMARK(FrameAbbAsciiFramerManager)->MinTime(2.0);
-BENCHMARK(FrameBinaryFramerManager)->MinTime(2.0);
+BENCHMARK(FrameAscii);
+BENCHMARK(FrameAbbAscii);
+BENCHMARK(FrameBinary);
+BENCHMARK(FrameJson);
+BENCHMARK(FrameAsciiFramerManager);
+BENCHMARK(FrameAbbAsciiFramerManager);
+BENCHMARK(FrameBinaryFramerManager);
 BENCHMARK(DecodeAsciiLog);
 BENCHMARK(DecodeAsciiRangeLog);
 BENCHMARK(DecodeAbbrevAsciiLog);
