@@ -58,8 +58,9 @@ class RangeDecompressor
     //! Reset the decompressor to handle new datasets.
     void Reset()
     {
-        for (auto& it : mMyRangeCmp2LockTimes) { it.second = {}; }
-        for (auto& it : mMyRangeCmp4LockTimes) { it.second = {}; }
+        mMyRangeCmp2LockTimes.clear();
+        mMyRangeCmp4LockTimes.clear();
+        mMyPerSourceReferenceBlocks.clear();
     }
 
     //! Decompresses a RANGECMP message provided in a buffer and overwrites it with the equivalent RANGE message.
@@ -119,7 +120,9 @@ class RangeDecompressor
 
     std::unordered_map<uint64_t, rangecmp2::LockTimeInfo> mMyRangeCmp2LockTimes;
     std::unordered_map<uint64_t, rangecmp4::LockTimeInfo> mMyRangeCmp4LockTimes;
-    std::unordered_map<uint64_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>> mMyReferenceBlocks;
+
+    using ReferenceBlock = std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>;
+    std::unordered_map<uint8_t, std::unordered_map<uint64_t, ReferenceBlock>> mMyPerSourceReferenceBlocks;
 };
 
 } // namespace novatel::edie::oem

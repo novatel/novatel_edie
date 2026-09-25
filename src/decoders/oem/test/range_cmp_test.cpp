@@ -24,6 +24,10 @@
 // ! \file range_cmp_test.cpp
 // ===============================================================================
 
+#include <iomanip>
+#include <sstream>
+#include <vector>
+
 #include <gtest/gtest.h>
 
 #include "novatel_edie/common/test_utils/logger_registry_test.hpp"
@@ -428,6 +432,131 @@ TEST_F(RangeCmpTest, DECOMPRESS_RANGECMPA4_DIFF_3)
 
     ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
     compareStrings(aucCompressionBuffer, aucDifferentialDecompressedData);
+}
+
+// When a differential block is skipped due to missing reference data, subsequent blocks should
+// still be decoded.
+TEST_F(RangeCmpTest, RANGECMP4_SKIP_DIFFERENTIAL_MISSING_REFERENCE)
+{
+    constexpr char aucCompressedData[] = "#RANGECMP4A,COM1,0,2.500,FINESTEERING,0,2.500,02000020,fb0e,32768;37,010000060000000000000200070000000000000000000000e0010000000000000000000000*7783b747\r\n";
+    constexpr char aucDecompressedData[] = "#RANGEA,COM1,0,2.5,FINESTEERING,0,2.500,02000020,fb0e,32768;1,11,0,0.000,0.020,-0.000000,0.003,-0.000,0.0,262.144,08001404*12b4b8a7\r\n";
+
+    char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    MetaDataStruct metadata;
+    
+    std::memcpy(aucCompressionBuffer, aucCompressedData, sizeof(aucCompressedData) - 1);
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucCompressedData) - 1);
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+    compareStrings(aucCompressionBuffer, aucDecompressedData);
+}
+
+// Lock times should continue to accumulate even after the max entry in the lock time table
+// has been reached.
+TEST_F(RangeCmpTest, RANGECMP4_LARGE_LOCK_TIME)
+{
+    constexpr char aucCompressedData1[] = "#RANGECMP4A,COM1,0,0.000,FINESTEERING,0,0.000,02000020,fb0e,32768;27,01000002000000000000020001003c000000000000000000000000*b83f0bf6\r\n";
+    constexpr char aucCompressedData2[] = "#RANGECMP4A,COM1,0,1000.000,FINESTEERING,0,1000.000,02000020,fb0e,32768;27,01000002000000000000020001003c000000000000000000000000*e3a15b34\r\n";
+    constexpr char aucDecompressedData[] = "#RANGEA,COM1,0,104.0,FINESTEERING,0,1000.000,02000020,fb0e,32768;1,10,0,0.000,0.020,-0.000000,0.003,-0.000,0.0,1262.144,08001404*2b036e31\r\n";
+
+    char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    MetaDataStruct metadata;
+    
+    std::memcpy(aucCompressionBuffer, aucCompressedData1, sizeof(aucCompressedData1) - 1);
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucCompressedData1) - 1);
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+
+    metadata = {};
+    std::memcpy(aucCompressionBuffer, aucCompressedData2, sizeof(aucCompressedData2) - 1);
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucCompressedData2) - 1);
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+    compareStrings(aucCompressionBuffer, aucDecompressedData);
+}
+
+// RANGECMP4 messages landing on whole-second boundaries should clear existing (stale)
+// reference blocks from previous messages.
+TEST_F(RangeCmpTest, RANGECMP4_WHOLE_SECOND_CLEAR_REFERENCE)
+{
+    constexpr char aucReferenceCompressedData[] = "#RANGECMP4A,COM1,0,1,FINESTEERING,2241,1,02000020,fb0e,32768;27,010001000000000000000100010000000000000000000000000000*7c7d5a89\r\n";
+    constexpr char aucReferenceEmpty[] = "#RANGECMP4A,COM1,0,2,FINESTEERING,2241,2,02000020,fb0e,32768;2,0000*d8f6835b\r\n";
+    constexpr char aucDifferentialData[] = "#RANGECMP4A,COM1,0,2.5,FINESTEERING,2241,2.5,02000020,fb0e,32768;23,0100010000000000000001000300000000000000000000*06c1a35e\r\n";
+    constexpr char aucEmptyDecompressedData[] = "#RANGEA,COM1,0,2.5,FINESTEERING,2241,2.500,02000020,fb0e,32768;0*6a507381\r\n";
+
+    char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    MetaDataStruct metadata;
+    
+    std::memcpy(aucCompressionBuffer, aucReferenceCompressedData, sizeof(aucReferenceCompressedData) - 1);
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucReferenceCompressedData) - 1);
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+
+    metadata = {};
+    std::memcpy(aucCompressionBuffer, aucReferenceEmpty, sizeof(aucReferenceEmpty) - 1);
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucReferenceEmpty) - 1);
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+
+    metadata = {};
+    std::memcpy(aucCompressionBuffer, aucDifferentialData, sizeof(aucDifferentialData) - 1);
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucDifferentialData) - 1);
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+    compareStrings(aucCompressionBuffer, aucEmptyDecompressedData);
+}
+
+// Calling Reset() on the range decompressor should clear reference blocks.
+TEST_F(RangeCmpTest, RANGECMP4_RESET_CLEAR_REFERENCE)
+{
+    constexpr char aucReferenceCompressedData[] = "#RANGECMP4A,COM1,0,43.0,FINESTEERING,2241,512874.000,02000020,fb0e,32768;994,e300d0311024000000001200ffff43b3fb9aa271f4a0e5dcf20fab8ca1897d517a09388ff9070068824f02c9d6b399fa6e0520571c84c00fc13f00ee1b4200003df069dce9873394bdaf00826e84c4f7329b24c06b3c0000a0d3bdd1e5ed5dc64ae1f5e36ebcd1e87ec86c0686e5fb0b00fcbbafc108d2c6543f6080fdbed52fdb13d15d00141ce0fe87f3f7340abad6144aec43102885fbd47b19440d68d917ecfff0d4feea1980226f7de7feb1a26b3f645f260602310580040062dc1b35dd2ef52bc256816e521625ee87ea53e0086e0000c04dfc111d7440ced42e1f88f1fbfe0c7e88f907d8190cfc7f071c2800000000100980ffbf61bcbb1fe1d6f31156783ffe18fb4062dc832cf6003a42bf0100d6005f642ea9bc30adb800e4d27488730fb28f0142600002005acdfb91a5571ef494ba0528c4397ec63d48df05a4eb02fc7f3083ef477ad9824253e3d84021ef8874f720db31c020511800a0e4b2378aead661489c7f029c61f79fdb03b98d000f06e1ff07b0ef7e24ee8cbe52d900024487417f740f43b2032f7000f91f56b87b1241d02639652d18d8c68121b23d4c9f07e867070a00501fed8bfe3ab21616aefabf51437010f1ed697af1e72d156a516080018739f7401a29c0741fd8ff81802848140000001400feff21c5bd9130e9982b13c2eec3d57551f25e04bd06ea68f9d30074b7361a4e5f8c68852d000b6fd5bb5bcf20ed808407800e8084f735b56433018c370f20e6507eedfb106c0980e6051003d0f99e064b25b47b219f060211808f831fc1400256b88222000ae28fdc899c8c2b601e02d5220191f1215629006bd5400140e87b1a730e671a56952130d12ca20e7e84e507086a0d240088745f845a56b6ca304c01edc6d477bf0fe18a01cc5d80100029edaf5a3477345a6061800f63834cf7327719704223180d00216058506000001410b6b66ddb4255fb299e4db659a9a2e13f90222195bd55a5ffa77ff5e102b8683f9585fede2dad10fd323517b4b1bf522802e6ba3e0b00c9ef439a7d9bced67a01e0e6d5fe8ff720df0a608503880160163e0890d4a7d5badaf8bbfc20f1f61e8418000e7ffd5b0184be0f39eda46759cd9a81f779fc7fde83f85ec010a880248002f7433e6b36350c384f70d609c47b7b183103d06c2148fd50f43e86fc1e1a6a1d660626e7602f7a0f8266022a7982d61f36e283f49db196a8447a01f9b3ffb1f021ca8460f9a050124057fba9d73c86854975dfaf156b21b73d8c940a98f5f16101587f1f5239a39bb2f45402d6eab6f7bc0721f47e5d1bc1f50ff1ef43e0ae54fb956e64602ea588cef720fed1ff5f2ce00210000000000000001400864df6b7216c1f85749ee8affdf47f8b7be3551a8864f6fbff*4fbadb66\r\n";
+    constexpr char aucDifferentialCompressedData[] = "#RANGECMP4A,COM1,0,43.0,FINESTEERING,2241,512874.500,02000020,fb0e,32768;795,e300d0311024000000001200ffff47aefb9a0a00000190f55fd09ec801003b00657d04c1a76901c036c0e0ff2df0635200900d30f8470a7c921900500468fe9ff95e26080015019a7f24ba37ea00001cc0c1ff8dee873000500660f0c7bafb221200800334fa3fd79ea80400eb008b7e6cbfa79901403a80b1ff83ef656200000f60ecc74dfbab23002c0514fb7fcb9e6c06004501c47e64b837aa01c04240daff2dee876200e01080f6c748fc110b00380234fa7f063fe403008f008dbe030e14000000008804c0ffdfb1f07ea403009a00e3fd97b80741018023c0781f15f045a20010167011409a7b10200074055c0451f47e040500e00089ffbfb8072901003940e21f8fef471600f00600e47fba7b100c00b40100f991cbde880200910031fe4fb70702018024408c1f07ef672c00f008a0deffa07b9808007802a4f791ee9ea607000601100044b687f9010041c0031023ed8b9000501a30f77fe4b7271a0380810066006bee81d2006020901900015190280000002800fcff47857ba30700d40038f6dff15e06ffffb0ffe57c14b7362a0080fdff46ffddad87daff6ffc0fc447bbfb1a1300dc02fcf91ffb3e4402005e00f77d14bea759008012404fff61f0430800a00280d1473dfc19070010012cf5df181fc401004700787d14bea741004007c01dff71f0431400200290c947a2fba21000a80258f85ffd3e4403008600557e44b4bf2a02805540d1ff7dee654800100940f60342c0b0a0c0000028206c6ddbb68daaf6533500900688e8bf93fd55010042007afa18684fd501002a008ffedbd85f3900400a40d98fdaf7311f00680580faffe23d4c0700220142fd38850fa20300840084ffcfde834000200840af8fccf7311600a80648f7ffe73dc802008e009afc08703f240000300051ffbfdbc3a000a01f20ef8fa0f7310900800160e93fe73d0c0600ea00c4fb78880fc202006f008aff53e18328002008a0b28facf6530f00a80490e83fb53d500300c20022fcf87e1f0200001780aafe6bdec32800e009009c8ff0f7212000480400f03ff23d480400aa00967904000000000000000580638e3d6ef3ff8dfe33f60f716f6bfeffa37f8c1d*a9430299\r\n";
+    constexpr char aucEmptyDecompressedData[] = "#RANGEA,COM1,0,43.0,FINESTEERING,2241,512874.500,02000020,fb0e,32768;0*8f36b634\r\n";
+
+    char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    MetaDataStruct metadata;
+
+    std::memcpy(aucCompressionBuffer, aucReferenceCompressedData, sizeof(aucReferenceCompressedData) - 1);
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucReferenceCompressedData) - 1);
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+
+    pclMyRangeDecompressor->Reset(); // clear reference data
+
+    std::memcpy(aucCompressionBuffer, aucDifferentialCompressedData, sizeof(aucDifferentialCompressedData) - 1);
+    metadata = {};
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucDifferentialCompressedData) - 1);
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+    compareStrings(aucCompressionBuffer, aucEmptyDecompressedData);
+}
+
+// The grouping flag should only be set if multiple signals are present for an SV in the
+// output RANGE log. If multiple signals are present in a RANGECMP4 message but no more than
+// one signal gets written to the output RANGE log (i.e. some signals are skipped due to
+// missing reference data), the grouping flag should not be set.
+TEST_F(RangeCmpTest, RANGECMP4_GROUPING_SKIPPED_DIFFERENTIAL)
+{
+    constexpr char aucCmpData[] = "#RANGECMP4A,COM1,0,1.5,FINESTEERING,2241,1.5,02000020,fb0e,32768;61,01000700000000000000030035000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000*aac299f4\r\n";
+    constexpr char aucRangeData[] = "#RANGEA,COM1,0,1.5,FINESTEERING,2241,1.500,02000020,fb0e,32768;2,1,0,0.000,0.020,-0.000000,0.003,-0.000,0.0,0.000,0000140b,2,0,0.000,0.020,-0.000000,0.003,-0.000,0.0,0.000,0000140b*3da91343\r\n";
+    char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    std::memcpy(aucCompressionBuffer, aucCmpData, sizeof(aucCmpData) - 1);
+
+    MetaDataStruct metadata;
+    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    metadata.uiLength = static_cast<uint32_t>(sizeof(aucCmpData) - 1);
+
+    ASSERT_EQ(STATUS::SUCCESS,
+              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+    compareStrings(aucCompressionBuffer, aucRangeData);
 }
 
 TEST_F(RangeCmpTest, DECOMPRESS_RANGECMPA5_1)
