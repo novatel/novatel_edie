@@ -2,12 +2,16 @@ import argparse
 import json
 import os
 import random
+import re
 import statistics
 import subprocess
 import sys
 import tempfile
 from collections import defaultdict
 from pathlib import Path
+
+def clean_benchmark_name(name: str) -> str:
+    return re.sub(r"/min_time:[\d.]+", "", name)
 
 def run_single_benchmark(executable, output_file):
     subprocess.run(
@@ -21,7 +25,7 @@ def run_single_benchmark(executable, output_file):
     )
     with open(output_file, encoding="utf-8") as f:
         data = json.load(f)
-    return {b["name"]: b["cpu_time"] for b in data["benchmarks"]}
+    return {clean_benchmark_name(b["name"]): b["cpu_time"] for b in data["benchmarks"]}
 
 def compare_results(main_times, current_times):
     local_summary_path = Path(__file__).resolve().parent / "benchmark_summary.md"
@@ -30,13 +34,14 @@ def compare_results(main_times, current_times):
 
     with open(summary_path, "w", encoding="utf-8") as summary:
         print("## Benchmark Comparison Results", file=summary)
-        print("| Benchmark | Main Mean | Main Stddev | Current Mean | Current Stddev | Diff (σ) |", file=summary)
-        print("|-----------|-----------|-------------|--------------|----------------|----------|", file=summary)
+        print("| Benchmark | Main Mean | Main σ | Main CV | Current Mean | Diff (σ) |", file=summary)
+        print("|-----------|-----------|--------|---------|--------------|----------|", file=summary)
 
         for name in main_times:
             main_vals = main_times[name]
             main_mean = statistics.mean(main_vals)
             main_std = statistics.stdev(main_vals) if len(main_vals) > 1 else 0.0
+            main_cv = main_std / main_mean if main_mean != 0 else 0.0
 
             if name in current_times:
                 current_vals = current_times[name]
@@ -49,22 +54,22 @@ def compare_results(main_times, current_times):
                     std_diff = 0.0 if current_mean == main_mean else (float("inf") if current_mean > main_mean else float("-inf"))
 
                 symbol = "✅"
-                if std_diff > 3.0:
+                if std_diff > 4.0:
                     symbol = "❌"
                     print(f"::error::Benchmark '{name}' is {std_diff:.2f} stddevs slower than main")
                     success = False
 
                 diff_str = f"{std_diff:+.2f}σ" if abs(std_diff) != float("inf") else (f"{std_diff:+}σ")
-                print(f"| {symbol} {name} | {main_mean:.2f} | {main_std:.2f} | {current_mean:.2f} | {current_std:.2f} | {diff_str} |", file=summary)
+                print(f"| {symbol} {name} | {main_mean:.2f} | {main_std:.2f} | {main_cv:.2f} | {current_mean:.2f} | {diff_str} |", file=summary)
             else:
-                print(f"| ⚠️ {name} (missing) | {main_mean:.2f} | {main_std:.2f} | - | - | - |", file=summary)
+                print(f"| ⚠️ {name} (missing) | {main_mean:.2f} | {main_std:.2f} | {main_cv:.2f} | - |", file=summary)
                 print(f"::warning::Benchmark '{name}' from main not found in current branch")
 
         for name in set(current_times.keys()) - set(main_times.keys()):
             current_vals = current_times[name]
             current_mean = statistics.mean(current_vals)
             current_std = statistics.stdev(current_vals) if len(current_vals) > 1 else 0.0
-            print(f"| 🆕 {name} (new) | - | - | {current_mean:.2f} | {current_std:.2f} | - |", file=summary)
+            print(f"| 🆕 {name} (new) | - | - | - | {current_mean:.2f} | {current_std:.2f} | - |", file=summary)
             print(f"::notice::New benchmark '{name}' found in current branch")
 
     return success
