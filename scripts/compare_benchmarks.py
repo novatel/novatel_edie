@@ -1,74 +1,111 @@
-import json
-import sys
-import subprocess
 import argparse
+import json
 import os
+import random
+import statistics
+import subprocess
+import sys
 import tempfile
+from collections import defaultdict
 from pathlib import Path
 
-def compare_benchmark_outputs(main_file, current_file):
-    with open(current_file, encoding="utf-8") as f:
-        current_data = json.load(f)
+def run_single_benchmark(executable, output_file):
+    subprocess.run(
+        [
+            executable,
+            "--benchmark_repetitions=1",
+            "--benchmark_out_format=json",
+            f"--benchmark_out={output_file}",
+        ],
+        check=True,
+    )
+    with open(output_file, encoding="utf-8") as f:
+        data = json.load(f)
+    return {b["name"]: b["cpu_time"] for b in data["benchmarks"]}
 
-    with open(main_file, encoding="utf-8") as f:
-        main_data = json.load(f)
-
-    current_dict = {b["name"]: b["real_time"] for b in current_data["benchmarks"] if b["name"].strip().endswith("_median")}
-    main_dict = {b["name"]: b["real_time"] for b in main_data["benchmarks"] if b["name"].strip().endswith("_median")}
-
+def compare_results(main_times, current_times):
     local_summary_path = Path(__file__).resolve().parent / "benchmark_summary.md"
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY") or local_summary_path
     success = True
 
     with open(summary_path, "w", encoding="utf-8") as summary:
         print("## Benchmark Comparison Results", file=summary)
-        print("| Benchmark | Main median (ns) | Current median (ns) | Difference |", file=summary)
-        print("|-----------|------------------|---------------------|------------|", file=summary)
+        print("| Benchmark | Main Mean | Main Stddev | Current Mean | Current Stddev | Diff (σ) |", file=summary)
+        print("|-----------|-----------|-------------|--------------|----------------|----------|", file=summary)
 
-        for name in main_dict:
-            main_time = main_dict[name]
-            current_time = current_dict.get(name)
-            if current_time is not None:
-                diff_pct = ((current_time - main_time) / main_time) * 100
+        for name in main_times:
+            main_vals = main_times[name]
+            main_mean = statistics.mean(main_vals)
+            main_std = statistics.stdev(main_vals) if len(main_vals) > 1 else 0.0
+
+            if name in current_times:
+                current_vals = current_times[name]
+                current_mean = statistics.mean(current_vals)
+                current_std = statistics.stdev(current_vals) if len(current_vals) > 1 else 0.0
+
+                if main_std > 0:
+                    std_diff = (current_mean - main_mean) / main_std
+                else:
+                    std_diff = 0.0 if current_mean == main_mean else (float("inf") if current_mean > main_mean else float("-inf"))
+
                 symbol = "✅"
-                if diff_pct > 10:
+                if std_diff > 3.0:
                     symbol = "❌"
-                    print(f"::error::Benchmark '{name}' is {diff_pct:.2f}% slower than main")
+                    print(f"::error::Benchmark '{name}' is {std_diff:.2f} stddevs slower than main")
                     success = False
-                print(f"| {symbol} {name} | {main_time:.2f} | {current_time:.2f} | {diff_pct:+.2f}% |", file=summary)
+
+                diff_str = f"{std_diff:+.2f}σ" if abs(std_diff) != float("inf") else (f"{std_diff:+}σ")
+                print(f"| {symbol} {name} | {main_mean:.2f} | {main_std:.2f} | {current_mean:.2f} | {current_std:.2f} | {diff_str} |", file=summary)
             else:
-                print(f"| ⚠️ {name} (missing) | {main_time:.2f} | - | - |", file=summary)
+                print(f"| ⚠️ {name} (missing) | {main_mean:.2f} | {main_std:.2f} | - | - | - |", file=summary)
                 print(f"::warning::Benchmark '{name}' from main not found in current branch")
 
-        for name in set(current_dict.keys()) - set(main_dict.keys()):
-            print(f"| 🆕 {name} (new) | - | {current_dict[name]:.2f} | - |", file=summary)
+        for name in set(current_times.keys()) - set(main_times.keys()):
+            current_vals = current_times[name]
+            current_mean = statistics.mean(current_vals)
+            current_std = statistics.stdev(current_vals) if len(current_vals) > 1 else 0.0
+            print(f"| 🆕 {name} (new) | - | - | {current_mean:.2f} | {current_std:.2f} | - |", file=summary)
             print(f"::notice::New benchmark '{name}' found in current branch")
 
     return success
 
-def run_benchmark(executable, repetitions, output_file):
-    subprocess.run([executable, f"--benchmark_repetitions={repetitions}", "--benchmark_out_format=json",
-                    "--benchmark_report_aggregates_only=true", f"--benchmark_out={output_file}"], check=True)
-
 def main():
-    parser = argparse.ArgumentParser(description="Run and compare benchmark results between two executables.")
+    parser = argparse.ArgumentParser(description="Run interleaved benchmarks and compare CPU times.")
     parser.add_argument("main", help="Path to the main benchmark executable")
     parser.add_argument("current", help="Path to the current benchmark executable")
-    parser.add_argument("--repetitions", type=int, default=10, help="Number of times to repeat each benchmark")
+    parser.add_argument("--repetitions", type=int, default=10, help="Number of repetitions per executable")
     args = parser.parse_args()
 
+    main_times = defaultdict(list)
+    current_times = defaultdict(list)
+    main_runs = 0
+    current_runs = 0
+
     with tempfile.TemporaryDirectory() as tmp_dir:
-        main_json = Path(tmp_dir) / "main_benchmark.json"
-        current_json = Path(tmp_dir) / "current_benchmark.json"
+        tmp_output = Path(tmp_dir) / "output.json"
 
-        try:
-            run_benchmark(args.main, args.repetitions, str(main_json))
-            run_benchmark(args.current, args.repetitions, str(current_json))
-        except subprocess.CalledProcessError as e:
-            print(f"Error running benchmarks: {e}")
-            sys.exit(1)
+        for _ in range(args.repetitions * 2):
+            if main_runs < args.repetitions and current_runs < args.repetitions:
+                run_main = random.random() < 0.5
+            elif main_runs < args.repetitions:
+                run_main = True
+            else:
+                run_main = False
 
-        return compare_benchmark_outputs(main_json, current_json)
+            try:
+                if run_main:
+                    for name, cpu_time in run_single_benchmark(args.main, tmp_output).items():
+                        main_times[name].append(cpu_time)
+                    main_runs += 1
+                else:
+                    for name, cpu_time in run_single_benchmark(args.current, tmp_output).items():
+                        current_times[name].append(cpu_time)
+                    current_runs += 1
+            except subprocess.CalledProcessError as e:
+                print(f"Error running benchmark: {e}")
+                sys.exit(1)
+
+    return compare_results(main_times, current_times)
 
 if __name__ == "__main__":
     if not main():
