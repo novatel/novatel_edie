@@ -365,6 +365,7 @@ int main(int argc, char** argv)
     if (setenv("TEST_RESOURCE_PATH", strResourceVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set resource path."); }
 #endif
 
+    benchmark::MaybeReenterWithoutASLR(argc, argv);
     benchmark::Initialize(&argc, argv);
     benchmark::RunSpecifiedBenchmarks();
     benchmark::Shutdown();
