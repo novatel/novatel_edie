@@ -28,6 +28,7 @@
 #define OEM_MESSAGE_DECODER_HPP
 
 #include "novatel_edie/decoders/common/message_decoder.hpp"
+#include "novatel_edie/decoders/oem/common.hpp"
 
 namespace novatel::edie::oem {
 

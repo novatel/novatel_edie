@@ -121,20 +121,15 @@ enum class CONSTELLATION
     GNSS
 };
 
-//-----------------------------------------------------------------------
-//! \brief Function to compute alignment padding for OEM messages
-//!
-//! \param[in] size The size of the field to be decoded/encoded.
-//! \param[in] start Pointer to the start of the message buffer.
-//! \param[in] ptr Pointer to the current position in the message buffer.
-//! \return The number of padding bytes needed to align the field.
-//-----------------------------------------------------------------------
-inline size_t OemAlignmentFunction(const size_t size, const uintptr_t start, const uintptr_t ptr)
-{
-    size_t alignment = std::min(size_t{4}, size);
-    size_t offset = (ptr - start) % alignment;
-    return offset == 0 ? 0 : alignment - offset;
-};
+// Register the OEM alignment function with the MessageDatabase at static initialization time
+inline const bool kRegisteredOemAlignment = [] {
+    novatel::edie::MessageDatabase::RegisterAlignmentFunction("OEM", [](const size_t size, const uintptr_t start, const uintptr_t ptr) {
+        const size_t alignment = std::min(size_t{4}, size);
+        const size_t offset = (ptr - start) % alignment;
+        return offset == 0 ? 0 : alignment - offset;
+    });
+    return true;
+}();
 
 //-----------------------------------------------------------------------
 //! \struct MetaDataStruct

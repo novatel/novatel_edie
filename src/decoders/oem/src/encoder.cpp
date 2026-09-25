@@ -57,7 +57,7 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
 }
 
 // -------------------------------------------------------------------------------------------------------
-Encoder::Encoder(MessageDatabase::ConstPtr pclMessageDb_) : EncoderBase("OEM", pclMessageDb_, OemAlignmentFunction)
+Encoder::Encoder(MessageDatabase::ConstPtr pclMessageDb_) : EncoderBase("OEM", pclMessageDb_)
 {
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 }

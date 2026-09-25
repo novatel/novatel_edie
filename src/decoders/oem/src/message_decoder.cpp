@@ -32,24 +32,12 @@
 
 #include <simdjson.h>
 
-#include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/crc.hpp"
 
 using namespace novatel::edie::oem;
 
-// Register the OEM alignment function with the MessageDatabase at static initialization time
-namespace {
-const bool kRegisteredOemAlignment = [] {
-    novatel::edie::MessageDatabase::RegisterAlignmentFunction("OEM", novatel::edie::oem::OemAlignmentFunction);
-    return true;
-}();
-} // namespace
-
 // -------------------------------------------------------------------------------------------------------
-MessageDecoder::MessageDecoder(const MessageDatabase::Ptr& pclMessageDb_) : MessageDecoderBase("OEM", pclMessageDb_, OemAlignmentFunction)
-{
-    InitOemFieldMaps();
-}
+MessageDecoder::MessageDecoder(const MessageDatabase::Ptr& pclMessageDb_) : MessageDecoderBase("OEM", pclMessageDb_) { InitOemFieldMaps(); }
 
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoder::InitOemFieldMaps()

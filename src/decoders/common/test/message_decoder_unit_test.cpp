@@ -720,3 +720,46 @@ TEST(MessageDecoderContainerTypesTest, FlatFieldArrayRecordViewGetFieldValueByNa
     const auto arr2 = ffa[1].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
     for (size_t i = 0; i < twentyStr.size(); i++) { EXPECT_EQ(arr2[i], static_cast<uint8_t>(twentyStr[i])); }
 }
+
+TEST(MessageDecoderContainerTypesTest, CompositeFieldSetFieldValueFixedLengthArray)
+{
+    auto charArrField = std::make_shared<ArrayField>("str_arr", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%s", DATA_TYPE::UCHAR, 8);
+    auto uintArrField = std::make_shared<ArrayField>("uint_arr", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%u", DATA_TYPE::UINT, 4);
+
+    const auto fieldInfo = BuildFieldInfo({charArrField, uintArrField});
+    CompositeField body(fieldInfo);
+
+    // Set FIXED_LENGTH_ARRAY using std::string
+    const std::string strVal = "NOVATEL";
+    body.SetFieldValue(*charArrField, strVal);
+    const auto readBufChar = body.GetFieldValue<TypedBuffer<uint8_t>>(*charArrField);
+    ASSERT_EQ(readBufChar.size(), 8U);
+    for (size_t i = 0; i < strVal.size(); ++i) { EXPECT_EQ(readBufChar[i], static_cast<uint8_t>(strVal[i])); }
+
+    // Set FIXED_LENGTH_ARRAY using rvalue std::string
+    body.SetFieldValue(*charArrField, std::string("TESTING"));
+    const auto readBufCharRvalue = body.GetFieldValue<TypedBuffer<uint8_t>>(*charArrField);
+    const std::string expectedRvalue = "TESTING";
+    for (size_t i = 0; i < expectedRvalue.size(); ++i) { EXPECT_EQ(readBufCharRvalue[i], static_cast<uint8_t>(expectedRvalue[i])); }
+
+    // Set FIXED_LENGTH_ARRAY using std::vector
+    const std::vector<uint32_t> vecVal = {100U, 200U, 300U, 400U};
+    body.SetFieldValue(*uintArrField, vecVal);
+    const auto readBufVec = body.GetFieldValue<TypedBuffer<uint32_t>>(*uintArrField);
+    ASSERT_EQ(readBufVec.size(), 4U);
+    for (size_t i = 0; i < vecVal.size(); ++i) { EXPECT_EQ(readBufVec[i], vecVal[i]); }
+
+    // Set FIXED_LENGTH_ARRAY using TypedBuffer
+    const std::vector<uint32_t> srcVec = {111U, 222U, 333U, 444U};
+    TypedBuffer<uint32_t> typedBufVal(reinterpret_cast<const std::byte*>(srcVec.data()), srcVec.size());
+    body.SetFieldValue(*uintArrField, typedBufVal);
+    const auto readBufTyped = body.GetFieldValue<TypedBuffer<uint32_t>>(*uintArrField);
+    ASSERT_EQ(readBufTyped.size(), 4U);
+    for (size_t i = 0; i < srcVec.size(); ++i) { EXPECT_EQ(readBufTyped[i], srcVec[i]); }
+
+    // Verify individual element reads
+    EXPECT_EQ(body.GetFieldValue<uint32_t>(*uintArrField, 0), 111U);
+    EXPECT_EQ(body.GetFieldValue<uint32_t>(*uintArrField, 1), 222U);
+    EXPECT_EQ(body.GetFieldValue<uint32_t>(*uintArrField, 2), 333U);
+    EXPECT_EQ(body.GetFieldValue<uint32_t>(*uintArrField, 3), 444U);
+}
