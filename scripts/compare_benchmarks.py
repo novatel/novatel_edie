@@ -35,34 +35,39 @@ def compare_results(main_times, current_times):
 
     with open(summary_path, "w", encoding="utf-8") as summary:
         print("## Benchmark Comparison Results", file=summary)
-        print("| Benchmark | Main Mean | Main Median | Main Stddev | Current Mean | Current Median | Current Stddev | Diff Median | Diff Mean | p value |", file=summary)
-        print("|-----------|-----------|-------------|-------------|--------------|----------------|----------------|-------------|-----------|---------|", file=summary)
+        print("| Benchmark | Main Mean | Main Stddev | Current Mean | Current Stddev | Diff Mean | p value |", file=summary)
+        print("|-----------|-----------|-------------|--------------|----------------|-----------|---------|", file=summary)
 
         for name in main_times:
             main_vals = main_times[name]
             main_mean = statistics.mean(main_vals)
-            main_median = statistics.median(main_vals)
             main_stddev = statistics.stdev(main_vals)
 
             if name in current_times:
                 current_vals = current_times[name]
                 current_mean = statistics.mean(current_vals)
-                current_median = statistics.median(current_vals)
                 current_stddev = statistics.stdev(current_vals)
 
-                res = stats.ttest_ind(current_vals, main_vals, equal_var=False, alternative="greater")
-                p_val = res.pvalue
-                t_stat = res.statistic
+                res = stats.ttest_ind_from_stats(
+                    mean1=current_mean,
+                    std1=current_stddev,
+                    nobs1=len(current_vals),
+                    mean2=1.1 * main_mean, # 10% mean slowdown tolerance
+                    std2=main_stddev,
+                    nobs2=len(main_vals),
+                    equal_var=False,
+                    alternative="greater"
+                )
 
                 symbol = "✅"
-                if current_median > main_median * 1.1:
+                if res.pvalue < 0.05:
                     symbol = "❌"
-                    print(f"::error::Benchmark '{name}' is {current_median / main_median - 1:.2%} slower than main")
+                    print(f"::error::Benchmark '{name}' is {current_mean / main_mean - 1:.2%} slower than main")
                     success = False
 
-                print(f"| {symbol} {name} | {main_mean:.2f} | {main_median:.2f} | {main_stddev:.2f} | {current_mean:.2f} | {current_median:.2f} | {current_stddev:.2f} | {current_median / main_median - 1:.2%} | {current_mean / main_mean - 1:.2%} | {p_val:.2f} |", file=summary)
+                print(f"| {symbol} {name} | {main_mean:.2f} | {main_stddev:.2f} | {current_mean:.2f} | {current_stddev:.2f} | {current_mean / main_mean - 1:.2%} | {res.pvalue:.2f} |", file=summary)
             else:
-                print(f"| ⚠️ {name} (missing) | {main_mean:.2f} | {main_median:.2f} | {main_stddev:.2f} | - | - | - | - | - | - |", file=summary)
+                print(f"| ⚠️ {name} (missing) | {main_mean:.2f} | {main_stddev:.2f} | - | - | - | - |", file=summary)
                 print(f"::warning::Benchmark '{name}' from main not found in current branch")
 
         for name in set(current_times.keys()) - set(main_times.keys()):
@@ -70,7 +75,7 @@ def compare_results(main_times, current_times):
             current_mean = statistics.mean(current_vals)
             current_median = statistics.median(current_vals)
             current_stddev = statistics.stdev(current_vals)
-            print(f"| 🆕 {name} (new) | - | - | - | {current_mean:.2f} | {current_median:.2f} | {current_stddev:.2f} | - | - | - |", file=summary)
+            print(f"| 🆕 {name} (new) | - | - | {current_mean:.2f} | {current_stddev:.2f} | - | - |", file=summary)
             print(f"::notice::New benchmark '{name}' found in current branch")
 
     return success
