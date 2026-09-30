@@ -516,6 +516,33 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsFlatBackedFieldArra
     EXPECT_EQ(it, wrapped.end());
 }
 
+TEST(MessageDecoderContainerTypesTest, FieldArrayFlatBackedIteratorFind)
+{
+    auto nestedU32 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto nestedI16 = std::make_shared<BaseField>("i16", FIELD_TYPE::SIMPLE, "%hd", DATA_TYPE::SHORT);
+    const auto nestedFieldInfo = BuildFieldInfo({nestedU32, nestedI16});
+
+    auto fieldArrayField = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, nestedFieldInfo);
+    const auto rootFieldInfo = BuildFieldInfo({fieldArrayField});
+
+    FlatFieldArray stored(2, nestedFieldInfo.get());
+    stored.SetFieldValue<uint32_t>(0, *nestedU32, 11U);
+    stored.SetFieldValue<int16_t>(0, *nestedI16, static_cast<int16_t>(-7));
+    stored.SetFieldValue<uint32_t>(1, *nestedU32, 22U);
+    stored.SetFieldValue<int16_t>(1, *nestedI16, static_cast<int16_t>(9));
+
+    CompositeField body(rootFieldInfo);
+    body.SetFieldValue(*fieldArrayField, stored);
+
+    const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const FieldArrayRecordView& row) {
+        return row.GetFieldValue<uint32_t>(*nestedU32) == 22U;
+    });
+    ASSERT_NE(it, wrapped.end());
+    EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 22U);
+    EXPECT_EQ((*it).GetFieldValue<int16_t>(*nestedI16), static_cast<int16_t>(9));
+}
+
 TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsCompositeBackedFieldArray)
 {
     auto nestedU32 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
@@ -556,6 +583,35 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsCompositeBackedFiel
 
     ++it;
     EXPECT_EQ(it, wrapped.end());
+}
+
+TEST(MessageDecoderContainerTypesTest, FieldArrayCompositeBackedIteratorFind)
+{
+    auto nestedU32 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto nestedStr = std::make_shared<BaseField>("str", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
+    const auto nestedFieldInfo = BuildFieldInfo({nestedU32, nestedStr});
+
+    auto fieldArrayField = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 4, nestedFieldInfo);
+    const auto rootFieldInfo = BuildFieldInfo({fieldArrayField});
+
+    CompositeField row0(nestedFieldInfo);
+    row0.SetFieldValue(*nestedU32, 10U);
+    row0.SetFieldValue(*nestedStr, std::string("ten"));
+
+    CompositeField row1(nestedFieldInfo);
+    row1.SetFieldValue(*nestedU32, 20U);
+    row1.SetFieldValue(*nestedStr, std::string("twenty"));
+
+    CompositeField body(rootFieldInfo);
+    body.SetFieldValue(*fieldArrayField, CompositeFieldArray{row0, row1});
+
+    const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const FieldArrayRecordView& row) {
+        return row.GetFieldValue<uint32_t>(*nestedU32) == 20U;
+    });
+    ASSERT_NE(it, wrapped.end());
+    EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 20U);
+    EXPECT_EQ((*it).GetFieldValue<std::string>(*nestedStr), "twenty");
 }
 
 TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperPreservesSchemaForEmptyCompositeFieldArray)
