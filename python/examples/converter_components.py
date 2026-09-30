@@ -34,7 +34,7 @@ from binascii import hexlify
 
 import novatel_edie as ne
 import novatel_edie.oem as oem
-from novatel_edie import HEADER_FORMAT, ENCODE_FORMAT, CPP_PRETTY_VERSION, MAX_MESSAGE_LENGTH
+from novatel_edie import DECODE_FORMAT, ENCODE_FORMAT, CPP_PRETTY_VERSION, MAX_MESSAGE_LENGTH
 import novatel_edie.oem.messages as oem_msgs
 
 from common_setup import setup_example_logging, handle_args
@@ -42,8 +42,8 @@ from common_setup import setup_example_logging, handle_args
 
 def format_frame(frame, frame_format):
     """Format the frame into a human-readable string."""
-    if frame_format in [HEADER_FORMAT.BINARY, HEADER_FORMAT.SHORT_BINARY,
-                        HEADER_FORMAT.PROPRIETARY_BINARY,
+    if frame_format in [DECODE_FORMAT.BINARY, DECODE_FORMAT.BINARY,
+                        DECODE_FORMAT.BINARY,
                         ENCODE_FORMAT.BINARY, ENCODE_FORMAT.FLATTENED_BINARY]:
         return hexlify(frame, sep=" ").decode("ascii").upper()
     return frame
@@ -74,7 +74,7 @@ def main():
                 raise ne.FailureException(
                     f'Wrote {written_bytes} bytes, expected {len(read_data)} bytes.')
             for frame, meta in framer:
-                if meta.format == HEADER_FORMAT.UNKNOWN:
+                if meta.format == DECODE_FORMAT.UNKNOWN:
                     continue
                 logger.info(f"Framed ({len(frame)}): {format_frame(frame, meta.format)}")
 

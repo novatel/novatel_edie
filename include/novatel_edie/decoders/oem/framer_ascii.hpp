@@ -35,7 +35,7 @@ namespace novatel::edie::oem {
 //! \class FramerAscii
 //! \brief Search bytes for patterns that could be an OEM ASCII message.
 //============================================================================
-class FramerAscii : public FramerAsciiBase<HEADER_FORMAT::ASCII, OEM4_ASCII_SYNC, MAX_ASCII_MESSAGE_LENGTH>
+class FramerAscii : public FramerAsciiBase<OEM4_ASCII_SYNC, MAX_ASCII_MESSAGE_LENGTH>
 {
   public:
     //----------------------------------------------------------------------------

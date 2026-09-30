@@ -79,7 +79,7 @@ struct PORTSTATS_port_statistics
 struct PORTSTATS
 {
     uint32_t port_statistics_arraylength;
-    PORTSTATS_port_statistics port_statistics[33];
+    PORTSTATS_port_statistics port_statistics[69];
 };
 
 struct VALIDMODELS_models

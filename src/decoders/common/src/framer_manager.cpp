@@ -154,7 +154,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             assert(bestOffset > 0 && bestOffset <= static_cast<uint32_t>(pclMyFixedBuffer->size()));
             HandleUnknownBytes(pucFrameBuffer_, bestOffset);
             stMyMetaData.uiLength = bestOffset;
-            stMyMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
+            stMyMetaData.eFormat = DECODE_FORMAT::UNKNOWN;
             stMetaData_ = &stMyMetaData; // There is no valid MetaData object to use from a Framer so use the MetaDataBase from FramerManager
             return STATUS::UNKNOWN;
         }

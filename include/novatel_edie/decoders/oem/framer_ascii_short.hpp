@@ -35,7 +35,7 @@ namespace novatel::edie::oem {
 //! \class FramerAsciiShort
 //! \brief Search bytes for patterns that could be an OEM ASCII message with a short header.
 //============================================================================
-class FramerAsciiShort : public FramerAsciiBase<HEADER_FORMAT::SHORT_ASCII, OEM4_SHORT_ASCII_SYNC, MAX_SHORT_ASCII_MESSAGE_LENGTH>
+class FramerAsciiShort : public FramerAsciiBase<OEM4_SHORT_ASCII_SYNC, MAX_SHORT_ASCII_MESSAGE_LENGTH>
 {
   public:
     //----------------------------------------------------------------------------

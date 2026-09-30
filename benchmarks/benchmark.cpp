@@ -96,7 +96,7 @@ static void Parse(benchmark::State& state)
             }
         }
     }
-    
+
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations() * 1000, benchmark::Counter::kIsRate);
 }
 
@@ -106,13 +106,13 @@ template <typename FramerType, size_t N> static void Frame(benchmark::State& sta
     FramerType clFramer;
     clFramer.SetFrameJson(true);
     MetaDataStruct stMetaData;
-    
+
     for ([[maybe_unused]] auto _ : state) {
         (void)clFramer.Write(data, sizeof(data));
         (void)clFramer.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
         (void)clFramer.Flush(buffer.data(), static_cast<uint32_t>(buffer.size()));
     }
-    
+
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
 }
 
@@ -213,7 +213,7 @@ static void DecodeBinaryLog(benchmark::State& state)
 }
 
 static void DecodeJsonLog(benchmark::State& state)
-{ 
+{
     DecodeLog(state, bestsatsJson);
 }
 
@@ -250,7 +250,7 @@ static void DecodeBinaryHeader(benchmark::State& state)
 }
 
 static void DecodeJsonHeader(benchmark::State& state)
-{ 
+{
     DecodeHeader(state, bestsatsJson);
 }
 
@@ -277,7 +277,7 @@ template <ENCODE_FORMAT Format, size_t N> static void EncodeLog(benchmark::State
     for ([[maybe_unused]] auto _ : state)
     {
         unsigned char* bufferPtr = encodeBuffer;
-        (void)encoder.Encode(&bufferPtr, sizeof(encodeBuffer), header, message, messageData, metaData.eFormat, Format);
+        (void)encoder.Encode(&bufferPtr, sizeof(encodeBuffer), header, message, messageData, Format);
     }
 
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);

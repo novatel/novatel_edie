@@ -54,11 +54,11 @@ class PyFilter : public Filter
     bool PyTimeStatusFilterInverted() { return bMyInvertTimeStatusFilter; }
 
     // -------------------------------------------------------------------------------------------------------
-    std::vector<std::tuple<uint32_t, HEADER_FORMAT, uint8_t>> PyGetMessageIds() { return vMyMessageIdFilters; }
+    std::vector<std::tuple<uint32_t, DECODE_FORMAT, uint8_t>> PyGetMessageIds() { return vMyMessageIdFilters; }
     bool PyMessageIdFilterInverted() { return bMyInvertMessageIdFilter; }
 
     // -------------------------------------------------------------------------------------------------------
-    std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>> PyGetMessageNames() { return vMyMessageNameFilters; }
+    std::vector<std::tuple<std::string, DECODE_FORMAT, uint8_t>> PyGetMessageNames() { return vMyMessageNameFilters; }
     bool PyMessageNameFilterInverted() { return bMyInvertMessageNameFilter; }
 
     // -------------------------------------------------------------------------------------------------------

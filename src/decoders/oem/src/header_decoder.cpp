@@ -33,6 +33,42 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+namespace {
+enum class HEADER_FORMAT
+{
+    UNKNOWN = 1,
+    BINARY,
+    SHORT_BINARY,
+    PROPRIETARY_BINARY,
+    ASCII,
+    SHORT_ASCII,
+    ABB_ASCII,
+    NMEA,
+    JSON,
+    SHORT_ABB_ASCII,
+    ALL
+};
+
+DECODE_FORMAT headerFormatToDecodeFormat(HEADER_FORMAT headerFormat_)
+{
+    switch (headerFormat_)
+    {
+    case HEADER_FORMAT::UNKNOWN: return DECODE_FORMAT::UNKNOWN;
+    case HEADER_FORMAT::BINARY: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_BINARY: [[fallthrough]];
+    case HEADER_FORMAT::PROPRIETARY_BINARY: return DECODE_FORMAT::BINARY;
+    case HEADER_FORMAT::ASCII: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_ASCII: return DECODE_FORMAT::ASCII;
+    case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_ABB_ASCII: return DECODE_FORMAT::ABB_ASCII;
+    case HEADER_FORMAT::NMEA: return DECODE_FORMAT::NMEA;
+    case HEADER_FORMAT::JSON: return DECODE_FORMAT::JSON;
+    case HEADER_FORMAT::ALL: return DECODE_FORMAT::ALL;
+    default: return DECODE_FORMAT::UNKNOWN;
+    }
+}
+} // namespace
+
 // -------------------------------------------------------------------------------------------------------
 HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
 {
@@ -286,7 +322,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     const auto* pcTempBuf = reinterpret_cast<const char*>(pucLogBuf_);
     auto stBinaryHeader = LoadValueFromBuffer<Oem4BinaryHeader>(pucLogBuf_);
 
-    stMetaData_.eFormat = [&] {
+    HEADER_FORMAT eHeaderFormat = [&] {
         switch (stBinaryHeader.ucSync1)
         {
         case OEM4_ASCII_SYNC: return HEADER_FORMAT::ASCII;
@@ -304,8 +340,9 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         default: return HEADER_FORMAT::UNKNOWN;
         }
     }();
+    stMetaData_.eFormat = headerFormatToDecodeFormat(eHeaderFormat);
 
-    switch (stMetaData_.eFormat)
+    switch (eHeaderFormat)
     {
     case HEADER_FORMAT::ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '#'
@@ -349,7 +386,6 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         else
         {
             // Port field failed, so we (unsafely) assume this is short
-            stMetaData_.eFormat = HEADER_FORMAT::SHORT_ABB_ASCII;
             if (!DecodeAsciiHeaderField<pcAbbrevAsciiRegDelimiter, ASCII_HEADER::WEEK>(stInterHeader_, &pcTempBuf) ||
                 !DecodeAsciiHeaderField<pcAbbrevAsciiFinalDelimiter, ASCII_HEADER::SECONDS>(stInterHeader_, &pcTempBuf))
             {

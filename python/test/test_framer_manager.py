@@ -1,7 +1,7 @@
 import novatel_edie as ne
 import novatel_edie.oem as oem
 import pytest
-from novatel_edie import HEADER_FORMAT, STATUS
+from novatel_edie import DECODE_FORMAT, STATUS
 
 
 class Helper:
@@ -17,13 +17,13 @@ class Helper:
             self.framer_manager.get_frame(buffer_size)
             pass
 
-    def test_framer_manager(self, expected_header_format, length, buffer_size=ne.MAX_MESSAGE_LENGTH, response=False):
+    def test_framer_manager(self, expected_decode_format, length, buffer_size=ne.MAX_MESSAGE_LENGTH, response=False):
         # Arrange
         expected_meta_data = ne.MetaDataBase()
         if length is not None:
             expected_meta_data.length = length
         expected_meta_data.response = response
-        expected_meta_data.format = expected_header_format
+        expected_meta_data.format = expected_decode_format
         # Act
         _, test_meta_data = self.framer_manager.get_frame(buffer_size)
 
@@ -66,7 +66,7 @@ def compare_metadata(test_md, expected_md, ignore_length=False):
 def test_ascii_complete(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.ASCII, len(data))
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, len(data))
 
 
 def test_ascii_incomplete(helper):
@@ -79,13 +79,13 @@ def test_ascii_sync_error(helper):
     file = "ascii_sync_error.ASC"
     data = helper.get_file_contents(file)
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, ne.MAX_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_ASCII_MESSAGE_LENGTH)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, ne.MAX_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_ASCII_MESSAGE_LENGTH)
 
 
 def test_ascii_bad_crc(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*ffffffff\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, len(data), buffer_size=len(data))
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, len(data), buffer_size=len(data))
 
 
 def test_ascii_run_on_crc(helper):
@@ -99,7 +99,7 @@ def test_ascii_inadequate_buffer(helper):
     helper.write_bytes_to_framer_manager(data)
 
     helper.test_framer_manager_errors(ne.BufferFullException, len(data) - 1)
-    helper.test_framer_manager(HEADER_FORMAT.ASCII, len(data), len(data))
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, len(data), len(data))
 
 
 def test_ascii_byte_by_byte(helper):
@@ -115,7 +115,7 @@ def test_ascii_byte_by_byte(helper):
             helper.test_framer_manager_errors(ne.IncompleteException)
         if not remaining_bytes:
             break
-    helper.test_framer_manager(HEADER_FORMAT.ASCII, log_size)
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, log_size)
 
 
 def test_ascii_segmented(helper):
@@ -139,7 +139,7 @@ def test_ascii_segmented(helper):
 
     helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_ASCII_CRC_LENGTH + 2])
     bytes_written += oem.OEM4_ASCII_CRC_LENGTH + 2
-    helper.test_framer_manager(HEADER_FORMAT.ASCII, bytes_written)
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, bytes_written)
 
     assert bytes_written == len(data)
 
@@ -147,9 +147,9 @@ def test_ascii_segmented(helper):
 def test_ascii_trick(helper):
     data = b"#TEST;*ffffffff\r\n#;*\r\n#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 17)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 5)
-    helper.test_framer_manager(HEADER_FORMAT.ASCII, 217)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 17)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 5)
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, 217)
 
 
 def test_abbrev_ascii_segmented(helper):
@@ -178,7 +178,7 @@ def test_abbrev_ascii_segmented(helper):
 
     helper.write_bytes_to_framer_manager(data[bytes_written:][:6 + 2])  # CRLF + [COM1]
     bytes_written += 2  # Ignore the [COM1]
-    helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, log_size)
+    helper.test_framer_manager(DECODE_FORMAT.ABB_ASCII, log_size)
     assert log_size == bytes_written
 
 
@@ -195,7 +195,7 @@ def test_binary_complete(helper):
          0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89])
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.BINARY, len(data))
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, len(data))
 
 
 def test_binary_incomplete(helper):
@@ -224,7 +224,7 @@ def test_binary_buffer_full(helper):
 
 def test_binary_sync_error(helper):
     helper.write_file_to_framer("binary_sync_error.BIN")
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, ne.MAX_BINARY_MESSAGE_LENGTH, buffer_size=ne.MAX_BINARY_MESSAGE_LENGTH)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, ne.MAX_BINARY_MESSAGE_LENGTH, buffer_size=ne.MAX_BINARY_MESSAGE_LENGTH)
 
 
 def test_binary_bad_crc(helper):
@@ -237,7 +237,7 @@ def test_binary_bad_crc(helper):
          0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0xFF])
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 57)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 57)
 
 
 def test_binary_run_on_crc(helper):
@@ -250,7 +250,7 @@ def test_binary_run_on_crc(helper):
          0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89, 0xFF, 0xFF])
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.BINARY, 104)
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, 104)
 
 
 def test_binary_inadequate_buffer(helper):
@@ -264,7 +264,7 @@ def test_binary_inadequate_buffer(helper):
          0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89])
     helper.write_bytes_to_framer_manager(data)
     helper.test_framer_manager_errors(ne.BufferFullException, len(data) - 1)
-    helper.test_framer_manager(HEADER_FORMAT.BINARY, len(data))
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, len(data))
 
 
 def test_binary_byte_by_byte(helper):
@@ -279,20 +279,20 @@ def test_binary_byte_by_byte(helper):
     log_size = len(data)
     remaining_bytes = log_size
     expected_meta_data = oem.MetaData()
-    expected_meta_data.format = HEADER_FORMAT.UNKNOWN
+    expected_meta_data.format = DECODE_FORMAT.UNKNOWN
     while True:
         helper.write_bytes_to_framer_manager(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
         if expected_meta_data.length == oem.OEM4_BINARY_SYNC_LENGTH:
-            expected_meta_data.format = HEADER_FORMAT.BINARY
+            expected_meta_data.format = DECODE_FORMAT.BINARY
 
         if remaining_bytes > 0:
             helper.test_framer_manager_errors(ne.IncompleteException)
         else:
             break
     expected_meta_data.length = log_size
-    helper.test_framer_manager(HEADER_FORMAT.BINARY, log_size)
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, log_size)
 
 
 def test_binary_segmented(helper):
@@ -306,7 +306,7 @@ def test_binary_segmented(helper):
          0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89])
     bytes_written = 0
     expected_meta_data = oem.MetaData()
-    expected_meta_data.format = HEADER_FORMAT.BINARY
+    expected_meta_data.format = DECODE_FORMAT.BINARY
     helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_BINARY_SYNC_LENGTH])
     bytes_written += oem.OEM4_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
@@ -326,7 +326,7 @@ def test_binary_segmented(helper):
     helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_BINARY_CRC_LENGTH])
     bytes_written += oem.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
-    helper.test_framer_manager(HEADER_FORMAT.BINARY, len(data))
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, len(data))
 
 
 def test_binary_trick(helper):
@@ -340,10 +340,10 @@ def test_binary_trick(helper):
          0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89])
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 3)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 15)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.BINARY, 104)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 3)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 15)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 1)
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, 104)
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -352,7 +352,7 @@ def test_binary_trick(helper):
 def test_short_ascii_complete(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_ASCII, len(data))
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, len(data))
 
 
 def test_short_ascii_incomplete(helper):
@@ -363,13 +363,13 @@ def test_short_ascii_incomplete(helper):
 
 def test_short_ascii_sync_error(helper):
     helper.write_file_to_framer("short_ascii_sync_error.ASC")
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, ne.MAX_SHORT_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_SHORT_ASCII_MESSAGE_LENGTH)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, ne.MAX_SHORT_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_SHORT_ASCII_MESSAGE_LENGTH)
 
 
 def test_short_ascii_bad_crc(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*ffffffff\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, len(data), buffer_size=len(data))
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, len(data), buffer_size=len(data))
 
 
 def test_short_ascii_run_on_crc(helper):
@@ -383,7 +383,7 @@ def test_short_ascii_inadequate_buffer(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer_manager(data)
     helper.test_framer_manager_errors(ne.BufferFullException, len(data) - 1)
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_ASCII, len(data), len(data))
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, len(data), len(data))
 
 
 def test_short_ascii_byte_by_byte(helper):
@@ -391,7 +391,7 @@ def test_short_ascii_byte_by_byte(helper):
     log_size = len(data)
     remaining_bytes = log_size
     expected_meta_data = oem.MetaData()
-    expected_meta_data.format = HEADER_FORMAT.SHORT_ASCII
+    expected_meta_data.format = DECODE_FORMAT.ASCII
     while True:
         helper.write_bytes_to_framer_manager(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
@@ -404,7 +404,7 @@ def test_short_ascii_byte_by_byte(helper):
         if not remaining_bytes:
             break
     expected_meta_data.length = log_size
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_ASCII, log_size)
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, log_size)
 
 
 def test_short_ascii_segmented(helper):
@@ -428,7 +428,7 @@ def test_short_ascii_segmented(helper):
 
     helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_ASCII_CRC_LENGTH + 2])
     bytes_written += oem.OEM4_ASCII_CRC_LENGTH + 2
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_ASCII, bytes_written)
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, bytes_written)
 
     assert bytes_written == len(data)
 
@@ -436,10 +436,10 @@ def test_short_ascii_segmented(helper):
 def test_short_ascii_trick(helper):
     data = b"%;*\r\n%%**\r\n%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 5)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 5)
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_ASCII, 120)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 5)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 1)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 5)
+    helper.test_framer_manager(DECODE_FORMAT.ASCII, 120)
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -453,7 +453,7 @@ def test_short_binary_complete(helper):
          0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F,
          0xAF, 0xBA])
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_BINARY, len(data))
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, len(data))
 
 
 def test_short_binary_incomplete(helper):
@@ -473,13 +473,13 @@ def test_short_binary_buffer_full(helper):
     helper.write_bytes_to_framer_manager(data)
     expected_meta_data = oem.MetaData()
     expected_meta_data.length = 34
-    expected_meta_data.format = HEADER_FORMAT.SHORT_BINARY
+    expected_meta_data.format = DECODE_FORMAT.BINARY
     helper.test_framer_manager_errors(ne.BufferFullException, len(data) - 1)
 
 
 def test_short_binary_sync_error(helper):
     helper.write_file_to_framer("short_binary_sync_error.BIN")
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, None)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, None)
 
 
 def test_short_binary_bad_crc(helper):
@@ -490,7 +490,7 @@ def test_short_binary_bad_crc(helper):
          0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F,
          0xAF, 0xFF])
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, len(data))
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, len(data))
 
 
 def test_short_binary_run_on_crc(helper):
@@ -501,7 +501,7 @@ def test_short_binary_run_on_crc(helper):
          0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F,
          0xAF, 0xBA, 0xFF, 0xFF])
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_BINARY, 56)
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, 56)
 
 
 def test_short_binary_inadequate_buffer(helper):
@@ -513,7 +513,7 @@ def test_short_binary_inadequate_buffer(helper):
          0xAF, 0xBA])
     helper.write_bytes_to_framer_manager(data)
     helper.test_framer_manager_errors(ne.BufferFullException, len(data) - 1)
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_BINARY, len(data), len(data))
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, len(data), len(data))
 
 
 def test_short_binary_byte_by_byte(helper):
@@ -526,20 +526,20 @@ def test_short_binary_byte_by_byte(helper):
     log_size = len(data)
     remaining_bytes = log_size
     expected_meta_data = oem.MetaData()
-    expected_meta_data.format = HEADER_FORMAT.UNKNOWN
+    expected_meta_data.format = DECODE_FORMAT.UNKNOWN
     while True:
         helper.write_bytes_to_framer_manager(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
         if expected_meta_data.length == oem.OEM4_SHORT_BINARY_SYNC_LENGTH:
-            expected_meta_data.format = HEADER_FORMAT.SHORT_BINARY
+            expected_meta_data.format = DECODE_FORMAT.BINARY
 
         if remaining_bytes > 0:
             helper.test_framer_manager_errors(ne.IncompleteException)
         else:
             break
     expected_meta_data.length = log_size
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_BINARY, log_size)
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, log_size)
 
 
 def test_short_binary_segmented(helper):
@@ -565,7 +565,7 @@ def test_short_binary_segmented(helper):
 
     helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_BINARY_CRC_LENGTH])
     bytes_written += oem.OEM4_BINARY_CRC_LENGTH
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_BINARY, bytes_written)
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, bytes_written)
 
 
 def test_short_binary_trick(helper):
@@ -583,10 +583,10 @@ def test_short_binary_trick(helper):
          0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
          0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 3)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 10)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.SHORT_BINARY, 56)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 3)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 10)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 1)
+    helper.test_framer_manager(DECODE_FORMAT.BINARY, 56)
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -596,7 +596,7 @@ def test_abbrev_ascii_complete(helper):
     data = (b"<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
             b"<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n[COM1]")
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, len(data) - 6)
+    helper.test_framer_manager(DECODE_FORMAT.ABB_ASCII, len(data) - 6)
 
 
 def test_abbrev_ascii_incomplete(helper):
@@ -614,7 +614,7 @@ def test_abbrev_ascii_buffer_full(helper):
 
 def test_abbrev_ascii_sync_error(helper):
     helper.write_file_to_framer("abbreviated_ascii_sync_error.ASC")
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, ne.MAX_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_ASCII_MESSAGE_LENGTH)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, ne.MAX_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_ASCII_MESSAGE_LENGTH)
 
 
 def test_abbrev_ascii_inadequate_buffer(helper):
@@ -622,7 +622,7 @@ def test_abbrev_ascii_inadequate_buffer(helper):
             b"<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n[COM1]")
     helper.write_bytes_to_framer_manager(data)
     helper.test_framer_manager_errors(ne.BufferFullException, len(data) - 7)
-    helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, len(data) - 6, len(data) - 6)
+    helper.test_framer_manager(DECODE_FORMAT.ABB_ASCII, len(data) - 6, len(data) - 6)
 
 
 def test_abbrev_ascii_no_prompt(helper):
@@ -631,9 +631,9 @@ def test_abbrev_ascii_no_prompt(helper):
             b"<TIME COM1 0 46.5 FINESTEERING 2211 314490.000 02000000 9924 32768\r\n"
             b"<     VALID 5.035219694e-10 7.564775104e-10 -17.99999999958 2022 5 25 15 21 12000 VALID\r\n")
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, 157)
+    helper.test_framer_manager(DECODE_FORMAT.ABB_ASCII, 157)
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, 157)
+    helper.test_framer_manager(DECODE_FORMAT.ABB_ASCII, 157)
 
 
 def test_abbrev_ascii_multiline(helper):
@@ -642,27 +642,27 @@ def test_abbrev_ascii_multiline(helper):
             b"<          \"MN01\" 51.11600000000 -114.03800000000 1065.0000 \r\n"
             b"<          \"MN02\" 51.11400000000 -114.03700000000 1063.1000\r\n[COM1]")
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, len(data) - 6)
+    helper.test_framer_manager(DECODE_FORMAT.ABB_ASCII, len(data) - 6)
 
 
 def test_abbrev_ascii_response(helper):
     data = b"<ERROR:Message is invalid for this model\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, len(data), response=True)
+    helper.test_framer_manager(DECODE_FORMAT.ABB_ASCII, len(data), response=True)
 
 
 def test_abbrev_ascii_swapped(helper):
     data = (b"<     64 60 B1D2 4 e2410e75b821e2664201b02000b022816c36140020001ddde0000000\r\n"
             b"<BDSRAWNAVSUBFRAME ICOM1_29 0 40.5 FINESTEERING 2204 236927.000 02060000 88f3 16807\r\n<GARBAGE")
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 77)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 85)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 77)
+    helper.test_framer_manager(DECODE_FORMAT.UNKNOWN, 85)
 
 
 def test_abbrev_ascii_empty_array(helper):
     data = b"<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     0 \r\n<         \r\n[COM1]"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, len(data) - 6)
+    helper.test_framer_manager(DECODE_FORMAT.ABB_ASCII, len(data) - 6)
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -705,7 +705,7 @@ def test_oem_framer_manager_iteration(oem_framer_manager):
 
     for frame, meta in oem_framer_manager:
         assert frame == data # Exclude CRLF
-        assert meta.format == HEADER_FORMAT.ASCII
+        assert meta.format == DECODE_FORMAT.ASCII
         assert meta.length == len(data) # Exclude CRLF
-    
+
     assert oem_framer_manager.available_space == starting_available_space
