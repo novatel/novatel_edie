@@ -21,7 +21,6 @@ nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& mes
                                           CompositeField&& message_fields_, oem::MetaDataStruct& metadata_,
                                           py_common::PyMessageDatabase::ConstPtr database_)
 {
-    header_.format = metadata_.eFormat;
     switch (status_)
     {
     case STATUS::SUCCESS: return create_message_instance(header_, std::move(message_fields_), metadata_, database_);

@@ -906,10 +906,8 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, CompositeField& stI
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     const unsigned char* pucTempInData = pucMessage_;
-
-    if (stMetaData_.bResponse && (stMetaData_.eFormat != HEADER_FORMAT::BINARY && stMetaData_.eFormat != HEADER_FORMAT::SHORT_BINARY &&
-                                  stMetaData_.eFormat != HEADER_FORMAT::ASCII && stMetaData_.eFormat != HEADER_FORMAT::SHORT_ASCII &&
-                                  stMetaData_.eFormat != HEADER_FORMAT::ABB_ASCII && stMetaData_.eFormat != HEADER_FORMAT::SHORT_ABB_ASCII))
+    if (stMetaData_.bResponse && (stMetaData_.eFormat != DECODE_FORMAT::BINARY && stMetaData_.eFormat != DECODE_FORMAT::ASCII &&
+                                  stMetaData_.eFormat != DECODE_FORMAT::ABB_ASCII))
     {
         return STATUS::NO_DEFINITION;
     }
@@ -936,22 +934,19 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, CompositeField& stI
     // Decode the detected format
     switch (stMetaData_.eFormat)
     {
-    case HEADER_FORMAT::ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ASCII: {
+    case DECODE_FORMAT::ASCII: {
         const auto* pcTempInData = reinterpret_cast<const char*>(pucTempInData);
         return DecodeAscii<false>(msgFieldInfo, &pcTempInData, stInterMessage_,
                                   stMetaData_.uiLength > stMetaData_.uiHeaderLength ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
                                                                                     : nullptr);
     }
-    case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_ABB_ASCII: {
+    case DECODE_FORMAT::ABB_ASCII: {
         const auto* pcTempInData = reinterpret_cast<const char*>(pucTempInData);
         return DecodeAscii<true>(msgFieldInfo, &pcTempInData, stInterMessage_,
                                  stMetaData_.uiLength > stMetaData_.uiHeaderLength ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
                                                                                    : nullptr);
     }
-    case HEADER_FORMAT::BINARY: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_BINARY:
+    case DECODE_FORMAT::BINARY:
         if (msgFieldInfo.varFieldCount == 0)
         {
             // Fast path: if there are no variable-length fields, copy the entire message to the fixed region
@@ -959,7 +954,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, CompositeField& stI
             return STATUS::SUCCESS;
         }
         return DecodeBinary(msgFieldInfo, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
-    case HEADER_FORMAT::JSON: {
+    case DECODE_FORMAT::JSON: {
         simdjson::dom::parser parser;
         simdjson::dom::element clJsonFields;
 

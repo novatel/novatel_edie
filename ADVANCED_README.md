@@ -64,11 +64,11 @@ The protocol-independent members live on `MetaDataBase`, which every framer's me
 struct MetaDataBase
 {
    bool bResponse;                                      // True if the message is a response to a command.
-   HEADER_FORMAT eFormat;                               // The format of the message when it was framed.
+   DECODE_FORMAT eFormat;                               // The format of the message when it was framed.
    uint16_t usWeek;                                     // The GPS Week number.
    double dMilliseconds;                                // The GPS Milliseconds.
    uint32_t uiLength;                                   // Length of the entire message, including the header and CRC.
-   uint32_t uiBinaryMsgLength;                          // Message length according to the binary header. This field is only used if eFormat is HEADER_FORMAT::BINARY.
+   uint32_t uiBinaryMsgLength;                          // Message length according to the binary header. This field is only used if eFormat is DECODE_FORMAT::BINARY.
    uint32_t uiHeaderLength;                             // The length of the message header.
    uint16_t usMessageId;                                // The message ID.
    uint32_t uiMessageCrc;                               // The message definition CRC.

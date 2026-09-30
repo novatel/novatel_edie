@@ -134,7 +134,6 @@ class RxConfigHandler
     //! \param[in] stHeader_ A reference to the intermediate header structure containing header information.
     //! \param[in] stMessageData_ A reference to the structure containing the main message data.
     //! \param[in] stEmbeddedMessageData_ A reference to the structure containing the embedded message data.
-    //! \param[in] stEmbeddedMetaData_ A reference to the metadata structure for the embedded message.
     //! \param[in] stEmbeddedHeader_ A reference to the intermediate header for the embedded message.
     //! \param[in] stEmbeddedMessage_ A vector of field containers representing the embedded message fields.
     //!
@@ -146,8 +145,7 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                       MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
-                                      MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                      CompositeField& stEmbeddedMessage_) const;
+                                      IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into ASCII format.
@@ -157,7 +155,6 @@ class RxConfigHandler
     //! \param[in] stHeader_ A reference to the intermediate header structure containing header information.
     //! \param[in] stMessageData_ A reference to the structure containing the main message data.
     //! \param[in] stEmbeddedMessageData_ A reference to the structure containing the embedded message data.
-    //! \param[in] stEmbeddedMetaData_ A reference to the metadata structure for the embedded message.
     //! \param[in] stEmbeddedHeader_ A reference to the intermediate header for the embedded message.
     //! \param[in] stEmbeddedMessage_ A vector of field containers representing the embedded message fields.
     //!
@@ -169,8 +166,7 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                      MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
-                                     MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                     CompositeField& stEmbeddedMessage_) const;
+                                     IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into Abbreviated Ascii format.
@@ -180,7 +176,6 @@ class RxConfigHandler
     //! \param[in] stHeader_ A reference to the intermediate header structure containing header information.
     //! \param[in] stMessageData_ A reference to the structure containing the main message data.
     //! \param[in] stEmbeddedMessageData_ A reference to the structure containing the embedded message data.
-    //! \param[in] stEmbeddedMetaData_ A reference to the metadata structure for the embedded message.
     //! \param[in] stEmbeddedHeader_ A reference to the intermediate header for the embedded message.
     //! \param[in] stEmbeddedMessage_ A vector of field containers representing the embedded message fields.
     //!
@@ -192,8 +187,7 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                            MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
-                                           MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                           CompositeField& stEmbeddedMessage_) const;
+                                           IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into JSON format.
@@ -203,7 +197,6 @@ class RxConfigHandler
     //! \param[in] stHeader_ A reference to the intermediate header structure containing header information.
     //! \param[in] stMessageData_ A reference to the structure containing the main message data.
     //! \param[in] stEmbeddedMessageData_ A reference to the structure containing the embedded message data.
-    //! \param[in] stEmbeddedMetaData_ A reference to the metadata structure for the embedded message.
     //! \param[in] stEmbeddedHeader_ A reference to the intermediate header for the embedded message.
     //! \param[in] stEmbeddedMessage_ A vector of field containers representing the embedded message fields.
     //!
@@ -214,7 +207,7 @@ class RxConfigHandler
     //! - FAILURE: An error occurred during encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeJSON(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                    MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
+                                    MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                     IntermediateHeader& stEmbeddedHeader_, CompositeField& stEmbeddedMessage_) const;
 
   public:

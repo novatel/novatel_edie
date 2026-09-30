@@ -189,8 +189,8 @@ int main(int argc, char* argv[])
                     if (eDecoderStatus == STATUS::SUCCESS)
                     {
                         MessageDataStruct stMessageData;
-                        eEncoderStatus = clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData,
-                                                          stMetaData.eFormat, eEncodeFormat);
+                        eEncoderStatus =
+                            clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData, eEncodeFormat);
 
                         if (eEncoderStatus == STATUS::SUCCESS)
                         {

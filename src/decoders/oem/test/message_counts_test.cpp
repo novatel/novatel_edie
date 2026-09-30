@@ -84,15 +84,15 @@ uint64_t TotalCounts(const HeaderDecoder::MessageCountsMap& mapCounts_)
 TEST(MessageCountsKeyHashTest, EACH_FIELD_GETS_ITS_OWN_BITS)
 {
     const HeaderDecoder::MessageCountsKeyHash clHash;
-    constexpr std::size_t ullBinary = static_cast<std::size_t>(HEADER_FORMAT::BINARY) << 24;
+    constexpr std::size_t ullBinary = static_cast<std::size_t>(DECODE_FORMAT::BINARY) << 24;
 
     // The sibling ID holds bits 0 to 7. The message ID holds bits 8 to 23.
-    ASSERT_EQ(clHash({0, HEADER_FORMAT::BINARY, 0}), ullBinary);
-    ASSERT_EQ(clHash({1, HEADER_FORMAT::BINARY, 0}), ullBinary | (std::size_t{1} << 8));
-    ASSERT_EQ(clHash({0, HEADER_FORMAT::BINARY, 1}), ullBinary | std::size_t{1});
+    ASSERT_EQ(clHash({0, DECODE_FORMAT::BINARY, 0}), ullBinary);
+    ASSERT_EQ(clHash({1, DECODE_FORMAT::BINARY, 0}), ullBinary | (std::size_t{1} << 8));
+    ASSERT_EQ(clHash({0, DECODE_FORMAT::BINARY, 1}), ullBinary | std::size_t{1});
 
     // The widest value of each field still stays inside the bits of that field.
-    ASSERT_EQ(clHash({UINT16_MAX, HEADER_FORMAT::BINARY, UINT8_MAX}), ullBinary | (std::size_t{UINT16_MAX} << 8) | std::size_t{UINT8_MAX});
+    ASSERT_EQ(clHash({UINT16_MAX, DECODE_FORMAT::BINARY, UINT8_MAX}), ullBinary | (std::size_t{UINT16_MAX} << 8) | std::size_t{UINT8_MAX});
 }
 
 TEST(MessageCountsKeyHashTest, EVERY_KEY_HAS_ITS_OWN_HASH_VALUE)
@@ -102,13 +102,13 @@ TEST(MessageCountsKeyHashTest, EVERY_KEY_HAS_ITS_OWN_HASH_VALUE)
     std::size_t ullKeyCount = 0;
 
     // Cover every format, every message ID the database can hold, and the low sibling IDs.
-    for (auto eFormat = static_cast<uint32_t>(HEADER_FORMAT::UNKNOWN); eFormat <= static_cast<uint32_t>(HEADER_FORMAT::ALL); eFormat++)
+    for (auto eFormat = static_cast<uint32_t>(DECODE_FORMAT::UNKNOWN); eFormat <= static_cast<uint32_t>(DECODE_FORMAT::ALL); eFormat++)
     {
         for (uint16_t usMessageId = 0; usMessageId < 3000; usMessageId++)
         {
             for (uint8_t ucSiblingId = 0; ucSiblingId < 4; ucSiblingId++)
             {
-                setHashes.insert(clHash({usMessageId, static_cast<HEADER_FORMAT>(eFormat), ucSiblingId}));
+                setHashes.insert(clHash({usMessageId, static_cast<DECODE_FORMAT>(eFormat), ucSiblingId}));
                 ullKeyCount++;
             }
         }
@@ -165,7 +165,7 @@ TEST_F(HeaderDecoderCountsTest, EACH_DECODE_INCREMENTS_ONE_KEY)
 
     const auto& mapCounts = pclMyHeaderDecoder->GetMessageCounts();
     ASSERT_EQ(mapCounts.size(), 1U);
-    ASSERT_EQ(mapCounts.at({usBestPosId, HEADER_FORMAT::ASCII, 0}), 3U);
+    ASSERT_EQ(mapCounts.at({usBestPosId, DECODE_FORMAT::ASCII, 0}), 3U);
 }
 
 TEST_F(HeaderDecoderCountsTest, FORMAT_IS_PART_OF_THE_KEY)
@@ -176,8 +176,8 @@ TEST_F(HeaderDecoderCountsTest, FORMAT_IS_PART_OF_THE_KEY)
     // One message in two formats gives two keys, and therefore two counts.
     const auto& mapCounts = pclMyHeaderDecoder->GetMessageCounts();
     ASSERT_EQ(mapCounts.size(), 2U);
-    ASSERT_EQ(mapCounts.at({usBestPosId, HEADER_FORMAT::ASCII, 0}), 1U);
-    ASSERT_EQ(mapCounts.at({usBestPosId, HEADER_FORMAT::ABB_ASCII, 0}), 1U);
+    ASSERT_EQ(mapCounts.at({usBestPosId, DECODE_FORMAT::ASCII, 0}), 1U);
+    ASSERT_EQ(mapCounts.at({usBestPosId, DECODE_FORMAT::ABB_ASCII, 0}), 1U);
 }
 
 TEST_F(HeaderDecoderCountsTest, SIBLING_ID_IS_PART_OF_THE_KEY)
@@ -188,8 +188,8 @@ TEST_F(HeaderDecoderCountsTest, SIBLING_ID_IS_PART_OF_THE_KEY)
     // One message from two sources gives two keys, and therefore two counts.
     const auto& mapCounts = pclMyHeaderDecoder->GetMessageCounts();
     ASSERT_EQ(mapCounts.size(), 2U);
-    ASSERT_EQ(mapCounts.at({usBestPosId, HEADER_FORMAT::ASCII, 0}), 1U);
-    ASSERT_EQ(mapCounts.at({usBestPosId, HEADER_FORMAT::ASCII, 1}), 1U);
+    ASSERT_EQ(mapCounts.at({usBestPosId, DECODE_FORMAT::ASCII, 0}), 1U);
+    ASSERT_EQ(mapCounts.at({usBestPosId, DECODE_FORMAT::ASCII, 1}), 1U);
 }
 
 TEST_F(HeaderDecoderCountsTest, A_MESSAGE_WITHOUT_AN_ID_IS_NOT_COUNTED)
@@ -209,7 +209,7 @@ TEST_F(HeaderDecoderCountsTest, RESET_CLEARS_THE_COUNTS)
 
     // The decoder counts again after a reset, and it starts from 0.
     ASSERT_EQ(DecodeHeader(aucAsciiBestPos), STATUS::SUCCESS);
-    ASSERT_EQ(pclMyHeaderDecoder->GetMessageCounts().at({usBestPosId, HEADER_FORMAT::ASCII, 0}), 1U);
+    ASSERT_EQ(pclMyHeaderDecoder->GetMessageCounts().at({usBestPosId, DECODE_FORMAT::ASCII, 0}), 1U);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -256,7 +256,7 @@ TEST_F(ParserCountsTest, PARSER_EXPOSES_THE_HEADER_DECODER_COUNTS)
 
     const auto& mapCounts = pclMyParser->GetMessageCounts();
     ASSERT_EQ(mapCounts.size(), 1U);
-    ASSERT_EQ(mapCounts.at({usBestPosId, HEADER_FORMAT::ASCII, 0}), 2U);
+    ASSERT_EQ(mapCounts.at({usBestPosId, DECODE_FORMAT::ASCII, 0}), 2U);
 }
 
 TEST_F(ParserCountsTest, RESET_CLEARS_THE_COUNTS)
@@ -324,8 +324,8 @@ TEST_F(FileParserCountsTest, FILE_PARSER_COUNTS_EVERY_MESSAGE_IN_THE_FILE)
     // The file holds one VERSION log and one BESTUTM log, both in ASCII format.
     const auto& mapCounts = pclMyFileParser->GetMessageCounts();
     ASSERT_EQ(mapCounts.size(), 2U);
-    ASSERT_EQ(mapCounts.at({usVersionId, HEADER_FORMAT::ASCII, 0}), 1U);
-    ASSERT_EQ(mapCounts.at({usBestUtmId, HEADER_FORMAT::ASCII, 0}), 1U);
+    ASSERT_EQ(mapCounts.at({usVersionId, DECODE_FORMAT::ASCII, 0}), 1U);
+    ASSERT_EQ(mapCounts.at({usBestUtmId, DECODE_FORMAT::ASCII, 0}), 1U);
 
     // Every message that the parser read has a count.
     ASSERT_EQ(TotalCounts(mapCounts), uiMessagesRead);
@@ -345,8 +345,8 @@ TEST_F(FileParserCountsTest, RESET_CLEARS_THE_COUNTS)
     ASSERT_EQ(ReadWholeFile(), 2U);
     const auto& mapCounts = pclMyFileParser->GetMessageCounts();
     ASSERT_EQ(TotalCounts(mapCounts), 2U);
-    ASSERT_EQ(mapCounts.at({usVersionId, HEADER_FORMAT::ASCII, 0}), 1U);
-    ASSERT_EQ(mapCounts.at({usBestUtmId, HEADER_FORMAT::ASCII, 0}), 1U);
+    ASSERT_EQ(mapCounts.at({usVersionId, DECODE_FORMAT::ASCII, 0}), 1U);
+    ASSERT_EQ(mapCounts.at({usBestUtmId, DECODE_FORMAT::ASCII, 0}), 1U);
 }
 
 TEST_F(FileParserCountsTest, SET_STREAM_CLEARS_THE_COUNTS)
