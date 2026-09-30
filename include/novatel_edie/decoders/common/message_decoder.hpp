@@ -31,6 +31,7 @@
 #include <charconv>
 #include <cstring>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <optional>
 #include <stdexcept>
@@ -97,6 +98,8 @@ template <typename T> class TypedBuffer
       public:
         using value_type = T;
         using reference = T;
+        using pointer = void;
+        using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
 
       private:
@@ -656,6 +659,7 @@ class FlatFieldArray
     {
         using value_type = FieldArrayRecordView;
         using reference = value_type;
+        using pointer = void;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
 
@@ -670,6 +674,13 @@ class FlatFieldArray
         {
             index++;
             return *this;
+        }
+
+        const_iterator operator++(int)
+        {
+            auto tmp = *this;
+            ++(*this);
+            return tmp;
         }
 
         bool operator==(const const_iterator& other) const { return fieldArray == other.fieldArray && index == other.index; }
@@ -1389,6 +1400,7 @@ class CompositeField
     {
         using value_type = std::pair<BaseField::ConstPtr, FieldValueVariant>;
         using reference = value_type;
+        using pointer = void;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
 
@@ -1407,6 +1419,13 @@ class CompositeField
         {
             index++;
             return *this;
+        }
+
+        const_iterator operator++(int)
+        {
+            auto tmp = *this;
+            ++(*this);
+            return tmp;
         }
 
         bool operator==(const const_iterator& other) const { return compField == other.compField && index == other.index; }
@@ -1516,6 +1535,7 @@ class FieldArray
     {
         using value_type = FieldArrayRecordView;
         using reference = value_type;
+        using pointer = void;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
 
@@ -1530,6 +1550,13 @@ class FieldArray
         {
             ++index;
             return *this;
+        }
+
+        const_iterator operator++(int)
+        {
+            auto tmp = *this;
+            ++(*this);
+            return tmp;
         }
 
         bool operator==(const const_iterator& other) const { return fieldArray == other.fieldArray && index == other.index; }
