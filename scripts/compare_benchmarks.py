@@ -73,7 +73,6 @@ def compare_results(main_times, current_times):
         for name in set(current_times.keys()) - set(main_times.keys()):
             current_vals = current_times[name]
             current_mean = statistics.mean(current_vals)
-            current_median = statistics.median(current_vals)
             current_stddev = statistics.stdev(current_vals)
             print(f"| 🆕 {name} (new) | - | - | {current_mean:.2f} | {current_stddev:.2f} | - | - |", file=summary)
             print(f"::notice::New benchmark '{name}' found in current branch")
