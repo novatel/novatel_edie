@@ -14,6 +14,28 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
+namespace {
+
+// Bind each named binary operator to the same operator on the BitField's integer value.
+template <typename... Names> void DefIntBinaryOps(nb::class_<py_common::PyBitField>& cls_, Names... names_)
+{
+    (cls_.def(names_,
+              [name = names_](const py_common::PyBitField& self, nb::object other) {
+                  // Coerce a BitField operand to its int value so BitField-vs-BitField ops don't fall back to identity.
+                  if (nb::isinstance<py_common::PyBitField>(other)) { other = nb::int_(nb::cast<const py_common::PyBitField&>(other).val); }
+                  return nb::int_(self.val).attr(name)(other);
+              }),
+     ...);
+}
+
+// Bind each named unary operator to the same operator on the BitField's integer value.
+template <typename... Names> void DefIntUnaryOps(nb::class_<py_common::PyBitField>& cls_, Names... names_)
+{
+    (cls_.def(names_, [name = names_](const py_common::PyBitField& self) { return nb::int_(self.val).attr(name)(); }), ...);
+}
+
+} // namespace
+
 void py_common::init_field_objects(nb::module_& m)
 {
     auto field_class = nb::class_<py_common::PyField>(m, "Field", nb::is_weak_referenceable());
@@ -193,65 +215,17 @@ void py_common::init_field_objects(nb::module_& m)
     // Delegate arithmetic, comparison, and bitwise operators to the underlying
     // integer value so a BitField participates in expressions exactly like an int
     // (returning plain ints / bools, mirroring IntEnum semantics).
-#define EDIE_BITFIELD_BINOP(NAME)                                                                                                                    \
-    bitfield_class.def(NAME, [](const py_common::PyBitField& self, nb::object other) {                                                               \
-        /* Coerce a BitField operand to its int value so BitField-vs-BitField ops don't fall back to identity. */                                    \
-        if (nb::isinstance<py_common::PyBitField>(other)) { other = nb::int_(nb::cast<const py_common::PyBitField&>(other).val); }                   \
-        return nb::int_(self.val).attr(NAME)(other);                                                                                                 \
-    });
-    EDIE_BITFIELD_BINOP("__eq__")
-    EDIE_BITFIELD_BINOP("__ne__")
-    EDIE_BITFIELD_BINOP("__lt__")
-    EDIE_BITFIELD_BINOP("__le__")
-    EDIE_BITFIELD_BINOP("__gt__")
-    EDIE_BITFIELD_BINOP("__ge__")
-    EDIE_BITFIELD_BINOP("__add__")
-    EDIE_BITFIELD_BINOP("__radd__")
-    EDIE_BITFIELD_BINOP("__sub__")
-    EDIE_BITFIELD_BINOP("__rsub__")
-    EDIE_BITFIELD_BINOP("__mul__")
-    EDIE_BITFIELD_BINOP("__rmul__")
-    EDIE_BITFIELD_BINOP("__truediv__")
-    EDIE_BITFIELD_BINOP("__rtruediv__")
-    EDIE_BITFIELD_BINOP("__floordiv__")
-    EDIE_BITFIELD_BINOP("__rfloordiv__")
-    EDIE_BITFIELD_BINOP("__mod__")
-    EDIE_BITFIELD_BINOP("__rmod__")
-    EDIE_BITFIELD_BINOP("__divmod__")
-    EDIE_BITFIELD_BINOP("__rdivmod__")
-    EDIE_BITFIELD_BINOP("__pow__")
-    EDIE_BITFIELD_BINOP("__rpow__")
-    EDIE_BITFIELD_BINOP("__and__")
-    EDIE_BITFIELD_BINOP("__rand__")
-    EDIE_BITFIELD_BINOP("__or__")
-    EDIE_BITFIELD_BINOP("__ror__")
-    EDIE_BITFIELD_BINOP("__xor__")
-    EDIE_BITFIELD_BINOP("__rxor__")
-    EDIE_BITFIELD_BINOP("__lshift__")
-    EDIE_BITFIELD_BINOP("__rlshift__")
-    EDIE_BITFIELD_BINOP("__rshift__")
-    EDIE_BITFIELD_BINOP("__rrshift__")
-#undef EDIE_BITFIELD_BINOP
+    DefIntBinaryOps(bitfield_class, "__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__", "__add__", "__radd__", "__sub__", "__rsub__",
+                    "__mul__", "__rmul__", "__truediv__", "__rtruediv__", "__floordiv__", "__rfloordiv__", "__mod__", "__rmod__", "__divmod__",
+                    "__rdivmod__", "__pow__", "__rpow__", "__and__", "__rand__", "__or__", "__ror__", "__xor__", "__rxor__", "__lshift__",
+                    "__rlshift__", "__rshift__", "__rrshift__");
+    DefIntUnaryOps(bitfield_class, "__neg__", "__pos__", "__abs__", "__invert__");
 
-#define EDIE_BITFIELD_UNOP(NAME) bitfield_class.def(NAME, [](const py_common::PyBitField& self) { return nb::int_(self.val).attr(NAME)(); });
-    EDIE_BITFIELD_UNOP("__neg__")
-    EDIE_BITFIELD_UNOP("__pos__")
-    EDIE_BITFIELD_UNOP("__abs__")
-    EDIE_BITFIELD_UNOP("__invert__")
-#undef EDIE_BITFIELD_UNOP
-
-    // Register a nullary __init__ purely to mark the type as having a no-argument
-    // constructor (type_flags::has_nullary_new). Without it, nanobind's type-call fast path
-    // sends a bare `BitField()` (no args, no kwargs) down its hidden unpickling __new__ path,
-    // which never reaches the guard in __new__ above and reports a cryptic overload error
-    // instead of the clear "cannot be instantiated directly" message. The body never runs:
-    // the fast path skips __init__ when a custom __new__ exists, and the Python-visible
-    // __init__ is repointed to object.__init__ just below (so subtypes inherit the no-op).
+    // Let nanobind know that no-argument construction is supported
+    // This prevents it from making its own zero-arg __new__ overload
+    // https://nanobind.readthedocs.io/en/latest/classes.html#customizing-python-object-creation
     bitfield_class.def("__init__", [](py_common::PyBitField&) {});
 
-    // Concrete bitfield subtypes are generated per bitmask at database-load time
-    // and instantiated via nb::inst_alloc in PyField::convert_field. Repoint
-    // __init__ to object.__init__ (a fast C no-op) so construction work happens in
-    // __new__, mirroring the Field class above.
+    // Repoint  __init__ to object.__init__ (a fast C no-op) so construction work happens in __new__, mirroring the Field class above.
     bitfield_class.attr("__init__") = nb::handle(reinterpret_cast<PyObject*>(&PyBaseObject_Type)).attr("__init__");
 }
