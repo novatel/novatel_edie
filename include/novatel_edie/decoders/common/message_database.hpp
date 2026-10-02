@@ -876,8 +876,7 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     //! \brief Append a list of bitmask definitions to the database.
     //
-    //! A definition replaces any existing definition with the same name. Message
-    //! fields that reference an appended bitmask by ID resolve to it.
+    //! A definition replaces any existing definition with the same name.
     //
     //! \param[in] vBitMasks_ A vector of bitmask definitions
     //----------------------------------------------------------------------------
@@ -885,12 +884,11 @@ class MessageDatabase
     {
         for (const auto& bitMask : vBitMasks_)
         {
-            RemoveBitMaskDefinition(bitMask->name);
+            RemoveBitMask(bitMask->name);
             mBitMasks.push_back(bitMask);
             mBitMaskName[bitMask->name] = bitMask;
             mBitMaskId[bitMask->_id] = bitMask;
         }
-        MapAllMessageFields(false);
     }
 
     //----------------------------------------------------------------------------
@@ -909,9 +907,6 @@ class MessageDatabase
 
     //----------------------------------------------------------------------------
     //! \brief Remove a bitmask definition from the database.
-    //
-    //! Message fields that reference the removed bitmask no longer resolve to a
-    //! bitmask definition.
     //
     //! \param[in] strBitMask_ The bitmask name
     //----------------------------------------------------------------------------
@@ -1124,24 +1119,16 @@ class MessageDatabase
         {
             mMessageName[msg->name] = msg;
             mMessageId[msg->logID] = msg;
-        }
-        MapAllMessageFields();
-    }
 
-  private:
-    //! Re-resolve the bitmask definitions, and the enum definitions if bMapEnums_ is set, referenced by every message field.
-    void MapAllMessageFields(bool bMapEnums_ = true)
-    {
-        for (auto& msg : vMessageDefinitions)
-        {
             for (const auto& item : msg->fieldInfo)
             {
-                if (!item.second->messageOrderedFields.empty()) { MapMessageEnumFields(item.second->messageOrderedFields, bMapEnums_); }
+                if (!item.second->messageOrderedFields.empty()) { MapMessageEnumFields(item.second->messageOrderedFields); }
             }
         }
     }
 
-    void MapMessageEnumFields(const std::vector<BaseField::ConstPtr>& vMsgDefFields_, bool bMapEnums_ = true)
+  private:
+    void MapMessageEnumFields(const std::vector<BaseField::ConstPtr>& vMsgDefFields_)
     {
         for (const auto& field : vMsgDefFields_)
         {
@@ -1150,7 +1137,6 @@ class MessageDatabase
 
             if (field->type == FIELD_TYPE::ENUM)
             {
-                if (!bMapEnums_) { continue; }
                 auto enumField = std::dynamic_pointer_cast<const EnumField>(field);
                 if (!enumField) { continue; }
 
@@ -1161,27 +1147,12 @@ class MessageDatabase
             {
                 auto fieldArrayField = std::dynamic_pointer_cast<const FieldArrayField>(field);
                 if (!fieldArrayField || fieldArrayField->fieldInfo->messageOrderedFields.empty()) { continue; }
-                MapMessageEnumFields(fieldArrayField->fieldInfo->messageOrderedFields, bMapEnums_);
+                MapMessageEnumFields(fieldArrayField->fieldInfo->messageOrderedFields);
             }
         }
     }
 
     //! Remove a bitmask definition and its mappings without re-resolving message fields.
-    void RemoveBitMaskDefinition(std::string_view strBitMask_)
-    {
-        const auto iTer = std::find_if(mBitMasks.begin(), mBitMasks.end(), [strBitMask_](const auto& elem_) { return elem_->name == strBitMask_; });
-        if (iTer == mBitMasks.end()) { return; }
-
-        // Erase the mappings first, as their string_view keys point into the definition.
-        const auto eraseIfMapped = [&iTer](auto& map_, std::string_view key_) {
-            const auto it = map_.find(key_);
-            if (it != map_.end() && it->second == *iTer) { map_.erase(it); }
-        };
-        eraseIfMapped(mBitMaskName, (*iTer)->name);
-        eraseIfMapped(mBitMaskId, (*iTer)->_id);
-        mBitMasks.erase(iTer);
-    }
-
     void RemoveMessageMapping(const MessageDefinition& msg_)
     {
         // Check string against name map
