@@ -31,16 +31,16 @@ from novatel_edie.oem import Decoder, Parser, FileParser, Commander, RangeDecomp
 from novatel_edie.oem.enums import Datum
 from novatel_edie.oem.messages import ExtendedSolutionStatus
 from novatel_edie import MessageDefinition, EnumFieldDefinition, EnumDefinition, EnumDataType
-from novatel_edie import BitField, BitMask, BitMaskEntry, BitMaskDefinition
+from novatel_edie import BitField, BitMaskDefinition, BitMaskCollectionDefinition
 from novatel_edie import FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, FIELD_TYPE, DATA_TYPE
 from novatel_edie.oem import Header
 
 
-def _status_bitmask_def(masks: dict = None) -> BitMaskDefinition:
-    """A bitmask definition splitting a byte into two nibbles, or using `masks` if given."""
+def _status_bitmask_def(masks: dict = None) -> BitMaskCollectionDefinition:
+    """A bitmask collection splitting a byte into two nibbles, or using `masks` if given."""
     if masks is None:
-        masks = {"low": BitMaskEntry(BitMask.from_range(0, 4)), "high": BitMaskEntry(BitMask.from_range(4, 8))}
-    return BitMaskDefinition(id="status_id", name="Status", masks=masks)
+        masks = {"low": BitMaskDefinition(0, 4), "high": BitMaskDefinition(4, 8)}
+    return BitMaskCollectionDefinition(id="status_id", name="Status", masks=masks)
 
 
 def _status_msg_def() -> MessageDefinition:
@@ -108,68 +108,55 @@ class TestDatabaseObjects:
             for attr, default in self.defaults.items():
                 assert getattr(enum_def, attr) == values.get(attr, default)
 
-    class TestBitMask:
-        """Tests for BitMask."""
+    class TestBitMaskDefinition:
+        """Tests for BitMaskDefinition."""
         def test_construct(self):
+            # Arrange
+            enum_def = EnumDefinition(id="1", name="Mode")
             # Act
-            bitmask = BitMask(offset=4, width=3)
+            plain_def = BitMaskDefinition(start=0, end=1)
+            enum_bitmask_def = BitMaskDefinition(start=1, end=4, enum_def=enum_def)
             # Assert
-            assert bitmask.offset == 4
-            assert bitmask.width == 3
-            assert bitmask.mask == 0b1110000
+            assert (plain_def.start, plain_def.end) == (0, 1)
+            assert plain_def.enum_def is None
+            assert (enum_bitmask_def.start, enum_bitmask_def.end) == (1, 4)
+            assert enum_bitmask_def.enum_def.id == enum_def.id
 
-        def test_from_range(self):
+        def test_set_direct(self):
+            # Arrange
+            bitmask_def = BitMaskDefinition(0, 1)
             # Act
-            bitmask = BitMask.from_range(4, 7)
+            bitmask_def.end = 6
+            bitmask_def.start = 2
+            bitmask_def.enum_def = EnumDefinition(id="1", name="Mode")
             # Assert
-            assert bitmask == BitMask(offset=4, width=3)
-
-        @pytest.mark.parametrize("offset, width", [(0, 0), (30, 3), (32, 1)])
-        def test_invalid_construct_raises_value_error(self, offset: int, width: int):
-            # Act / Assert
-            with pytest.raises(ValueError):
-                BitMask(offset, width)
+            assert (bitmask_def.start, bitmask_def.end) == (2, 6)
+            assert bitmask_def.enum_def.name == "Mode"
+            # Act
+            bitmask_def.enum_def = None
+            # Assert
+            assert bitmask_def.enum_def is None
 
         @pytest.mark.parametrize("start, end", [(4, 4), (5, 4), (0, 33)])
         def test_invalid_range_raises_value_error(self, start: int, end: int):
             # Act / Assert
             with pytest.raises(ValueError):
-                BitMask.from_range(start, end)
+                BitMaskDefinition(start, end)
 
-    class TestBitMaskEntry:
-        """Tests for BitMaskEntry."""
-        def test_construct(self):
+        @pytest.mark.parametrize("attr, value", [("start", 8), ("end", 0), ("end", 33)])
+        def test_invalid_range_set_raises_value_error(self, attr: str, value: int):
             # Arrange
-            enum_def = EnumDefinition(id="1", name="Mode")
-            # Act
-            plain_entry = BitMaskEntry(BitMask(0, 1))
-            enum_entry = BitMaskEntry(BitMask(1, 3), enum_def)
-            # Assert
-            assert plain_entry.bitmask == BitMask(0, 1)
-            assert plain_entry.enum_def is None
-            assert enum_entry.bitmask == BitMask(1, 3)
-            assert enum_entry.enum_def.id == enum_def.id
-
-        def test_set_direct(self):
-            # Arrange
-            entry = BitMaskEntry(BitMask(0, 1))
-            # Act
-            entry.bitmask = BitMask(2, 2)
-            entry.enum_def = EnumDefinition(id="1", name="Mode")
-            # Assert
-            assert entry.bitmask == BitMask(2, 2)
-            assert entry.enum_def.name == "Mode"
-            # Act
-            entry.enum_def = None
-            # Assert
-            assert entry.enum_def is None
+            bitmask_def = BitMaskDefinition(0, 8)
+            # Act / Assert
+            with pytest.raises(ValueError):
+                setattr(bitmask_def, attr, value)
 
     @pytest.mark.parametrize("values", [
         {},
-        {"id": "7", "name": "Status", "masks": {"low": BitMaskEntry(BitMask(0, 4)), "high": BitMaskEntry(BitMask(4, 4))}},
+        {"id": "7", "name": "Status", "masks": {"low": BitMaskDefinition(0, 4), "high": BitMaskDefinition(4, 8)}},
         {"id": "0", "name": "empty", "masks": {}}])
-    class TestBitMaskDefinition:
-        """Tests for BitMaskDefinition."""
+    class TestBitMaskCollectionDefinition:
+        """Tests for BitMaskCollectionDefinition."""
         defaults = {
             "id": "",
             "name": "",
@@ -177,20 +164,20 @@ class TestDatabaseObjects:
         }
         def test_construct(self, values: dict):
             # Act
-            bitmask_def = BitMaskDefinition(**values)
+            collection_def = BitMaskCollectionDefinition(**values)
             # Assert
             for attr, default in self.defaults.items():
-                assert getattr(bitmask_def, attr) == values.get(attr, default)
+                assert getattr(collection_def, attr) == values.get(attr, default)
 
         def test_set_direct(self, values: dict):
             # Arrange
-            bitmask_def = BitMaskDefinition()
+            collection_def = BitMaskCollectionDefinition()
             # Act
             for attr, value in values.items():
-                setattr(bitmask_def, attr, value)
+                setattr(collection_def, attr, value)
             # Assert
             for attr, default in self.defaults.items():
-                assert getattr(bitmask_def, attr) == values.get(attr, default)
+                assert getattr(collection_def, attr) == values.get(attr, default)
 
     class TestFieldDefinition:
         """Tests for FieldDefinition (BaseField)."""
@@ -224,12 +211,6 @@ class TestDatabaseObjects:
                 # Assert
                 for attr, default in self.defaults.items():
                     assert getattr(field, attr) == values.get(attr, default)
-
-        def test_bitmask_def_unresolved_outside_database(self):
-            # Act
-            field = FieldDefinition(name="status", bitmask_id="status_id")
-            # Assert
-            assert field.bitmask_def is None
 
         @pytest.mark.parametrize("invalid_conversion", [
             "",
@@ -399,7 +380,7 @@ class TestDatabaseActions:
             with pytest.raises(UnsupportedException, match="locked"):
                 db.remove_enumeration("Datum")
             with pytest.raises(UnsupportedException, match="locked"):
-                db.append_bitmasks(BitMaskDefinition())
+                db.append_bitmasks(BitMaskCollectionDefinition())
             with pytest.raises(UnsupportedException, match="locked"):
                 db.remove_bitmask("ExtendedSolutionStatus")
             with pytest.raises(UnsupportedException, match="locked"):
@@ -473,7 +454,7 @@ class TestDatabaseActions:
         # Assert
         assert by_id == by_name
         entry = by_name.masks["pseudorange_inno_correction"]
-        assert entry.bitmask == BitMask.from_range(1, 4)
+        assert (entry.start, entry.end) == (1, 4)
         assert entry.enum_def.name == "PseudorangeInnoCorrection"
         assert by_name.masks["rtk_solution_verified"].enum_def is None
 
@@ -503,13 +484,11 @@ class TestDatabaseActions:
         # Arrange
         db = MessageDatabase(message_family="OEM")
         db.append_messages([_status_msg_def()])
-        assert db.get_msg_def("STATUSMSG").fields[0][0].bitmask_def is None
 
         # Act
         db.append_bitmasks([_status_bitmask_def()])
 
         # Assert
-        assert db.get_msg_def("STATUSMSG").fields[0][0].bitmask_def == _status_bitmask_def()
         message = db.get_msg_type("STATUSMSG")(status=0xA5)
         assert isinstance(message.status, db.get_bitfield_type_by_name("Status"))
         assert message.status.low == 0x5
@@ -519,7 +498,7 @@ class TestDatabaseActions:
         # Arrange
         db = MessageDatabase(message_family="OEM")
         db.append_bitmasks([_status_bitmask_def()])
-        replacement = _status_bitmask_def({"all": BitMaskEntry(BitMask.from_range(0, 8))})
+        replacement = _status_bitmask_def({"all": BitMaskDefinition(0, 8)})
 
         # Act
         db.append_bitmasks([replacement])
@@ -543,7 +522,6 @@ class TestDatabaseActions:
         # Assert
         assert db.get_bitmask_def_by_name("Status") is None
         assert db.get_bitmask_def_by_id("status_id") is None
-        assert db.get_msg_def("STATUSMSG").fields[0][0].bitmask_def is None
         assert db.get_bitfield_type_by_name("Status") is None
         message = db.get_msg_type("STATUSMSG")(status=0xA5)
         assert type(message.status) is int

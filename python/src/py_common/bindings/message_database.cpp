@@ -133,40 +133,35 @@ void py_common::init_common_message_database(nb::module_& m)
             return nb::str("EnumDefinition(id={!r}, name={!r}, enumerators={!r})").format(enum_def._id, enum_def.name, enum_def.enumerators);
         });
 
-    nb::class_<BitMask>(m, "BitMask", "A contiguous run of bits within an integer value, described by its offset from bit 0 and its width.")
+    // Bit ranges are [start, end) and must fit in 32 bits.
+    const auto makeBitMask = [](uint32_t start, uint32_t end) {
+        if (start >= end || end > 32) { throw nb::value_error("Bitmask range must satisfy 0 <= start < end <= 32"); }
+        return BitMask::fromRange(static_cast<uint8_t>(start), static_cast<uint8_t>(end));
+    };
+
+    nb::class_<BitMaskMapEntry>(m, "BitMaskDefinition",
+                                "A named sub-field covering bits [start, end) of a bitmask, and the enum that gives its values meaning, if any.")
         .def(
             "__init__",
-            [](BitMask* t, uint8_t offset, uint8_t width) {
-                if (width == 0 || offset + width > 32) { throw nb::value_error("BitMask must satisfy 0 < width and offset + width <= 32"); }
-                new (t) BitMask(offset, width);
+            [makeBitMask](BitMaskMapEntry* t, uint32_t start, uint32_t end, EnumDefinition::ConstPtr enum_def) {
+                new (t) BitMaskMapEntry{std::move(enum_def), makeBitMask(start, end)};
             },
-            "offset"_a, "width"_a)
-        .def_static(
-            "from_range",
-            [](uint8_t start, uint8_t end) {
-                if (start >= end || end > 32) { throw nb::value_error("BitMask range must satisfy 0 <= start < end <= 32"); }
-                return BitMask::fromRange(start, end);
-            },
-            "start"_a, "end"_a, "Create a BitMask covering bits [start, end).")
-        .def_ro("offset", &BitMask::offset)
-        .def_ro("width", &BitMask::width)
-        .def_prop_ro("mask", &BitMask::mask, "The mask with its bits in position.")
-        .def("__eq__", [](const BitMask& self, const BitMask& other) { return self == other; })
-        .def("__repr__", [](const BitMask& self) { return nb::str("BitMask(offset={}, width={})").format(self.offset, self.width); });
-
-    nb::class_<BitMaskMapEntry>(m, "BitMaskEntry", "A named sub-field of a bitmask definition and the enum that gives its values meaning, if any.")
-        .def(
-            "__init__", [](BitMaskMapEntry* t, BitMask bitmask, EnumDefinition::ConstPtr enum_def) { new (t) BitMaskMapEntry{std::move(enum_def), bitmask}; },
-            "bitmask"_a, "enum_def"_a.none() = nb::none())
-        .def_rw("bitmask", &BitMaskMapEntry::bitfield)
+            "start"_a, "end"_a, "enum_def"_a.none() = nb::none())
+        .def_prop_rw(
+            "start", [](const BitMaskMapEntry& self) { return self.bitfield.offset; },
+            [makeBitMask](BitMaskMapEntry& self, uint32_t start) { self.bitfield = makeBitMask(start, self.bitfield.offset + self.bitfield.width); })
+        .def_prop_rw(
+            "end", [](const BitMaskMapEntry& self) { return self.bitfield.offset + self.bitfield.width; },
+            [makeBitMask](BitMaskMapEntry& self, uint32_t end) { self.bitfield = makeBitMask(self.bitfield.offset, end); })
         .def_rw("enum_def", &BitMaskMapEntry::enumDef, nb::arg("value").none())
         .def("__eq__", [](const BitMaskMapEntry& self, const BitMaskMapEntry& other) { return self == other; })
         .def("__repr__", [](const BitMaskMapEntry& self) {
-            if (!self.enumDef) { return nb::str("BitMaskEntry(bitmask={!r})").format(self.bitfield); }
-            return nb::str("BitMaskEntry(bitmask={!r}, enum_def={!r})").format(self.bitfield, self.enumDef->name);
+            const uint32_t end = self.bitfield.offset + self.bitfield.width;
+            if (!self.enumDef) { return nb::str("BitMaskDefinition(start={}, end={})").format(self.bitfield.offset, end); }
+            return nb::str("BitMaskDefinition(start={}, end={}, enum_def={!r})").format(self.bitfield.offset, end, self.enumDef->name);
         });
 
-    nb::class_<BitMaskMap>(m, "BitMaskDefinition", "Bitmask Definition representing contents of UI DB")
+    nb::class_<BitMaskMap>(m, "BitMaskCollectionDefinition", "Bitmask Collection Definition representing contents of UI DB")
         .def(
             "__init__",
             [](BitMaskMap* t, std::string id, std::string name, std::unordered_map<std::string, BitMaskMapEntry> masks) {
@@ -178,7 +173,7 @@ void py_common::init_common_message_database(nb::module_& m)
         .def_rw("masks", &BitMaskMap::masks)
         .def("__eq__", [](const BitMaskMap& self, const BitMaskMap& other) { return self == other; })
         .def("__repr__", [](const BitMaskMap& self) {
-            return nb::str("BitMaskDefinition(id={!r}, name={!r}, masks={!r})").format(self._id, self.name, self.masks);
+            return nb::str("BitMaskCollectionDefinition(id={!r}, name={!r}, masks={!r})").format(self._id, self.name, self.masks);
         });
 
     nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")
@@ -198,8 +193,7 @@ void py_common::init_common_message_database(nb::module_& m)
             "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
             "bitmask_id"_a = std::string{})
         .def_rw("name", &BaseField::name)
-        .def_rw("bitmask_id", &BaseField::bitMaskId, "The ID of the bitmask definition that interprets this field, or an empty string if none.")
-        .def_ro("bitmask_def", &BaseField::bitMasks, "The bitmask definition resolved from bitmask_id, or None if unresolved.")
+        .def_rw("bitmask_id", &BaseField::bitMaskId, "The ID of the bitmask collection definition that interprets this field, or an empty string if none.")
         .def_prop_rw(
             "type", [](const BaseField& self) { return self.type; },
             [](BaseField& self, FIELD_TYPE value) {

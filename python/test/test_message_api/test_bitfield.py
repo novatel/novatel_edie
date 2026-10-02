@@ -16,7 +16,7 @@ Scope:
 
 Every case runs against two equivalent databases: one parsed from JSON with
 ``MessageDatabase.from_string``, and one assembled from ``EnumDefinition``,
-``BitMaskDefinition`` and ``MessageDefinition`` objects. A SIMPLE field carrying
+``BitMaskCollectionDefinition``, ``BitMaskDefinition`` and ``MessageDefinition`` objects. A SIMPLE field carrying
 a bitmask ID is exposed as its concrete BitField subtype; ``type(message.<field>)``
 recovers that subtype for direct construction.
 
@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 import pytest
-from novatel_edie import (BitField, BitMask, BitMaskDefinition, BitMaskEntry, DATA_TYPE, EnumDataType, EnumDefinition,
+from novatel_edie import (BitField, BitMaskCollectionDefinition, BitMaskDefinition, DATA_TYPE, EnumDataType, EnumDefinition,
                           FIELD_TYPE, FieldDefinition, MessageDatabase, MessageDefinition)
 
 
@@ -138,9 +138,9 @@ def _build_db_from_definitions(spec: BitmaskSpec) -> MessageDatabase:
     """Build the same database as `_build_db_from_json` from definition objects."""
     enum_defs = {e.name: EnumDefinition(id=e.id, name=e.name, enumerators=[EnumDataType(value, name) for name, value in e.members])
                  for e in spec.enums}
-    bitmask_def = BitMaskDefinition(
+    bitmask_def = BitMaskCollectionDefinition(
         id=spec.bitmask_id, name=spec.name,
-        masks={sm.name: BitMaskEntry(BitMask.from_range(sm.start, sm.end), enum_defs.get(sm.enum)) for sm in spec.submasks})
+        masks={sm.name: BitMaskDefinition(sm.start, sm.end, enum_defs.get(sm.enum)) for sm in spec.submasks})
     msg_def = MessageDefinition(
         id=f'{spec.name.lower()}_msg', log_id=1, name=spec.msg_name, latest_message_crc=0,
         fields={0: [FieldDefinition(name=spec.field_name, type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.ULONG,
