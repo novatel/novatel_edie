@@ -1,3 +1,10 @@
+"""Compare benchmark runtimes and flag statistically significant slowdowns.
+
+Each benchmark uses a one-sided Welch t-test with a 10% slowdown margin. Repeated,
+randomly interleaved runs account for sample variability and help distribute
+time-varying runner noise across both versions.
+"""
+
 import argparse
 import json
 import os
@@ -11,10 +18,17 @@ from collections import defaultdict
 from pathlib import Path
 from scipy import stats
 
+# Per-benchmark significance level for flagging a slowdown.
+PVALUE_THRESHOLD = 0.05
+
 def clean_benchmark_name(name: str) -> str:
+    """Clean the benchmark name by removing the min_time suffix."""
     return re.sub(r"/min_time:[\d.]+", "", name)
 
 def run_single_benchmark(executable, output_file):
+    """Run a single benchmark executable and return the results as a dictionary mapping
+    benchmark names to CPU times."""
+
     subprocess.run(
         [
             executable,
@@ -29,6 +43,9 @@ def run_single_benchmark(executable, output_file):
     return {clean_benchmark_name(b["name"]): b["cpu_time"] for b in data["benchmarks"]}
 
 def compare_results(main_times, current_times):
+    """Compare benchmark results from the main/current branches  and write a summary
+    to a markdown file."""
+
     local_summary_path = Path(__file__).resolve().parent / "benchmark_summary.md"
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY") or local_summary_path
     success = True
@@ -60,7 +77,7 @@ def compare_results(main_times, current_times):
                 )
 
                 symbol = "✅"
-                if res.pvalue < 0.05:
+                if res.pvalue < PVALUE_THRESHOLD:
                     symbol = "❌"
                     print(f"::error::Benchmark '{name}' is {current_mean / main_mean - 1:.2%} slower than main")
                     success = False
