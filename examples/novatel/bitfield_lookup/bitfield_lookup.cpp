@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
     // Read ext_sol_stat as a plain integer. It is a UCHAR.
     const auto ucExtSolStat = stMessage.GetFieldValueByName<uint8_t>("ext_sol_stat");
     // Apply the mask.
-    const uint32_t uiPsrInnoCorrection = ExtractMaskedValue(stPsrInnoCorrectionMask, ucExtSolStat);
+    const uint32_t uiPsrInnoCorrection = ExtractMaskedValue(ucExtSolStat, stPsrInnoCorrectionMask);
     // Get a human readable representation.
     const std::string_view svPsrInnoCorrection = pclPsrInnoCorrectionEnum->valueName.at(uiPsrInnoCorrection);
 
