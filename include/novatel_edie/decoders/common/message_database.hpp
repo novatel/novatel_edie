@@ -302,6 +302,14 @@ struct BitMaskMapEntry
 {
     EnumDefinition::ConstPtr enumDef; // null if no enum meaning
     BitMask bitfield;
+
+    //! Two entries are equal if their bitmasks match and they reference the same enum by ID.
+    [[nodiscard]] bool operator==(const BitMaskMapEntry& other) const
+    {
+        const auto enumId = [](const EnumDefinition::ConstPtr& def_) { return def_ ? def_->_id : std::string{}; };
+        return bitfield == other.bitfield && enumId(enumDef) == enumId(other.enumDef);
+    }
+    [[nodiscard]] bool operator!=(const BitMaskMapEntry& other) const { return !(*this == other); }
 };
 
 //-----------------------------------------------------------------------
@@ -313,6 +321,9 @@ struct BitMaskMap
     std::string _id;
     std::string name;
     std::unordered_map<std::string, BitMaskMapEntry> masks;
+
+    [[nodiscard]] bool operator==(const BitMaskMap& other) const { return _id == other._id && name == other.name && masks == other.masks; }
+    [[nodiscard]] bool operator!=(const BitMaskMap& other) const { return !(*this == other); }
 
     using Ptr = std::shared_ptr<BitMaskMap>;
     using ConstPtr = std::shared_ptr<const BitMaskMap>;
@@ -745,6 +756,7 @@ class MessageDatabase
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumName;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
     std::vector<BitMaskMap::ConstPtr> mBitMasks;
+    std::unordered_map<std::string_view, BitMaskMap::ConstPtr> mBitMaskName;
     std::unordered_map<std::string_view, BitMaskMap::ConstPtr> mBitMaskId;
 
   public:
@@ -796,13 +808,14 @@ class MessageDatabase
     virtual ~MessageDatabase() = default;
 
     //----------------------------------------------------------------------------
-    //! \brief Merge the message and enum definitions from another MessageDatabase into this one.
+    //! \brief Merge the message, enum and bitmask definitions from another MessageDatabase into this one.
     //
     //! \param[in] other_ The other MessageDatabase object to merge.
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
         AppendEnumerations(other_.vEnumDefinitions);
+        AppendBitMasks(other_.mBitMasks);
         AppendMessages(other_.vMessageDefinitions);
     }
 
@@ -861,6 +874,26 @@ class MessageDatabase
     }
 
     //----------------------------------------------------------------------------
+    //! \brief Append a list of bitmask definitions to the database.
+    //
+    //! A definition replaces any existing definition with the same name. Message
+    //! fields that reference an appended bitmask by ID resolve to it.
+    //
+    //! \param[in] vBitMasks_ A vector of bitmask definitions
+    //----------------------------------------------------------------------------
+    void AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_)
+    {
+        for (const auto& bitMask : vBitMasks_)
+        {
+            RemoveBitMaskDefinition(bitMask->name);
+            mBitMasks.push_back(bitMask);
+            mBitMaskName[bitMask->name] = bitMask;
+            mBitMaskId[bitMask->_id] = bitMask;
+        }
+        MapAllMessageFields(false);
+    }
+
+    //----------------------------------------------------------------------------
     //! \brief Append a message Json DB from the provided filepath.
     //
     //! \param[in] iMsgId_ The message ID
@@ -873,6 +906,16 @@ class MessageDatabase
     //! \param[in] strEnumeration_ The enumeration name
     //----------------------------------------------------------------------------
     void RemoveEnumeration(std::string_view strEnumeration_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Remove a bitmask definition from the database.
+    //
+    //! Message fields that reference the removed bitmask no longer resolve to a
+    //! bitmask definition.
+    //
+    //! \param[in] strBitMask_ The bitmask name
+    //----------------------------------------------------------------------------
+    void RemoveBitMask(std::string_view strBitMask_);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
@@ -948,6 +991,30 @@ class MessageDatabase
     //! \brief Returns all defined message types.
     //----------------------------------------------------------------------------
     [[nodiscard]] const std::vector<MessageDefinition::ConstPtr>& MessageDefinitions() const { return vMessageDefinitions; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get a bitmask definition for the provided bitmask ID.
+    //
+    //! \param[in] sBitMaskId_ The bitmask ID.
+    //! \return The definition, or nullptr if the ID is not in the database.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitMaskDefId(const std::string& sBitMaskId_) const
+    {
+        const auto it = mBitMaskId.find(sBitMaskId_);
+        return it != mBitMaskId.end() ? it->second : nullptr;
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get a bitmask definition for the provided bitmask name.
+    //
+    //! \param[in] sBitMaskName_ The bitmask name.
+    //! \return The definition, or nullptr if the name is not in the database.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitMaskDefName(const std::string& sBitMaskName_) const
+    {
+        const auto it = mBitMaskName.find(sBitMaskName_);
+        return it != mBitMaskName.end() ? it->second : nullptr;
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Returns all defined bitmasks.
@@ -1039,8 +1106,13 @@ class MessageDatabase
 
     virtual void GenerateBitMaskMappings()
     {
+        mBitMaskName.clear();
         mBitMaskId.clear();
-        for (auto& bitMask : mBitMasks) { mBitMaskId[bitMask->_id] = bitMask; }
+        for (auto& bitMask : mBitMasks)
+        {
+            mBitMaskName[bitMask->name] = bitMask;
+            mBitMaskId[bitMask->_id] = bitMask;
+        }
     }
 
     virtual void GenerateMessageMappings()
@@ -1052,24 +1124,33 @@ class MessageDatabase
         {
             mMessageName[msg->name] = msg;
             mMessageId[msg->logID] = msg;
+        }
+        MapAllMessageFields();
+    }
 
+  private:
+    //! Re-resolve the bitmask definitions, and the enum definitions if bMapEnums_ is set, referenced by every message field.
+    void MapAllMessageFields(bool bMapEnums_ = true)
+    {
+        for (auto& msg : vMessageDefinitions)
+        {
             for (const auto& item : msg->fieldInfo)
             {
-                if (!item.second->messageOrderedFields.empty()) { MapMessageEnumFields(item.second->messageOrderedFields); }
+                if (!item.second->messageOrderedFields.empty()) { MapMessageEnumFields(item.second->messageOrderedFields, bMapEnums_); }
             }
         }
     }
 
-  private:
-    void MapMessageEnumFields(const std::vector<BaseField::ConstPtr>& vMsgDefFields_)
+    void MapMessageEnumFields(const std::vector<BaseField::ConstPtr>& vMsgDefFields_, bool bMapEnums_ = true)
     {
         for (const auto& field : vMsgDefFields_)
         {
             // Definitions are stored as ConstPtr but bitMasks is populated after loading DBs.
-            if (!field->bitMaskId.empty()) { std::const_pointer_cast<BaseField>(field)->bitMasks = GetBitMaskById(field->bitMaskId); }
+            if (!field->bitMaskId.empty()) { std::const_pointer_cast<BaseField>(field)->bitMasks = GetBitMaskDefId(field->bitMaskId); }
 
             if (field->type == FIELD_TYPE::ENUM)
             {
+                if (!bMapEnums_) { continue; }
                 auto enumField = std::dynamic_pointer_cast<const EnumField>(field);
                 if (!enumField) { continue; }
 
@@ -1080,16 +1161,25 @@ class MessageDatabase
             {
                 auto fieldArrayField = std::dynamic_pointer_cast<const FieldArrayField>(field);
                 if (!fieldArrayField || fieldArrayField->fieldInfo->messageOrderedFields.empty()) { continue; }
-                MapMessageEnumFields(fieldArrayField->fieldInfo->messageOrderedFields);
+                MapMessageEnumFields(fieldArrayField->fieldInfo->messageOrderedFields, bMapEnums_);
             }
         }
     }
 
-    //! Resolve a bitmask definition by its id, or nullptr if the id is empty or unknown.
-    BitMaskMap::ConstPtr GetBitMaskById(const std::string& sBitMaskId_) const
+    //! Remove a bitmask definition and its mappings without re-resolving message fields.
+    void RemoveBitMaskDefinition(std::string_view strBitMask_)
     {
-        const auto it = mBitMaskId.find(sBitMaskId_);
-        return it != mBitMaskId.end() ? it->second : nullptr;
+        const auto iTer = std::find_if(mBitMasks.begin(), mBitMasks.end(), [strBitMask_](const auto& elem_) { return elem_->name == strBitMask_; });
+        if (iTer == mBitMasks.end()) { return; }
+
+        // Erase the mappings first, as their string_view keys point into the definition.
+        const auto eraseIfMapped = [&iTer](auto& map_, std::string_view key_) {
+            const auto it = map_.find(key_);
+            if (it != map_.end() && it->second == *iTer) { map_.erase(it); }
+        };
+        eraseIfMapped(mBitMaskName, (*iTer)->name);
+        eraseIfMapped(mBitMaskId, (*iTer)->_id);
+        mBitMasks.erase(iTer);
     }
 
     void RemoveMessageMapping(const MessageDefinition& msg_)

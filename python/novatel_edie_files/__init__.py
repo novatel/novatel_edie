@@ -52,6 +52,7 @@ from .common_bindings import (
     MessageDatabase,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
     EnumDefinition, EnumDataType,
+    BitMask, BitMaskEntry, BitMaskDefinition,
     ENCODE_FORMAT, DECODE_FORMAT, MESSAGE_FORMAT,
     MAX_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH,
     MAX_ABB_ASCII_RESPONSE_LENGTH, MAX_NMEA_MESSAGE_LENGTH,
