@@ -97,14 +97,18 @@ class PyMessageDatabase
     void Merge(const Ptr& other);
     void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_);
     void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_);
+    void AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_);
     void RemoveMessage(uint32_t iMsgId_);
     void RemoveEnumeration(std::string strEnumeration_);
+    void RemoveBitMask(const std::string& strBitMask_);
 
     // Definition lookups — forward to the underlying MessageDatabase.
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view name) const { return core_->GetMsgDef(name); }
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t id) const { return core_->GetMsgDef(id); }
     [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(const std::string& id) const { return core_->GetEnumDefId(id); }
     [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(const std::string& name) const { return core_->GetEnumDefName(name); }
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitMaskDefId(const std::string& id) const { return core_->GetBitMaskDefId(id); }
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitMaskDefName(const std::string& name) const { return core_->GetBitMaskDefName(name); }
     [[nodiscard]] std::string MsgIdToMsgName(uint32_t id) const { return core_->MsgIdToMsgName(id); }
 
     // Python type-cache lookups.
@@ -192,6 +196,8 @@ class PyMessageDatabase
         auto it = bitfield_types.find(bitMask);
         return it == bitfield_types.end() ? nb::none() : it->second;
     }
+    [[nodiscard]] nb::object GetBitFieldTypeByName(const std::string& name) const { return GetBitFieldType(GetBitMaskDefName(name).get()); }
+    [[nodiscard]] nb::object GetBitFieldTypeById(const std::string& id) const { return GetBitFieldType(GetBitMaskDefId(id).get()); }
 
     [[nodiscard]] std::string GetMessageFamily() const;
     void SetMessageFamily(const std::string& messageFamily);
@@ -247,7 +253,7 @@ class PyMessageDatabase
     }
 
     // Returns a mutable copy of this database that shares the same definitions
-    // and types for messages and enums. As a side effect, the existing database
+    // and types for messages, enums and bitmasks. As a side effect, the existing database
     // (this one) is locked: any subsequent call that would modify it raises an
     // exception (see Lock / ThrowIfLocked).
     [[nodiscard]] nb::object fork();
@@ -271,6 +277,7 @@ class PyMessageDatabase
     //! \brief Creates Python BitField subtypes for multiple bitmask definitions.
     //-----------------------------------------------------------------------
     void AppendBitFieldTypes(const std::vector<BitMaskMap::ConstPtr>& bit_masks);
+    void RemoveBitFieldType(const std::string& bit_mask_name);
     //-----------------------------------------------------------------------
     //! \brief Creates Python types for multiple message definitions and their fields.
     //-----------------------------------------------------------------------

@@ -64,6 +64,82 @@ TEST_F(JsonDbReaderTest, AppendEnumerations)
     ASSERT_EQ(clJson->GetEnumDefId(strId), nullptr);
 }
 
+TEST_F(JsonDbReaderTest, AppendBitMasks)
+{
+    const std::string strId = "7977f11493b08295e9a5692b992646b1b1438b7d";
+    const std::string strName = "ExtendedSolutionStatus";
+
+    auto clJson = std::make_shared<MessageDatabase>();
+    clJson->AppendBitMasks(LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")))->BitMasks());
+
+    BitMaskMap::ConstPtr pstBitMaskDef = clJson->GetBitMaskDefId(strId);
+    ASSERT_NE(pstBitMaskDef, nullptr);
+    ASSERT_EQ(pstBitMaskDef->name, strName);
+    ASSERT_EQ(clJson->GetBitMaskDefName(strName), pstBitMaskDef);
+    ASSERT_EQ(pstBitMaskDef->masks.at("pseudorange_inno_correction").bitfield, BitMask::fromRange(1, 4));
+
+    clJson->RemoveBitMask(strName);
+    ASSERT_EQ(clJson->GetBitMaskDefId(strId), nullptr);
+    ASSERT_EQ(clJson->GetBitMaskDefName(strName), nullptr);
+}
+
+TEST_F(JsonDbReaderTest, BitMaskFieldResolution)
+{
+    const std::string strName = "ExtendedSolutionStatus";
+    const auto getExtSolStat = [](const MessageDatabase& db_) {
+        const auto pstMsgDef = db_.GetMsgDef("BESTPOS");
+        return pstMsgDef->GetMsgDefFromCrc(pstMsgDef->latestMessageCrc).GetFieldDefByName("ext_sol_stat");
+    };
+
+    const auto clLoaded = LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
+    auto clJson = std::make_shared<MessageDatabase>();
+    clJson->AppendMessages(clLoaded->MessageDefinitions());
+    ASSERT_EQ(getExtSolStat(*clJson)->bitMasks, nullptr);
+
+    clJson->AppendBitMasks(clLoaded->BitMasks());
+    ASSERT_EQ(getExtSolStat(*clJson)->bitMasks, clJson->GetBitMaskDefName(strName));
+
+    clJson->RemoveBitMask(strName);
+    ASSERT_EQ(getExtSolStat(*clJson)->bitMasks, nullptr);
+}
+
+TEST_F(JsonDbReaderTest, BitMaskChangesLeaveEnumFieldsUnchanged)
+{
+    const auto getSolutionStatus = [](const MessageDatabase& db_) {
+        const auto pstMsgDef = db_.GetMsgDef("BESTPOS");
+        const auto pstField = pstMsgDef->GetMsgDefFromCrc(pstMsgDef->latestMessageCrc).GetFieldDefByName("solution_status");
+        return std::dynamic_pointer_cast<const EnumField>(pstField);
+    };
+
+    const auto clLoaded = LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
+    auto clJson = std::make_shared<MessageDatabase>();
+    clJson->AppendEnumerations(clLoaded->EnumDefinitions());
+    clJson->AppendMessages(clLoaded->MessageDefinitions());
+    const EnumDefinition::ConstPtr pstSolStatus = getSolutionStatus(*clJson)->enumDef;
+    ASSERT_NE(pstSolStatus, nullptr);
+
+    clJson->RemoveEnumeration("SolStatus");
+    clJson->AppendBitMasks(clLoaded->BitMasks());
+    ASSERT_EQ(getSolutionStatus(*clJson)->enumDef, pstSolStatus);
+
+    clJson->RemoveBitMask("ExtendedSolutionStatus");
+    ASSERT_EQ(getSolutionStatus(*clJson)->enumDef, pstSolStatus);
+}
+
+TEST_F(JsonDbReaderTest, MergeBitMasks)
+{
+    const std::string strName = "ExtendedSolutionStatus";
+
+    MessageDatabase clJson;
+    clJson.Merge(*LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH"))));
+
+    const BitMaskMap::ConstPtr pstBitMaskDef = clJson.GetBitMaskDefName(strName);
+    ASSERT_NE(pstBitMaskDef, nullptr);
+
+    const auto pstMsgDef = clJson.GetMsgDef("BESTPOS");
+    ASSERT_EQ(pstMsgDef->GetMsgDefFromCrc(pstMsgDef->latestMessageCrc).GetFieldDefByName("ext_sol_stat")->bitMasks, pstBitMaskDef);
+}
+
 TEST_F(JsonDbReaderTest, AppendMessages)
 {
     constexpr uint32_t uiMsgId = 690;

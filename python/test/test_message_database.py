@@ -29,9 +29,25 @@ import pytest
 from novatel_edie import MessageDatabase, UnsupportedException
 from novatel_edie.oem import Decoder, Parser, FileParser, Commander, RangeDecompressor, RxConfigHandler, get_builtin_database
 from novatel_edie.oem.enums import Datum
+from novatel_edie.oem.messages import ExtendedSolutionStatus
 from novatel_edie import MessageDefinition, EnumFieldDefinition, EnumDefinition, EnumDataType
+from novatel_edie import BitField, BitMask, BitMaskEntry, BitMaskDefinition
 from novatel_edie import FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, FIELD_TYPE, DATA_TYPE
 from novatel_edie.oem import Header
+
+
+def _status_bitmask_def(masks: dict = None) -> BitMaskDefinition:
+    """A bitmask definition splitting a byte into two nibbles, or using `masks` if given."""
+    if masks is None:
+        masks = {"low": BitMaskEntry(BitMask.from_range(0, 4)), "high": BitMaskEntry(BitMask.from_range(4, 8))}
+    return BitMaskDefinition(id="status_id", name="Status", masks=masks)
+
+
+def _status_msg_def() -> MessageDefinition:
+    """A message definition whose only field is a ULONG interpreted by the Status bitmask."""
+    return MessageDefinition(
+        id="status_msg", log_id=1, name="STATUSMSG", latest_message_crc=0,
+        fields={0: [FieldDefinition(name="status", type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.ULONG, bitmask_id="status_id")]})
 
 class TestDatabaseObjects:
     """Tests that verify the interface for definition objects."""
@@ -92,19 +108,105 @@ class TestDatabaseObjects:
             for attr, default in self.defaults.items():
                 assert getattr(enum_def, attr) == values.get(attr, default)
 
+    class TestBitMask:
+        """Tests for BitMask."""
+        def test_construct(self):
+            # Act
+            bitmask = BitMask(offset=4, width=3)
+            # Assert
+            assert bitmask.offset == 4
+            assert bitmask.width == 3
+            assert bitmask.mask == 0b1110000
+
+        def test_from_range(self):
+            # Act
+            bitmask = BitMask.from_range(4, 7)
+            # Assert
+            assert bitmask == BitMask(offset=4, width=3)
+
+        @pytest.mark.parametrize("offset, width", [(0, 0), (30, 3), (32, 1)])
+        def test_invalid_construct_raises_value_error(self, offset: int, width: int):
+            # Act / Assert
+            with pytest.raises(ValueError):
+                BitMask(offset, width)
+
+        @pytest.mark.parametrize("start, end", [(4, 4), (5, 4), (0, 33)])
+        def test_invalid_range_raises_value_error(self, start: int, end: int):
+            # Act / Assert
+            with pytest.raises(ValueError):
+                BitMask.from_range(start, end)
+
+    class TestBitMaskEntry:
+        """Tests for BitMaskEntry."""
+        def test_construct(self):
+            # Arrange
+            enum_def = EnumDefinition(id="1", name="Mode")
+            # Act
+            plain_entry = BitMaskEntry(BitMask(0, 1))
+            enum_entry = BitMaskEntry(BitMask(1, 3), enum_def)
+            # Assert
+            assert plain_entry.bitmask == BitMask(0, 1)
+            assert plain_entry.enum_def is None
+            assert enum_entry.bitmask == BitMask(1, 3)
+            assert enum_entry.enum_def.id == enum_def.id
+
+        def test_set_direct(self):
+            # Arrange
+            entry = BitMaskEntry(BitMask(0, 1))
+            # Act
+            entry.bitmask = BitMask(2, 2)
+            entry.enum_def = EnumDefinition(id="1", name="Mode")
+            # Assert
+            assert entry.bitmask == BitMask(2, 2)
+            assert entry.enum_def.name == "Mode"
+            # Act
+            entry.enum_def = None
+            # Assert
+            assert entry.enum_def is None
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"id": "7", "name": "Status", "masks": {"low": BitMaskEntry(BitMask(0, 4)), "high": BitMaskEntry(BitMask(4, 4))}},
+        {"id": "0", "name": "empty", "masks": {}}])
+    class TestBitMaskDefinition:
+        """Tests for BitMaskDefinition."""
+        defaults = {
+            "id": "",
+            "name": "",
+            "masks": {}
+        }
+        def test_construct(self, values: dict):
+            # Act
+            bitmask_def = BitMaskDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(bitmask_def, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            bitmask_def = BitMaskDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(bitmask_def, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(bitmask_def, attr) == values.get(attr, default)
+
     class TestFieldDefinition:
         """Tests for FieldDefinition (BaseField)."""
         @pytest.mark.parametrize("values", [
             {},
             {"name": "field1", "type": FIELD_TYPE.SIMPLE, "conversion": "%d", "data_type": DATA_TYPE.INT},
-            {"name": "field2", "type": FIELD_TYPE.SIMPLE, "conversion": "%.3f", "data_type": DATA_TYPE.DOUBLE}])
+            {"name": "field2", "type": FIELD_TYPE.SIMPLE, "conversion": "%.3f", "data_type": DATA_TYPE.DOUBLE},
+            {"name": "field3", "type": FIELD_TYPE.SIMPLE, "data_type": DATA_TYPE.ULONG, "bitmask_id": "status_id"}])
         class TestValues:
             """Tests that values are set correctly."""
             defaults = {
                 "name": "",
                 "type": FIELD_TYPE.UNKNOWN,
                 "conversion": "",
-                "data_type": DATA_TYPE.UNKNOWN
+                "data_type": DATA_TYPE.UNKNOWN,
+                "bitmask_id": ""
             }
             def test_construct(self, values: dict):
                 # Act
@@ -122,6 +224,12 @@ class TestDatabaseObjects:
                 # Assert
                 for attr, default in self.defaults.items():
                     assert getattr(field, attr) == values.get(attr, default)
+
+        def test_bitmask_def_unresolved_outside_database(self):
+            # Act
+            field = FieldDefinition(name="status", bitmask_id="status_id")
+            # Assert
+            assert field.bitmask_def is None
 
         @pytest.mark.parametrize("invalid_conversion", [
             "",
@@ -291,6 +399,10 @@ class TestDatabaseActions:
             with pytest.raises(UnsupportedException, match="locked"):
                 db.remove_enumeration("Datum")
             with pytest.raises(UnsupportedException, match="locked"):
+                db.append_bitmasks(BitMaskDefinition())
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.remove_bitmask("ExtendedSolutionStatus")
+            with pytest.raises(UnsupportedException, match="locked"):
                 db.merge(json_db)
             with pytest.raises(UnsupportedException, match="locked"):
                 db.message_family = "OEM"
@@ -342,6 +454,118 @@ class TestDatabaseActions:
         assert datum_enum.WGS84 == 61
         assert datum_enum.WGS84.name == "WGS84"
         assert datum_enum.WGS84 == Datum.WGS84
+
+    def test_message_db_bitfields(self, json_db: MessageDatabase):
+        # Arrange
+        bitmask_def = json_db.get_bitmask_def_by_name("ExtendedSolutionStatus")
+        # Act
+        by_name = json_db.get_bitfield_type_by_name("ExtendedSolutionStatus")
+        by_id = json_db.get_bitfield_type_by_id(bitmask_def.id)
+        # Assert
+        assert by_name is ExtendedSolutionStatus
+        assert by_id is ExtendedSolutionStatus
+        assert issubclass(by_name, BitField)
+
+    def test_get_bitmask_def(self, json_db: MessageDatabase):
+        # Act
+        by_name = json_db.get_bitmask_def_by_name("ExtendedSolutionStatus")
+        by_id = json_db.get_bitmask_def_by_id(by_name.id)
+        # Assert
+        assert by_id == by_name
+        entry = by_name.masks["pseudorange_inno_correction"]
+        assert entry.bitmask == BitMask.from_range(1, 4)
+        assert entry.enum_def.name == "PseudorangeInnoCorrection"
+        assert by_name.masks["rtk_solution_verified"].enum_def is None
+
+    def test_get_bitmask_def_missing(self, json_db: MessageDatabase):
+        # Act / Assert
+        assert json_db.get_bitmask_def_by_name("NotABitmask") is None
+        assert json_db.get_bitmask_def_by_id("not_an_id") is None
+        assert json_db.get_bitfield_type_by_name("NotABitmask") is None
+
+    def test_append_bitmasks(self, json_db: MessageDatabase):
+        # Arrange
+        new_db = MessageDatabase(message_family="OEM")
+        bitmask_def = json_db.get_bitmask_def_by_name("ExtendedSolutionStatus")
+
+        # Act
+        new_db.append_bitmasks([bitmask_def])
+
+        # Assert
+        assert new_db.get_bitmask_def_by_name("ExtendedSolutionStatus") == bitmask_def
+        assert new_db.get_bitmask_def_by_id(bitmask_def.id) == bitmask_def
+        new_type = new_db.get_bitfield_type_by_name("ExtendedSolutionStatus")
+        assert new_type is not None
+        assert new_type is not ExtendedSolutionStatus
+        assert json_db.get_bitfield_type_by_name("ExtendedSolutionStatus") is ExtendedSolutionStatus
+
+    def test_append_bitmasks_resolves_existing_message_fields(self):
+        # Arrange
+        db = MessageDatabase(message_family="OEM")
+        db.append_messages([_status_msg_def()])
+        assert db.get_msg_def("STATUSMSG").fields[0][0].bitmask_def is None
+
+        # Act
+        db.append_bitmasks([_status_bitmask_def()])
+
+        # Assert
+        assert db.get_msg_def("STATUSMSG").fields[0][0].bitmask_def == _status_bitmask_def()
+        message = db.get_msg_type("STATUSMSG")(status=0xA5)
+        assert isinstance(message.status, db.get_bitfield_type_by_name("Status"))
+        assert message.status.low == 0x5
+        assert message.status.high == 0xA
+
+    def test_append_bitmasks_replaces_by_name(self):
+        # Arrange
+        db = MessageDatabase(message_family="OEM")
+        db.append_bitmasks([_status_bitmask_def()])
+        replacement = _status_bitmask_def({"all": BitMaskEntry(BitMask.from_range(0, 8))})
+
+        # Act
+        db.append_bitmasks([replacement])
+
+        # Assert
+        assert db.get_bitmask_def_by_name("Status") == replacement
+        status = db.get_bitfield_type_by_name("Status")(0xA5)
+        assert status.all == 0xA5
+        with pytest.raises(AttributeError):
+            status.low
+
+    def test_remove_bitmask(self):
+        # Arrange
+        db = MessageDatabase(message_family="OEM")
+        db.append_messages([_status_msg_def()])
+        db.append_bitmasks([_status_bitmask_def()])
+
+        # Act
+        db.remove_bitmask("Status")
+
+        # Assert
+        assert db.get_bitmask_def_by_name("Status") is None
+        assert db.get_bitmask_def_by_id("status_id") is None
+        assert db.get_msg_def("STATUSMSG").fields[0][0].bitmask_def is None
+        assert db.get_bitfield_type_by_name("Status") is None
+        message = db.get_msg_type("STATUSMSG")(status=0xA5)
+        assert type(message.status) is int
+        assert message.status == 0xA5
+
+    def test_merge_bitmasks(self):
+        # Arrange
+        source_db = MessageDatabase(message_family="OEM")
+        source_db.append_messages([_status_msg_def()])
+        source_db.append_bitmasks([_status_bitmask_def()])
+        new_db = MessageDatabase(message_family="OEM")
+
+        # Act
+        new_db.merge(source_db)
+
+        # Assert
+        assert new_db.get_bitmask_def_by_name("Status") == _status_bitmask_def()
+        new_type = new_db.get_bitfield_type_by_name("Status")
+        assert new_type is not None
+        assert new_type is not source_db.get_bitfield_type_by_name("Status")
+        message = new_db.get_msg_type("STATUSMSG")(status=0xA5)
+        assert isinstance(message.status, new_type)
 
     def test_append_messages(self, json_db: MessageDatabase):
         # Arrange
@@ -439,6 +663,7 @@ class TestDatabaseActions:
         assert forked_db.get_msg_type(bestpos_name) is bestpos_type
         assert forked_db.get_msg_def(range_name) == range_def
         assert forked_db.get_msg_type(range_name) is range_type
+        assert forked_db.get_bitfield_type_by_name("ExtendedSolutionStatus") is ExtendedSolutionStatus
 
         assert json_db.get_msg_def(bestpos_name) == bestpos_def
         assert json_db.get_msg_type(bestpos_name) is bestpos_type

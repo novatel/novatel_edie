@@ -97,6 +97,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
     other_->Lock();
     core_->Merge(*other_->core_);
     AppendEnumTypes(other_->core_->EnumDefinitions());
+    AppendBitFieldTypes(other_->core_->BitMasks());
     AppendMessageTypes(core_->MessageDefinitions());
 }
 
@@ -114,6 +115,13 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std:
     AppendEnumTypes(vEnumDefinitions_);
 }
 
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_)
+{
+    ThrowIfLocked();
+    core_->AppendBitMasks(vBitMasks_);
+    AppendBitFieldTypes(vBitMasks_);
+}
+
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessage(uint32_t iMsgId_)
 {
     ThrowIfLocked();
@@ -126,6 +134,13 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumeration(std::string
     ThrowIfLocked();
     RemoveEnumType(strEnumeration_);
     core_->RemoveEnumeration(strEnumeration_);
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveBitMask(const std::string& strBitMask_)
+{
+    ThrowIfLocked();
+    RemoveBitFieldType(strBitMask_);
+    core_->RemoveBitMask(strBitMask_);
 }
 
 PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::fork()
@@ -239,9 +254,25 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendBitFieldTypes(const std
     // type name matches the name emitted by the stub generator.
     for (const auto& bit_mask : bit_masks)
     {
+        // Replace any existing type with the same name
+        RemoveBitFieldType(bit_mask->name);
+
         nb::object bitfield_type = bitfield_type_cons(bit_mask->name.c_str());
         bitfield_types[bit_mask.get()] = bitfield_type;      // def -> type
         bitfield_type_lookup_[bitfield_type] = bit_mask;      // type -> def
+    }
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveBitFieldType(const std::string& bit_mask_name)
+{
+    // Search the type -> def map, as its owning pointers keep each definition alive even once the core database has dropped it.
+    for (auto it = bitfield_type_lookup_.begin(); it != bitfield_type_lookup_.end(); ++it)
+    {
+        if (it->second->name != bit_mask_name) { continue; }
+        const BitMaskMap::ConstPtr bit_mask = it->second;
+        bitfield_type_lookup_.erase(it);
+        bitfield_types.erase(bit_mask.get());
+        return;
     }
 }
 

@@ -178,7 +178,9 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
         return nb::cast(sat_id);
     }
 
-    if (field.bitMasks != nullptr)
+    // A field whose bitmask is not in this database reads as a plain integer.
+    const BitMaskMap::ConstPtr bitMaskDef = field.bitMaskId.empty() ? nullptr : parentDb->GetBitMaskDefId(field.bitMaskId);
+    if (bitMaskDef != nullptr)
     {
         const uint32_t val = std::visit(
             [&](auto&& value) -> uint32_t {
@@ -189,15 +191,15 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
             fieldValue);
 
         // Return the concrete PyBitField subtype registered for this bitmask so type()/isinstance reflect the specific bitfield.
-        nb::handle bitfield_ptype = parentDb->GetBitFieldType(field.bitMasks.get());
+        nb::handle bitfield_ptype = parentDb->GetBitFieldType(bitMaskDef.get());
         if (bitfield_ptype.is_valid() && !bitfield_ptype.is_none())
         {
             nb::object pyinst = nb::inst_alloc(bitfield_ptype);
-            new (nb::inst_ptr<PyBitField>(pyinst)) PyBitField{val, field.bitMasks, parentDb};
+            new (nb::inst_ptr<PyBitField>(pyinst)) PyBitField{val, bitMaskDef, parentDb};
             nb::inst_mark_ready(pyinst);
             return pyinst;
         }
-        return nb::cast(PyBitField{val, field.bitMasks, parentDb});
+        return nb::cast(PyBitField{val, bitMaskDef, parentDb});
     }
 
     return std::visit(

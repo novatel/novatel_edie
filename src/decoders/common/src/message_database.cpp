@@ -57,6 +57,13 @@ void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_)
 }
 
 //-----------------------------------------------------------------------
+void MessageDatabase::RemoveBitMask(std::string_view strBitMask_)
+{
+    RemoveBitMaskDefinition(strBitMask_);
+    MapAllMessageFields(false);
+}
+
+//-----------------------------------------------------------------------
 uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
 {
     uint32_t uiSiblingId = NULL_SIBLING_ID;

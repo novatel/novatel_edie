@@ -98,6 +98,9 @@ struct BitMask
 
     // Mask at bit 0
     constexpr uint32_t lowMask() const { return width == 32 ? UINT32_MAX : (1u << width) - 1u; }
+
+    constexpr bool operator==(const BitMask& other_) const { return offset == other_.offset && width == other_.width; }
+    constexpr bool operator!=(const BitMask& other_) const { return !(*this == other_); }
 };
 
 //-----------------------------------------------------------------------

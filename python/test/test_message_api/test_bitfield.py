@@ -14,10 +14,11 @@ Scope:
    subtypes, not constructible on its own (direct instantiation raises).
    Concrete subtypes behave like their underlying integer value.
 
-Bitmasks can only be defined through the JSON database, so every case is built
-with ``MessageDatabase.from_string``. A SIMPLE field carrying a ``bitmaskID`` is
-exposed as its concrete BitField subtype; ``type(message.<field>)`` recovers that
-subtype for direct construction.
+Every case runs against two equivalent databases: one parsed from JSON with
+``MessageDatabase.from_string``, and one assembled from ``EnumDefinition``,
+``BitMaskDefinition`` and ``MessageDefinition`` objects. A SIMPLE field carrying
+a bitmask ID is exposed as its concrete BitField subtype; ``type(message.<field>)``
+recovers that subtype for direct construction.
 
 Sub-mask extraction follows ``BitMask::fromRange(start, end)`` — bits ``[start,
 end)`` shifted down to bit 0 — and enum sub-masks resolve to the bound IntEnum
@@ -29,8 +30,8 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 import pytest
-
-from novatel_edie import BitField, MessageDatabase
+from novatel_edie import (BitField, BitMask, BitMaskDefinition, BitMaskEntry, DATA_TYPE, EnumDataType, EnumDefinition,
+                          FIELD_TYPE, FieldDefinition, MessageDatabase, MessageDefinition)
 
 
 @dataclass(frozen=True)
@@ -100,7 +101,7 @@ BITMASK_SPECS = [
 VALUES = [0x00000000, 0xFFFFFFFF, 0xDEADBEEF, 0x0000FFFF, 0xA5A5A5A5]
 
 
-def _build_db(spec: BitmaskSpec) -> MessageDatabase:
+def _build_db_from_json(spec: BitmaskSpec) -> MessageDatabase:
     """Build a MessageDatabase from JSON exposing a single message whose only
     field is a SIMPLE ULONG carrying `spec`'s bitmask.
     """
@@ -133,6 +134,28 @@ def _build_db(spec: BitmaskSpec) -> MessageDatabase:
     return MessageDatabase.from_string(json.dumps(db_dict))
 
 
+def _build_db_from_definitions(spec: BitmaskSpec) -> MessageDatabase:
+    """Build the same database as `_build_db_from_json` from definition objects."""
+    enum_defs = {e.name: EnumDefinition(id=e.id, name=e.name, enumerators=[EnumDataType(value, name) for name, value in e.members])
+                 for e in spec.enums}
+    bitmask_def = BitMaskDefinition(
+        id=spec.bitmask_id, name=spec.name,
+        masks={sm.name: BitMaskEntry(BitMask.from_range(sm.start, sm.end), enum_defs.get(sm.enum)) for sm in spec.submasks})
+    msg_def = MessageDefinition(
+        id=f'{spec.name.lower()}_msg', log_id=1, name=spec.msg_name, latest_message_crc=0,
+        fields={0: [FieldDefinition(name=spec.field_name, type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.ULONG,
+                                    bitmask_id=spec.bitmask_id)]})
+
+    db = MessageDatabase(message_family='OEM')
+    db.append_enumerations(list(enum_defs.values()))
+    db.append_bitmasks([bitmask_def])
+    db.append_messages([msg_def])
+    return db
+
+
+DB_BUILDERS = {'json': _build_db_from_json, 'definitions': _build_db_from_definitions}
+
+
 def _plain_submask_cases(specs: List[BitmaskSpec]) -> list:
     """Build (spec, submask, value) params, one per plain-int sub-mask × value."""
     return [pytest.param(spec, sm, value, id=f'{spec.name}-{sm.name}-{value:#010x}')
@@ -159,14 +182,15 @@ def _spec_value_cases(specs: List[BitmaskSpec]) -> list:
 class TestBitField:
     """Concrete BitField subtypes constructed directly, and the non-instantiable base BitField."""
 
-    @pytest.fixture(scope='class')
-    def make_bitmask_db(self):
-        """Cached factory: build (and memoize) a MessageDatabase for a given BitmaskSpec."""
+    @pytest.fixture(scope='class', params=list(DB_BUILDERS))
+    def make_bitmask_db(self, request):
+        """Cached factory: build (and memoize) a MessageDatabase for a given BitmaskSpec with each builder."""
+        builder = DB_BUILDERS[request.param]
         cache: dict = {}
 
         def build(spec: BitmaskSpec) -> MessageDatabase:
             if spec.name not in cache:
-                cache[spec.name] = _build_db(spec)
+                cache[spec.name] = builder(spec)
             return cache[spec.name]
 
         return build

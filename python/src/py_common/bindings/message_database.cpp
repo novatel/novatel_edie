@@ -133,21 +133,73 @@ void py_common::init_common_message_database(nb::module_& m)
             return nb::str("EnumDefinition(id={!r}, name={!r}, enumerators={!r})").format(enum_def._id, enum_def.name, enum_def.enumerators);
         });
 
+    nb::class_<BitMask>(m, "BitMask", "A contiguous run of bits within an integer value, described by its offset from bit 0 and its width.")
+        .def(
+            "__init__",
+            [](BitMask* t, uint8_t offset, uint8_t width) {
+                if (width == 0 || offset + width > 32) { throw nb::value_error("BitMask must satisfy 0 < width and offset + width <= 32"); }
+                new (t) BitMask(offset, width);
+            },
+            "offset"_a, "width"_a)
+        .def_static(
+            "from_range",
+            [](uint8_t start, uint8_t end) {
+                if (start >= end || end > 32) { throw nb::value_error("BitMask range must satisfy 0 <= start < end <= 32"); }
+                return BitMask::fromRange(start, end);
+            },
+            "start"_a, "end"_a, "Create a BitMask covering bits [start, end).")
+        .def_ro("offset", &BitMask::offset)
+        .def_ro("width", &BitMask::width)
+        .def_prop_ro("mask", &BitMask::mask, "The mask with its bits in position.")
+        .def("__eq__", [](const BitMask& self, const BitMask& other) { return self == other; })
+        .def("__repr__", [](const BitMask& self) { return nb::str("BitMask(offset={}, width={})").format(self.offset, self.width); });
+
+    nb::class_<BitMaskMapEntry>(m, "BitMaskEntry", "A named sub-field of a bitmask definition and the enum that gives its values meaning, if any.")
+        .def(
+            "__init__", [](BitMaskMapEntry* t, BitMask bitmask, EnumDefinition::ConstPtr enum_def) { new (t) BitMaskMapEntry{std::move(enum_def), bitmask}; },
+            "bitmask"_a, "enum_def"_a.none() = nb::none())
+        .def_rw("bitmask", &BitMaskMapEntry::bitfield)
+        .def_rw("enum_def", &BitMaskMapEntry::enumDef, nb::arg("value").none())
+        .def("__eq__", [](const BitMaskMapEntry& self, const BitMaskMapEntry& other) { return self == other; })
+        .def("__repr__", [](const BitMaskMapEntry& self) {
+            if (!self.enumDef) { return nb::str("BitMaskEntry(bitmask={!r})").format(self.bitfield); }
+            return nb::str("BitMaskEntry(bitmask={!r}, enum_def={!r})").format(self.bitfield, self.enumDef->name);
+        });
+
+    nb::class_<BitMaskMap>(m, "BitMaskDefinition", "Bitmask Definition representing contents of UI DB")
+        .def(
+            "__init__",
+            [](BitMaskMap* t, std::string id, std::string name, std::unordered_map<std::string, BitMaskMapEntry> masks) {
+                new (t) BitMaskMap{std::move(id), std::move(name), std::move(masks)};
+            },
+            "id"_a = std::string{}, "name"_a = std::string{}, "masks"_a = std::unordered_map<std::string, BitMaskMapEntry>{})
+        .def_rw("id", &BitMaskMap::_id)
+        .def_rw("name", &BitMaskMap::name)
+        .def_rw("masks", &BitMaskMap::masks)
+        .def("__eq__", [](const BitMaskMap& self, const BitMaskMap& other) { return self == other; })
+        .def("__repr__", [](const BitMaskMap& self) {
+            return nb::str("BitMaskDefinition(id={!r}, name={!r}, masks={!r})").format(self._id, self.name, self.masks);
+        });
+
     nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")
         .def(
             "__init__",
-            [](BaseField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type) {
+            [](BaseField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, std::string bitmask_id) {
                 try
                 {
                     new (t) BaseField(std::move(name), type, std::move(conversion), data_type); // NOLINT(*.NewDeleteLeaks)
+                    t->bitMaskId = std::move(bitmask_id);
                 }
                 catch (const std::exception& e)
                 {
                     throw nb::value_error(e.what());
                 }
             },
-            "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN)
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
+            "bitmask_id"_a = std::string{})
         .def_rw("name", &BaseField::name)
+        .def_rw("bitmask_id", &BaseField::bitMaskId, "The ID of the bitmask definition that interprets this field, or an empty string if none.")
+        .def_ro("bitmask_def", &BaseField::bitMasks, "The bitmask definition resolved from bitmask_id, or None if unresolved.")
         .def_prop_rw(
             "type", [](const BaseField& self) { return self.type; },
             [](BaseField& self, FIELD_TYPE value) {
@@ -348,8 +400,16 @@ void py_common::init_common_message_database(nb::module_& m)
                 self.AppendEnumerations(nb::cast<std::vector<EnumDefinition::ConstPtr>>(enums));
             },
             "enums"_a)
+        .def(
+            "append_bitmasks",
+            [](py_common::PyMessageDatabase& self, nb::object bitmasks) {
+                self.ThrowIfLocked();
+                self.AppendBitMasks(nb::cast<std::vector<BitMaskMap::ConstPtr>>(bitmasks));
+            },
+            "bitmasks"_a)
         .def("remove_message", &py_common::PyMessageDatabase::RemoveMessage, "msg_id"_a)
         .def("remove_enumeration", &py_common::PyMessageDatabase::RemoveEnumeration, "enumeration"_a)
+        .def("remove_bitmask", &py_common::PyMessageDatabase::RemoveBitMask, "bitmask"_a)
         .def(
             "get_msg_def",
             [](const py_common::PyMessageDatabase& self, std::string_view msg_name) -> MessageDefinition::ConstPtr {
@@ -367,6 +427,8 @@ void py_common::init_common_message_database(nb::module_& m)
         .def("get_enum_def", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
         .def("get_enum_def_by_id", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
         .def("get_enum_def_by_name", &py_common::PyMessageDatabase::GetEnumDefName, "enum_name"_a)
+        .def("get_bitmask_def_by_id", &py_common::PyMessageDatabase::GetBitMaskDefId, "bitmask_id"_a)
+        .def("get_bitmask_def_by_name", &py_common::PyMessageDatabase::GetBitMaskDefName, "bitmask_name"_a)
         .def(
             "get_msg_type",
             [](py_common::PyMessageDatabase& self, std::string name) {
@@ -432,9 +494,23 @@ void py_common::init_common_message_database(nb::module_& m)
                 return self.GetEnumTypeById(id);
             },
             "id"_a)
+        .def(
+            "get_bitfield_type_by_name",
+            [](py_common::PyMessageDatabase& self, std::string name) {
+                self.Lock();
+                return self.GetBitFieldTypeByName(name);
+            },
+            "name"_a)
+        .def(
+            "get_bitfield_type_by_id",
+            [](py_common::PyMessageDatabase& self, std::string id) {
+                self.Lock();
+                return self.GetBitFieldTypeById(id);
+            },
+            "id"_a)
         .def_prop_rw("message_family", &py_common::PyMessageDatabase::GetMessageFamily, &py_common::PyMessageDatabase::SetMessageFamily)
         .def("fork", &py_common::PyMessageDatabase::fork,
-             "Return a mutable copy of this database that shares the same definitions and types for messages and enums.\n\n"
+             "Return a mutable copy of this database that shares the same definitions and types for messages, enums and bitmasks.\n\n"
              "As a side effect, the existing database (this one) will be locked. Any subsequent call that would modify it "
              "will raise an exception.",
              nb::sig("def fork(self) -> \"MessageDatabase\""))
