@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cassert>
 #include <exception>
 #include <memory>
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -41,8 +41,8 @@ class PyBitField
     PyBitField(uint32_t val_, BitMaskMap::ConstPtr interpretation_, py_common::PyMessageDatabase::ConstPtr parentDb_)
         : val(val_), interpretation(std::move(interpretation_)), parentDb(std::move(parentDb_))
     {
-        if (!interpretation) { throw std::invalid_argument("PyBitField requires a bitmask interpretation"); }
-        if (!parentDb) { throw std::invalid_argument("PyBitField requires a parent database"); }
+        assert(interpretation && "PyBitField requires a bitmask interpretation");
+        assert(parentDb && "PyBitField requires a parent database");
     }
 
     [[nodiscard]] const BitMaskMap& GetInterpretation() const { return *interpretation; }
