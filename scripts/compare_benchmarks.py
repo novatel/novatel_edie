@@ -18,6 +18,9 @@ from collections import defaultdict
 from pathlib import Path
 from scipy import stats
 
+# Tolerance for mean slowdown when comparing benchmarks.
+MEAN_SLOWDOWN_TOLERANCE = 1.1 # 10% mean slowdown tolerance
+
 # Per-benchmark significance level for flagging a slowdown.
 PVALUE_THRESHOLD = 0.05
 
@@ -69,7 +72,7 @@ def compare_results(main_times, current_times):
                     mean1=current_mean,
                     std1=current_stddev,
                     nobs1=len(current_vals),
-                    mean2=1.1 * main_mean, # 10% mean slowdown tolerance
+                    mean2=MEAN_SLOWDOWN_TOLERANCE * main_mean,
                     std2=main_stddev,
                     nobs2=len(main_vals),
                     equal_var=False,
