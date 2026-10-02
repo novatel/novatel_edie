@@ -51,6 +51,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Initialize()
 {
     ResolveBaseType();
     UpdatePythonEnums();
+    UpdatePythonBitFields();
     UpdatePythonMessageTypes();
 }
 
@@ -96,6 +97,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
     other_->Lock();
     core_->Merge(*other_->core_);
     AppendEnumTypes(other_->core_->EnumDefinitions());
+    AppendBitFieldTypes(other_->core_->BitMasks());
     AppendMessageTypes(core_->MessageDefinitions());
 }
 
@@ -113,6 +115,13 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std:
     AppendEnumTypes(vEnumDefinitions_);
 }
 
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_)
+{
+    ThrowIfLocked();
+    core_->AppendBitMasks(vBitMasks_);
+    AppendBitFieldTypes(vBitMasks_);
+}
+
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessage(uint32_t iMsgId_)
 {
     ThrowIfLocked();
@@ -125,6 +134,13 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumeration(std::string
     ThrowIfLocked();
     RemoveEnumType(strEnumeration_);
     core_->RemoveEnumeration(strEnumeration_);
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveBitMask(const std::string& strBitMask_)
+{
+    ThrowIfLocked();
+    RemoveBitFieldType(strBitMask_);
+    core_->RemoveBitMask(strBitMask_);
 }
 
 PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::fork()
@@ -144,11 +160,13 @@ PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::fork()
     db->messages_types = messages_types;
     db->field_types = field_types;
     db->enum_types = enum_types;
+    db->bitfield_types = bitfield_types;
     db->field_name_maps_ = field_name_maps_;
     db->message_field_name_maps_ = message_field_name_maps_;
     db->message_type_lookup_ = message_type_lookup_;
     db->field_type_lookup_ = field_type_lookup_;
     db->enum_type_lookup_ = enum_type_lookup_;
+    db->bitfield_type_lookup_ = bitfield_type_lookup_;
     db->allocateExtras();
     return wrapper;
 }
@@ -204,6 +222,57 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumType(const std::str
     {
         enum_type_lookup_.erase(enum_it->second);
         enum_types.erase(enum_it);
+    }
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::UpdatePythonBitFields()
+{
+    bitfield_types.clear();
+    bitfield_type_lookup_.clear();
+    AppendBitFieldTypes(core_->BitMasks());
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendBitFieldTypes(const std::vector<BitMaskMap::ConstPtr>& bit_masks)
+{
+    // Build a Python subclass of BitField for each bitmask definition, mirroring
+    // the message/field-type factory in AppendMessageTypes. Each subclass carries
+    // an `_owner_db` attribute pointing back at this database.
+    nb::dict globals;
+    globals["__builtins__"] = nb::module_::import_("builtins");
+    globals["bitfield_type"] = nb::type<py_common::PyBitField>();
+    globals["db"] = nb::find(this);
+
+    nb::exec(R"(
+    def bitfield_type_cons(name):
+        return type(name, (bitfield_type,), {'__slots__': (), '_owner_db': db})
+    )",
+             globals);
+    nb::object bitfield_type_cons = globals["bitfield_type_cons"];
+
+    // Use the raw bitmask name as the generated type name (mirroring how
+    // AppendEnumTypes names enum types from EnumDefinition::name), so the runtime
+    // type name matches the name emitted by the stub generator.
+    for (const auto& bit_mask : bit_masks)
+    {
+        // Replace any existing type with the same name
+        RemoveBitFieldType(bit_mask->name);
+
+        nb::object bitfield_type = bitfield_type_cons(bit_mask->name.c_str());
+        bitfield_types[bit_mask.get()] = bitfield_type;      // def -> type
+        bitfield_type_lookup_[bitfield_type] = bit_mask;      // type -> def
+    }
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveBitFieldType(const std::string& bit_mask_name)
+{
+    // Search the type -> def map, as its owning pointers keep each definition alive even once the core database has dropped it.
+    for (auto it = bitfield_type_lookup_.begin(); it != bitfield_type_lookup_.end(); ++it)
+    {
+        if (it->second->name != bit_mask_name) { continue; }
+        const BitMaskMap::ConstPtr bit_mask = it->second;
+        bitfield_type_lookup_.erase(it);
+        bitfield_types.erase(bit_mask.get());
+        return;
     }
 }
 

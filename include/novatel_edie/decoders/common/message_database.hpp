@@ -34,6 +34,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "novatel_edie/common/common.hpp"
 #include "novatel_edie/common/crc.hpp"
 #include "novatel_edie/common/logger.hpp"
 
@@ -153,7 +154,6 @@ enum class FIELD_TYPE
 {
     SIMPLE,                //!< Simple type.
     ENUM,                  //!< Enum type.
-    BITFIELD,              //!< BitField type.
     FIXED_LENGTH_ARRAY,    //!< Fixed-sized array.
     VARIABLE_LENGTH_ARRAY, //!< Variable-length array.
     STRING,                //!< String type.
@@ -168,7 +168,6 @@ enum class FIELD_TYPE
 //!< Mapping from String to field type enums.
 static const std::unordered_map<std::string, FIELD_TYPE> FieldTypeEnumLookup = {{"SIMPLE", FIELD_TYPE::SIMPLE},
                                                                                 {"ENUM", FIELD_TYPE::ENUM},
-                                                                                {"BITFIELD", FIELD_TYPE::BITFIELD},
                                                                                 {"FIXED_LENGTH_ARRAY", FIELD_TYPE::FIXED_LENGTH_ARRAY},
                                                                                 {"VARIABLE_LENGTH_ARRAY", FIELD_TYPE::VARIABLE_LENGTH_ARRAY},
                                                                                 {"STRING", FIELD_TYPE::STRING},
@@ -181,7 +180,6 @@ constexpr std::string_view FieldTypeToString(const FIELD_TYPE eFieldType_)
     {
     case FIELD_TYPE::SIMPLE: return "SIMPLE";
     case FIELD_TYPE::ENUM: return "ENUM";
-    case FIELD_TYPE::BITFIELD: return "BITFIELD";
     case FIELD_TYPE::FIXED_LENGTH_ARRAY: return "FIXED_LENGTH_ARRAY";
     case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: return "VARIABLE_LENGTH_ARRAY";
     case FIELD_TYPE::STRING: return "STRING";
@@ -297,6 +295,41 @@ struct SimpleDataType
 };
 
 //-----------------------------------------------------------------------
+//! \struct BitMaskMapEntry
+//! \brief Struct containing a BitMask and the EnumDefintion for data extracted with it (if any).
+//-----------------------------------------------------------------------
+struct BitMaskMapEntry
+{
+    EnumDefinition::ConstPtr enumDef; // null if no enum meaning
+    BitMask bitfield;
+
+    //! Two entries are equal if their bitmasks match and they reference the same enum by ID.
+    [[nodiscard]] bool operator==(const BitMaskMapEntry& other) const
+    {
+        const auto enumId = [](const EnumDefinition::ConstPtr& def_) { return def_ ? def_->_id : std::string{}; };
+        return bitfield == other.bitfield && enumId(enumDef) == enumId(other.enumDef);
+    }
+    [[nodiscard]] bool operator!=(const BitMaskMapEntry& other) const { return !(*this == other); }
+};
+
+//-----------------------------------------------------------------------
+//! \struct BitMaskMap
+//! \brief A named collection of bitmask sub-fields, keyed by sub-field name.
+//-----------------------------------------------------------------------
+struct BitMaskMap
+{
+    std::string _id;
+    std::string name;
+    std::unordered_map<std::string, BitMaskMapEntry> masks;
+
+    [[nodiscard]] bool operator==(const BitMaskMap& other) const { return _id == other._id && name == other.name && masks == other.masks; }
+    [[nodiscard]] bool operator!=(const BitMaskMap& other) const { return !(*this == other); }
+
+    using Ptr = std::shared_ptr<BitMaskMap>;
+    using ConstPtr = std::shared_ptr<const BitMaskMap>;
+};
+
+//-----------------------------------------------------------------------
 //! \struct BaseField
 //! \brief Struct containing elements of basic fields in the UI DB.
 //-----------------------------------------------------------------------
@@ -306,6 +339,8 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
+    std::string bitMaskId;            // id of the associated bitmask definition; "" if none
+    BitMaskMap::ConstPtr bitMasks;    // cached; resolved from bitMaskId, null if none
     uint32_t conversionHash{0ULL};    // cached
     std::optional<int32_t> width;     // cached
     std::optional<int32_t> precision; // cached
@@ -347,7 +382,7 @@ struct BaseField
     //! Subclasses must override to preserve their runtime type. The base
     //! implementation copy-constructs a plain `BaseField` and is correct only
     //! for `FIELD_TYPE`s that don't have a subclass (`SIMPLE`, `STRING`,
-    //! `RESPONSE_ID`, `RESPONSE_STR`, `BITFIELD`, `RXCONFIG_*`, `UNKNOWN`).
+    //! `RESPONSE_ID`, `RESPONSE_STR`, `RXCONFIG_*`, `UNKNOWN`).
     //
     //! `FieldArrayField::clone()` recursively deep-copies its nested `fields`
     //! vector so the resulting tree shares no `shared_ptr<BaseField>` storage
@@ -414,7 +449,7 @@ struct BaseField
     [[nodiscard]] virtual bool equalsImpl(const BaseField& other) const
     {
         return name == other.name && type == other.type && description == other.description && conversion == other.conversion &&
-               dataType == other.dataType;
+               bitMaskId == other.bitMaskId && dataType == other.dataType;
     }
 };
 
@@ -720,6 +755,9 @@ class MessageDatabase
     std::unordered_map<int32_t, MessageDefinition::ConstPtr> mMessageId;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumName;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
+    std::vector<BitMaskMap::ConstPtr> mBitMasks;
+    std::unordered_map<std::string_view, BitMaskMap::ConstPtr> mBitMaskName;
+    std::unordered_map<std::string_view, BitMaskMap::ConstPtr> mBitMaskId;
 
   public:
     //----------------------------------------------------------------------------
@@ -752,12 +790,15 @@ class MessageDatabase
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
     //! \param[in] pDbMetadata_ Database metadata
+    //! \param[in] vBitMasks_ A vector of bitmask maps
     //----------------------------------------------------------------------------
     MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_,
-                    DbMetadata::Ptr pDbMetadata_)
-        : pDbMetadata(std::move(pDbMetadata_)), vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_))
+                    DbMetadata::Ptr pDbMetadata_, std::vector<BitMaskMap::ConstPtr> vBitMasks_ = {})
+        : pDbMetadata(std::move(pDbMetadata_)), vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_)),
+          mBitMasks(std::move(vBitMasks_))
     {
         GenerateEnumMappings();
+        GenerateBitMaskMappings();
         GenerateMessageMappings();
     }
 
@@ -767,13 +808,14 @@ class MessageDatabase
     virtual ~MessageDatabase() = default;
 
     //----------------------------------------------------------------------------
-    //! \brief Merge the message and enum definitions from another MessageDatabase into this one.
+    //! \brief Merge the message, enum and bitmask definitions from another MessageDatabase into this one.
     //
     //! \param[in] other_ The other MessageDatabase object to merge.
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
         AppendEnumerations(other_.vEnumDefinitions);
+        AppendBitMasks(other_.mBitMasks);
         AppendMessages(other_.vMessageDefinitions);
     }
 
@@ -832,6 +874,24 @@ class MessageDatabase
     }
 
     //----------------------------------------------------------------------------
+    //! \brief Append a list of bitmask definitions to the database.
+    //
+    //! A definition replaces any existing definition with the same name.
+    //
+    //! \param[in] vBitMasks_ A vector of bitmask definitions
+    //----------------------------------------------------------------------------
+    void AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_)
+    {
+        for (const auto& bitMask : vBitMasks_)
+        {
+            RemoveBitMask(bitMask->name);
+            mBitMasks.push_back(bitMask);
+            mBitMaskName[bitMask->name] = bitMask;
+            mBitMaskId[bitMask->_id] = bitMask;
+        }
+    }
+
+    //----------------------------------------------------------------------------
     //! \brief Append a message Json DB from the provided filepath.
     //
     //! \param[in] iMsgId_ The message ID
@@ -844,6 +904,13 @@ class MessageDatabase
     //! \param[in] strEnumeration_ The enumeration name
     //----------------------------------------------------------------------------
     void RemoveEnumeration(std::string_view strEnumeration_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Remove a bitmask definition from the database.
+    //
+    //! \param[in] strBitMask_ The bitmask name
+    //----------------------------------------------------------------------------
+    void RemoveBitMask(std::string_view strBitMask_);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
@@ -919,6 +986,35 @@ class MessageDatabase
     //! \brief Returns all defined message types.
     //----------------------------------------------------------------------------
     [[nodiscard]] const std::vector<MessageDefinition::ConstPtr>& MessageDefinitions() const { return vMessageDefinitions; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get a bitmask definition for the provided bitmask ID.
+    //
+    //! \param[in] sBitMaskId_ The bitmask ID.
+    //! \return The definition, or nullptr if the ID is not in the database.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitMaskDefId(const std::string& sBitMaskId_) const
+    {
+        const auto it = mBitMaskId.find(sBitMaskId_);
+        return it != mBitMaskId.end() ? it->second : nullptr;
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get a bitmask definition for the provided bitmask name.
+    //
+    //! \param[in] sBitMaskName_ The bitmask name.
+    //! \return The definition, or nullptr if the name is not in the database.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitMaskDefName(const std::string& sBitMaskName_) const
+    {
+        const auto it = mBitMaskName.find(sBitMaskName_);
+        return it != mBitMaskName.end() ? it->second : nullptr;
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief Returns all defined bitmasks.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] const std::vector<BitMaskMap::ConstPtr>& BitMasks() const { return mBitMasks; }
 
     //----------------------------------------------------------------------------
     //! \brief Returns DB metadata.
@@ -1003,6 +1099,17 @@ class MessageDatabase
         }
     }
 
+    virtual void GenerateBitMaskMappings()
+    {
+        mBitMaskName.clear();
+        mBitMaskId.clear();
+        for (auto& bitMask : mBitMasks)
+        {
+            mBitMaskName[bitMask->name] = bitMask;
+            mBitMaskId[bitMask->_id] = bitMask;
+        }
+    }
+
     virtual void GenerateMessageMappings()
     {
         // Must clear maps here as previous string_view keys could belong to old message definitions
@@ -1025,6 +1132,9 @@ class MessageDatabase
     {
         for (const auto& field : vMsgDefFields_)
         {
+            // Definitions are stored as ConstPtr but bitMasks is populated after loading DBs.
+            if (!field->bitMaskId.empty()) { std::const_pointer_cast<BaseField>(field)->bitMasks = GetBitMaskDefId(field->bitMaskId); }
+
             if (field->type == FIELD_TYPE::ENUM)
             {
                 auto enumField = std::dynamic_pointer_cast<const EnumField>(field);
@@ -1042,6 +1152,7 @@ class MessageDatabase
         }
     }
 
+    //! Remove a bitmask definition and its mappings without re-resolving message fields.
     void RemoveMessageMapping(const MessageDefinition& msg_)
     {
         // Check string against name map

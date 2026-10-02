@@ -70,6 +70,7 @@ class StubGenerator:
                 'database must be a dict or a path to a JSON database file.')
         self.database = database
         self.database['enums_by_id'] = {enum['_id']: enum for enum in database['enums']}
+        self.database['bitmasks_by_id'] = {bitmask['_id']: bitmask for bitmask in database.get('bitmasks', [])}
         logging.info('Database loaded successfully')
 
     def write_stub_files(self, file_path: str):
@@ -97,7 +98,7 @@ class StubGenerator:
         Returns:
             A string containing a type hint for the enum definition.
         """
-        type_hint = f'class {enum_def["name"]}(Enum):\n'
+        type_hint = f'class {enum_def["name"]}(IntEnum):\n'
         max_val = 0
         for enumerator in enum_def['enumerators']:
             val = enumerator["value"]
@@ -117,13 +118,54 @@ class StubGenerator:
         Returns:
             A string containing type hint stubs for all enums in the database.
         """
-        stub_str = ('from enum import Enum\n'
+        stub_str = ('from enum import IntEnum\n'
                     'from typing import Any\n\n')
         enums = self.database['enums']
         type_hints = [self._convert_enum_def(enum_def) for enum_def in enums]
         type_hints_str = '\n'.join(type_hints)
         stub_str += type_hints_str
         return stub_str
+
+    def _convert_bitmask_def(self, bitmask_def) -> str:
+        """Create a type hint string for a bitmask definition.
+
+        Args:
+            bitmask_def: A dictionary containing a bitmask definition.
+        Returns:
+            A string containing a type hint for the bitmask definition.
+        """
+        type_hint = f'class {bitmask_def["name"]}(BitField):\n'
+        type_hint += '    @overload\n'
+        type_hint += '    def __init__(self, value: int = ...) -> None: ...\n\n'
+        type_hint += '    @overload\n'
+        type_hint += '    def __init__(self, *,\n'
+        component_params = []
+        for mask_name, mask in bitmask_def['masks'].items():
+            enum_def = self.database['enums_by_id'].get(mask.get('enumID'))
+            python_type = enum_def['name'] if enum_def else 'int'
+            component_params.append(f'        {mask_name}: {python_type} = ...')
+        type_hint += ',\n'.join(component_params)
+        type_hint += ') -> None: ...\n\n'
+        for mask_name, mask in bitmask_def['masks'].items():
+            enum_def = self.database['enums_by_id'].get(mask.get('enumID'))
+            python_type = enum_def['name'] if enum_def else 'int'
+            type_hint += ('    @property\n'
+                         f'    def {mask_name}(self) -> {python_type}: ...\n\n')
+        return type_hint
+
+    def get_bitfield_hints(self) -> str:
+        """Get type hint stubs for all bitfields in the database.
+
+        The bitfield classes are emitted into messages.pyi (alongside the message
+        types they belong to), so this returns just the class definitions without
+        module-level imports.
+
+        Returns:
+            A string containing type hint stubs for all bitfields in the database.
+        """
+        bitmasks = self.database.get('bitmasks', [])
+        type_hints = [self._convert_bitmask_def(bitmask_def) for bitmask_def in bitmasks]
+        return '\n'.join(type_hints)
 
     def _get_field_pytype(self, field: dict, parent: str) -> str:
         """Get a type hint string for a field definition.
@@ -136,6 +178,11 @@ class StubGenerator:
             A string containing a type hint for the field definition.
         """
         python_type = None
+        # A SIMPLE field carrying a bitmaskID is exposed as its concrete BitField
+        # subtype, not a raw int.
+        bitmask_def = self.database['bitmasks_by_id'].get(field.get('bitmaskID'))
+        if bitmask_def:
+            return bitmask_def['name']
         if field['type'] == 'SIMPLE':
             python_type = self.data_type_to_pytype.get(field['dataType']['name'])
         if field['type'] == 'ENUM':
@@ -174,6 +221,12 @@ class StubGenerator:
         name = f'{parent}_{field_array_def["name"]}_Field'
         aliases = [f'{parent_alias}_{field_array_def["name"]}_Field' for parent_alias in parent_aliases]
         type_hint = f'class {name}(Field):\n'
+        init_params = ['self']
+        for field in field_array_def['fields']:
+            kwarg_type = self._get_init_kwarg_type(field, name)
+            if kwarg_type is not None:
+                init_params.append(f'{field["name"]}: {kwarg_type} = ...')
+        type_hint += f'    def __init__({", ".join(init_params)}) -> None: ...\n\n'
         for field in field_array_def['fields']:
             python_type = self._get_field_pytype(field, name)
             type_hint +=  ('    @property\n'
@@ -194,12 +247,17 @@ class StubGenerator:
     def _to_hex(self, crc: str) -> str:
         return f'{int(crc):04X}'
 
-    def _get_init_kwarg_type(self, field: dict) -> Union[str, None]:
+    def _get_init_kwarg_type(self, field: dict, parent: str = '') -> Union[str, None]:
         """Get the type hint for a field passed as an __init__ kwarg.
 
-        Returns None if the field can't be set via the constructor / setattr
-        (FIELD_ARRAY, VARIABLE_LENGTH_ARRAY, and non-string FIXED_LENGTH_ARRAY).
+        FIELD_ARRAY values are accepted as lists of their generated nested field
+        type. Other unsupported array types return None.
         """
+        bitmask_def = self.database['bitmasks_by_id'].get(field.get('bitmaskID'))
+        if bitmask_def:
+            return bitmask_def['name']
+        if field['type'] == 'FIELD_ARRAY':
+            return f'list[{parent}_{field["name"]}_Field]'
         if field['type'] == 'SIMPLE':
             return self.data_type_to_pytype.get(field['dataType']['name'])
         if field['type'] == 'ENUM':
@@ -234,7 +292,7 @@ class StubGenerator:
             # class body is never empty.
             init_params = ['self', 'header: Header | None = None']
             for field in fields:
-                kwarg_type = self._get_init_kwarg_type(field)
+                kwarg_type = self._get_init_kwarg_type(field, name)
                 if kwarg_type is not None:
                     init_params.append(f'{field["name"]}: {kwarg_type} = ...')
             body_hint += f'    def __init__({", ".join(init_params)}) -> None: ...\n\n'
@@ -267,10 +325,13 @@ class StubGenerator:
         Returns:
             A string containing type hint stubs for all messages in the database.
         """
-        stub_str = 'from typing import Any\n\n'
-        stub_str += 'from novatel_edie import Field, FieldArray, SatelliteId\n'
+        stub_str = 'from typing import Any, overload\n\n'
+        stub_str += 'from novatel_edie import Field, FieldArray, BitField, SatelliteId\n'
         stub_str += 'from novatel_edie.oem import Header, Message\n'
         stub_str += 'from novatel_edie.oem.enums import *\n\n'
+        # Bitfield classes are emitted first so message properties can reference them.
+        stub_str += self.get_bitfield_hints()
+        stub_str += '\n'
         stub_str += ('class UNKNOWN(Message):\n'
                      '    def __repr__(self) -> str: ...\n\n'
                      '    @property\n'

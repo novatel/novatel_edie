@@ -27,6 +27,7 @@
 #ifndef COMMON_COMMON_HPP
 #define COMMON_COMMON_HPP
 
+#include <cassert>
 #include <cstdint>
 
 namespace novatel::edie {
@@ -72,6 +73,48 @@ bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_ = 0.001);
 //! \return The char as an integer.
 //-----------------------------------------------------------------------
 int32_t ToDigit(char c_);
+
+//-----------------------------------------------------------------------
+//! \struct BitMask
+//! \brief A contiguous run of bits within a value, described by its offset
+//! from bit 0 and its width. Provides helpers to build the mask and to
+//! extract the field's value from a larger integer.
+//-----------------------------------------------------------------------
+struct BitMask
+{
+    uint8_t offset;
+    uint8_t width;
+
+    constexpr BitMask(uint8_t offset_, uint8_t width_) : offset(offset_), width(width_) { assert(width > 0 && offset + width <= 32); }
+
+    // Constructs from an inclusive lower bound and exclusive upper bound, e.g. fromRange(4, 8) covers bits [4,8).
+    static constexpr BitMask fromRange(uint8_t lower_, uint8_t upperExclusive_)
+    {
+        return BitMask(lower_, static_cast<uint8_t>(upperExclusive_ - lower_));
+    }
+
+    // Mask positioned in-place
+    constexpr uint32_t mask() const { return lowMask() << offset; }
+
+    // Mask at bit 0
+    constexpr uint32_t lowMask() const { return width == 32 ? UINT32_MAX : (1u << width) - 1u; }
+
+    constexpr bool operator==(const BitMask& other_) const { return offset == other_.offset && width == other_.width; }
+    constexpr bool operator!=(const BitMask& other_) const { return !(*this == other_); }
+};
+
+//-----------------------------------------------------------------------
+//! \brief Extract the value of a bitfield from a larger integer.
+//
+//! \param[in] value_ The integer to extract the field from.
+//! \param[in] bitMask_ The bitmask describing the field's offset and width.
+//
+//! \return The field's value, shifted down to bit 0.
+//-----------------------------------------------------------------------
+template <typename T> constexpr uint32_t ExtractMaskedValue(T value_, const BitMask& bitMask_)
+{
+    return static_cast<uint32_t>(value_ >> bitMask_.offset) & bitMask_.lowMask();
+}
 
 //-----------------------------------------------------------------------
 // Common miscellaneous defines

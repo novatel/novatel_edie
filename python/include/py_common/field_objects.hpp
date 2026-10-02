@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <exception>
 #include <memory>
 #include <optional>
@@ -26,6 +27,57 @@ using OwnedFieldArrayData = std::unique_ptr<FieldValueVariant>;
 class PyFieldArray;
 
 //============================================================================
+//! \class PyBitField
+//! \brief A python representation of a bitfield.
+//!
+//! Contains an integer value from a field and a BitMaskMap that helps to
+//! interpret it. Sub-mask access extracts the relevant bits; when a sub-mask
+//! carries an enum meaning, the value is returned as the matching Python
+//! IntEnum member rather than a raw int.
+//============================================================================
+class PyBitField
+{
+  public:
+    PyBitField(uint32_t val_, BitMaskMap::ConstPtr interpretation_, py_common::PyMessageDatabase::ConstPtr parentDb_)
+        : val(val_), interpretation(std::move(interpretation_)), parentDb(std::move(parentDb_))
+    {
+        assert(interpretation && "PyBitField requires a bitmask interpretation");
+        assert(parentDb && "PyBitField requires a parent database");
+    }
+
+    [[nodiscard]] const BitMaskMap& GetInterpretation() const { return *interpretation; }
+
+    nb::object getattr(nb::str field_name) const
+    {
+        auto it = interpretation->masks.find(field_name.c_str());
+        if (it == interpretation->masks.end()) { throw nb::attribute_error(field_name.c_str()); }
+        const BitMaskMapEntry& mapEntry = it->second;
+        const uint32_t extracted = ExtractMaskedValue(val, mapEntry.bitfield);
+
+        // When the sub-mask has an enum meaning, return the typed IntEnum member,
+        // mirroring the ENUM branch of PyField::convert_field.
+        if (mapEntry.enumDef)
+        {
+            nb::object enum_type = parentDb->GetEnumType(mapEntry.enumDef.get());
+            if (!enum_type.is_none())
+            {
+                if (mapEntry.enumDef->valueName.count(extracted) > 0) { return enum_type(extracted); }
+                return enum_type(mapEntry.enumDef->unknownValue);
+            }
+        }
+
+        return nb::cast(extracted);
+    }
+
+    uint32_t val;
+
+  private:
+    // Non-null pointers
+    BitMaskMap::ConstPtr interpretation;
+    py_common::PyMessageDatabase::ConstPtr parentDb;
+};
+
+//============================================================================
 //! \class PyField
 //! \brief A python representation for a single message or message field.
 //!
@@ -36,10 +88,9 @@ struct PyField
     explicit PyField() : storage(std::make_unique<CompositeField>()), fieldsPtr(std::get<OwnedFields>(storage).get()), myFieldIndex(0) {}
 
     // Standalone subfield constructor
-    explicit PyField(CompositeField message_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
-                     py_common::PyMessageDatabase::ConstPtr parentDb_)
-                : storage(std::make_unique<CompositeField>(std::move(message_))), fieldDef(std::static_pointer_cast<const BaseField>(fieldDef_)),
-                    fieldInfo(fieldDef_ ? fieldDef_->fieldInfo : nullptr), parentDb(std::move(parentDb_))
+    explicit PyField(CompositeField message_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_, py_common::PyMessageDatabase::ConstPtr parentDb_)
+        : storage(std::make_unique<CompositeField>(std::move(message_))), fieldDef(std::static_pointer_cast<const BaseField>(fieldDef_)),
+          fieldInfo(fieldDef_ ? fieldDef_->fieldInfo : nullptr), parentDb(std::move(parentDb_))
     {
         auto& ptr = std::get<OwnedFields>(storage);
         fieldsPtr = ptr.get();
@@ -60,13 +111,13 @@ struct PyField
     };
 
     // FieldArray subfield constructor
-    explicit PyField(size_t index_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
-                     py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parentField_)
-                : storage(std::move(parentField_)), fieldDef(std::static_pointer_cast<const BaseField>(fieldDef_)),
-                    fieldInfo(fieldDef_ ? fieldDef_->fieldInfo : nullptr), myFieldIndex(index_), parentDb(std::move(parentDb_))
+    explicit PyField(size_t index_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_, py_common::PyMessageDatabase::ConstPtr parentDb_,
+                     nb::object parentField_)
+        : storage(std::move(parentField_)), fieldDef(std::static_pointer_cast<const BaseField>(fieldDef_)),
+          fieldInfo(fieldDef_ ? fieldDef_->fieldInfo : nullptr), myFieldIndex(index_), parentDb(std::move(parentDb_))
     {
-                fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(std::static_pointer_cast<const BaseField>(fieldDef_).get()) : nullptr;
-                cachedArrays_.resize(fieldInfo ? fieldInfo->messageOrderedFields.size() : 0);
+        fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(std::static_pointer_cast<const BaseField>(fieldDef_).get()) : nullptr;
+        cachedArrays_.resize(fieldInfo ? fieldInfo->messageOrderedFields.size() : 0);
     };
 
     // Default-constructed field standalone (used for FIELD_ARRAY sub-fields when
@@ -76,7 +127,7 @@ struct PyField
 
     // Default-constructed whole message — used by Message(...) __new__.
     explicit PyField(const novatel::edie::MessageDefinition* msgDef_, uint32_t crc_, py_common::PyMessageDatabase::ConstPtr parentDb_)
-    // TODO: make the following map lookup more robust
+        // TODO: make the following map lookup more robust
         : PyField(CompositeField(msgDef_->fieldInfo.at(crc_)), msgDef_, crc_, std::move(parentDb_)) {};
 
     // Python `__new__`: allocates and placement-news a PyField for the given class,
@@ -205,15 +256,12 @@ class PyFieldArray
 
     explicit PyFieldArray(FieldValueVariant& data_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
                           py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parent_)
-                : storage(std::move(parent_)), dataPtr(&data_), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
+        : storage(std::move(parent_)), dataPtr(&data_), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
     {
         length = std::visit(
             [](auto& v) -> size_t {
                 using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
-                {
-                    return v.size();
-                }
+                if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>) { return v.size(); }
                 else { throw std::runtime_error("PyFieldArray: data_ is not a FlatFieldArray or CompositeFieldArray"); }
             },
             data_);
@@ -245,10 +293,7 @@ class PyFieldArray
         length = std::visit(
             [](auto& v) -> size_t {
                 using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
-                {
-                    return v.size();
-                }
+                if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>) { return v.size(); }
                 else { throw std::runtime_error("take_ownership: data_ is not a FlatFieldArray or CompositeFieldArray"); }
             },
             *dataPtr);

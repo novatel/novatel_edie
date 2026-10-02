@@ -10,13 +10,40 @@ Scope:
  - Short vs. standard header selection on encode (RAWIMUSX, BESTPOS)
  - General validation (unknown kwarg / unknown setattr / type mismatch) on
    a real message (BESTPOS)
+ - Runtime verification of each database-backed bitmask field on real OEM
+     message instances.
 """
 
 import pytest
 
+import novatel_edie as ne
 import novatel_edie.oem as oem
 from novatel_edie import ENCODE_FORMAT
 
+from novatel_edie.oem.messages import (
+    BESTPOS,
+    BESTPOS_B1F6,
+    BESTPOS_CDBA,
+    BESTSATS,
+    BESTSATS_satellite_entries_Field,
+    ChannelTrackingStatus,
+    ExtendedSolutionStatus,
+    PASSCOM1,
+    RANGE,
+    RANGE_obs_Field,
+    SignalMask,
+    TRACKSTAT,
+    TRACKSTAT_chan_status_Field,
+)
+from novatel_edie.oem.enums import (
+    ChannelCorrelatorType,
+    ChannelTrackingState,
+    Datum,
+    PseudorangeInnoCorrection,
+    SatelliteSystem,
+    SolStatus,
+    SolType,
+)
 from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, RANGE, PASSCOM1, RANGE_obs_Field, CONFIGCODE, SETNAV, RAWIMUSX
 from novatel_edie.oem.enums import SolStatus, SolType, Datum, Security
 
@@ -92,6 +119,146 @@ class TestMessageConstruction:
         assert m.ext_sol_stat == 0
         assert m.gal_and_bds_mask == 0
         assert m.gps_and_glo_mask == 0
+
+
+@pytest.mark.parametrize('constructor_type', ['value', 'components'])
+class TestBitfields:
+    """Bitfield values on concrete OEM message instances."""
+
+    def test_bestpos_ext_sol_stat(self, constructor_type):
+        # Arrange
+        expected_value = 0b0011011
+        bitfield_params = {
+            'rtk_solution_verified': 1,
+            'pseudorange_inno_correction': PseudorangeInnoCorrection.NOVATEL_BLENDED_IONO_VALUE,
+            'rtk_assist_active': 1,
+            'antenna_information_missing': 0,
+        }
+
+        # Act
+        if constructor_type == 'value':
+            bitfield = ExtendedSolutionStatus(expected_value)
+        else:
+            bitfield = ExtendedSolutionStatus(**bitfield_params)
+        message = BESTPOS(
+            ext_sol_stat=bitfield
+        )
+
+        # Assert
+        assert message.ext_sol_stat.value == expected_value
+        assert message.ext_sol_stat.antenna_information_missing == 0
+        assert message.ext_sol_stat.pseudorange_inno_correction == PseudorangeInnoCorrection.NOVATEL_BLENDED_IONO_VALUE
+        assert isinstance(message.ext_sol_stat.pseudorange_inno_correction, PseudorangeInnoCorrection)
+        assert message.ext_sol_stat.rtk_assist_active == 1
+        assert message.ext_sol_stat.rtk_solution_verified == 1
+        assert message.ext_sol_stat.terrain_compensation_applied == 0
+
+    def test_bestpos_cdba_ext_sol_stat(self, constructor_type):
+        # Arrange
+        expected_value = 0b0100101
+        bitfield_params = {
+            'rtk_solution_verified': 1,
+            'pseudorange_inno_correction': PseudorangeInnoCorrection.SBAS_BROADCAST,
+            'rtk_assist_active': 0,
+            'antenna_information_missing': 1,
+        }
+
+        # Act
+        if constructor_type == 'value':
+            bitfield = ExtendedSolutionStatus(expected_value)
+        else:
+            bitfield = ExtendedSolutionStatus(**bitfield_params)
+        message = BESTPOS_CDBA(
+            ext_sol_stat=bitfield,
+        )
+
+        # Assert
+        assert message.ext_sol_stat.value == expected_value
+        assert message.ext_sol_stat.antenna_information_missing == 1
+        assert message.ext_sol_stat.pseudorange_inno_correction == PseudorangeInnoCorrection.SBAS_BROADCAST
+        assert message.ext_sol_stat.rtk_assist_active == 0
+        assert message.ext_sol_stat.rtk_solution_verified == 1
+        assert message.ext_sol_stat.terrain_compensation_applied == 0
+
+    def test_bestsats_status_mask(self, constructor_type):
+        # Arrange
+        expected_value = 0b101
+        bitfield_params = {
+            'gps_l1_used': 1,
+            'gps_l5_used': 1,
+        }
+
+        # Act
+        if constructor_type == 'value':
+            bitfield = SignalMask(expected_value)
+        else:
+            bitfield = SignalMask(**bitfield_params)
+        entry = BESTSATS_satellite_entries_Field(status_mask=bitfield)
+
+        message = BESTSATS(satellite_entries=[entry])
+        status_mask = message.satellite_entries[0].status_mask
+
+        # Assert
+        assert status_mask.value == expected_value
+        assert status_mask.gps_l1_used == 1
+        assert status_mask.gps_l2_used == 0
+        assert status_mask.gps_l5_used == 1
+
+    def test_range_c_status(self, constructor_type):
+        # Arrange
+        expected_value = 0x12009
+        bitfield_params = {
+            'tracking_state': ChannelTrackingState.CHANNEL_ALIGNMENT,
+            'correlator_type': ChannelCorrelatorType.STANDARD,
+            'satellite_system': SatelliteSystem.GLONASS,
+        }
+
+        # Act
+        if constructor_type == 'value':
+            bitfield = ChannelTrackingStatus(expected_value)
+        else:
+            bitfield = ChannelTrackingStatus(**bitfield_params)
+        observation = RANGE_obs_Field(c_status=bitfield)
+
+        message = RANGE(obs=[observation])
+        c_status = message.obs[0].c_status
+
+        # Assert
+        assert c_status.value == expected_value
+        assert c_status.tracking_state == ChannelTrackingState.CHANNEL_ALIGNMENT
+        assert c_status.correlator_type == ChannelCorrelatorType.STANDARD
+        assert c_status.satellite_system == SatelliteSystem.GLONASS
+        assert isinstance(c_status.tracking_state, ChannelTrackingState)
+        assert isinstance(c_status.correlator_type, ChannelCorrelatorType)
+        assert isinstance(c_status.satellite_system, SatelliteSystem)
+
+    def test_trackstat_channel_status(self, constructor_type):
+        # Arrange
+        expected_value = 0x12009
+        bitfield_params = {
+            'tracking_state': ChannelTrackingState.CHANNEL_ALIGNMENT,
+            'correlator_type': ChannelCorrelatorType.STANDARD,
+            'satellite_system': SatelliteSystem.GLONASS,
+        }
+
+        # Act
+        if constructor_type == 'value':
+            bitfield = ChannelTrackingStatus(expected_value)
+        else:
+            bitfield = ChannelTrackingStatus(**bitfield_params)
+        channel = TRACKSTAT_chan_status_Field(channel_status=bitfield)
+
+        message = TRACKSTAT(chan_status=[channel])
+        channel_status = message.chan_status[0].channel_status
+
+        # Assert
+        assert channel_status.value == expected_value
+        assert channel_status.tracking_state == ChannelTrackingState.CHANNEL_ALIGNMENT
+        assert channel_status.correlator_type == ChannelCorrelatorType.STANDARD
+        assert channel_status.satellite_system == SatelliteSystem.GLONASS
+        assert isinstance(channel_status.tracking_state, ChannelTrackingState)
+        assert isinstance(channel_status.correlator_type, ChannelCorrelatorType)
+        assert isinstance(channel_status.satellite_system, SatelliteSystem)
 
 
 class TestSetattr:

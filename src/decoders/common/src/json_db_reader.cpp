@@ -159,6 +159,9 @@ void ParseBaseField(element j_, BaseField& f_)
         else { f_.SetConversion(std::string(AsStringView(conversionString))); }
     }
 
+    element bitmaskId;
+    if (j_["bitmaskID"].get(bitmaskId) == simdjson::SUCCESS && !bitmaskId.is_null()) { f_.bitMaskId = AsString(bitmaskId); }
+
     ParseSimpleDataType(Member(j_, "dataType"), f_.dataType);
 }
 
@@ -412,6 +415,64 @@ std::vector<EnumDefinition::ConstPtr> ProcessEnumDefinitions(element jRoot_)
 }
 
 //-----------------------------------------------------------------------
+std::unordered_map<std::string, BitMaskMapEntry> ParseBitMaskMasks(element masksObj_,
+                                                                   const std::unordered_map<std::string_view, EnumDefinition::ConstPtr>& enumsById_)
+{
+    object masks;
+    if (masksObj_.get(masks) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'masks' to be a JSON object"); }
+
+    std::unordered_map<std::string, BitMaskMapEntry> res;
+    for (auto mask : masks)
+    {
+        const uint64_t startValue = AsUint(Member(mask.value, "start"));
+        const uint64_t endValue = AsUint(Member(mask.value, "end"));
+        if (startValue >= endValue || endValue > 32)
+        {
+            throw std::runtime_error("Invalid bitmask range for '" + std::string(mask.key) + "': expected 0 <= start < end <= 32");
+        }
+        const auto start = static_cast<uint8_t>(startValue);
+        const auto end = static_cast<uint8_t>(endValue);
+
+        EnumDefinition::ConstPtr enumDef;
+        element enumId;
+        if (mask.value["enumID"].get(enumId) == simdjson::SUCCESS && !enumId.is_null())
+        {
+            const auto it = enumsById_.find(AsStringView(enumId));
+            if (it != enumsById_.end()) { enumDef = it->second; }
+        }
+
+        res.emplace(std::string(mask.key), BitMaskMapEntry{std::move(enumDef), BitMask::fromRange(start, end)});
+    }
+    return res;
+}
+
+//-----------------------------------------------------------------------
+std::vector<BitMaskMap::ConstPtr> ProcessBitMaskDefinitions(element jRoot_, const std::vector<EnumDefinition::ConstPtr>& vEnums_)
+{
+    // Bitmasks are optional; not every JSON DB contains them.
+    array data;
+    if (jRoot_["bitmasks"].get(data) != simdjson::SUCCESS) { return {}; }
+
+    // Enum references in bitmasks are resolved by _id, mirroring MessageDatabase::mEnumId.
+    std::unordered_map<std::string_view, EnumDefinition::ConstPtr> enumsById;
+    enumsById.reserve(vEnums_.size());
+    for (const auto& enm : vEnums_) { enumsById.emplace(enm->_id, enm); }
+
+    std::vector<BitMaskMap::ConstPtr> res;
+    res.reserve(data.size());
+    for (element it : data)
+    {
+        auto bitMask = std::make_shared<BitMaskMap>();
+        bitMask->_id = AsString(Member(it, "_id"));
+        bitMask->name = AsString(Member(it, "name"));
+        bitMask->masks = ParseBitMaskMasks(Member(it, "masks"), enumsById);
+        res.emplace_back(std::move(bitMask));
+    }
+
+    return res;
+}
+
+//-----------------------------------------------------------------------
 MessageDatabase::Ptr ParseJsonDbImpl(simdjson::padded_string source, std::string_view errorContext)
 {
     try
@@ -451,7 +512,12 @@ MessageDatabase::Ptr ParseJsonDbImpl(simdjson::padded_string source, std::string
         auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root, std::cref(alignFn), std::move(headerTypes));
         auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, root);
 
-        return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get(), dbMeta);
+        auto messages = messageFuture.get();
+        auto enums = enumFuture.get();
+        // Bitmask definitions reference enums by id, so they are parsed once the enum future has completed.
+        auto bitmasks = ProcessBitMaskDefinitions(root, enums);
+
+        return std::make_shared<MessageDatabase>(std::move(messages), std::move(enums), dbMeta, std::move(bitmasks));
     }
     catch (const JsonDbReaderFailure&)
     {
