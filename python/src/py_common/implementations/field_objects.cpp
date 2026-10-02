@@ -188,9 +188,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
             },
             fieldValue);
 
-        // Return the concrete PyBitField subtype registered for this bitmask so type()/isinstance
-        // reflect the specific bitfield, mirroring PyFieldArray::getitem. Fall back to the base
-        // BitField if the bitmask has no registered type (e.g. an unregistered custom database).
+        // Return the concrete PyBitField subtype registered for this bitmask so type()/isinstance reflect the specific bitfield.
         nb::handle bitfield_ptype = parentDb->GetBitFieldType(field.bitMasks.get());
         if (bitfield_ptype.is_valid() && !bitfield_ptype.is_none())
         {

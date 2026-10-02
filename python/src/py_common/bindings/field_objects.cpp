@@ -105,13 +105,6 @@ void py_common::init_field_objects(nb::module_& m)
     auto bitfield_class =
         nb::class_<py_common::PyBitField>(m, "BitField", "An integer bitmask field exposing named sub-masks; behaves like its integer value.");
 
-    // Bound as __new__ (with __init__ repointed to object.__init__ below) so it composes
-    // with the dynamically-created concrete subtypes. The base BitField is only the shared
-    // base for the database's generated per-bitmask subtypes and is not constructible on its
-    // own: only a concrete subtype (which carries an `_owner_db`) can be instantiated, and it
-    // resolves its bitmask interpretation by using the class handle as a lookup key, mirroring
-    // PyField::py_new. (Interpreted base instances still arise internally on the decode path
-    // via nb::cast in PyField::convert_field, which does not route through this __new__.)
     bitfield_class.def_static(
         "__new__",
         [](nb::handle cls, nb::object value, nb::kwargs kwargs) {
@@ -120,35 +113,37 @@ void py_common::init_field_objects(nb::module_& m)
                 throw nb::type_error("BitField cannot be instantiated directly; it is the base class for the "
                                      "database's generated bitmask types.");
             }
+            py_common::PyMessageDatabase::ConstPtr database =
+                nb::hasattr(cls, "_owner_db") ? nb::cast<py_common::PyMessageDatabase::Ptr>(cls.attr("_owner_db")) : nullptr;
+            if (!database) { throw nb::type_error("Attempting to instantiate an invalid type. Associated database could not be identified."); }
+
+            // Resolve via the MRO so user subclasses of a generated type inherit its bitmask.
             BitMaskMap::ConstPtr interpretation = nullptr;
-            py_common::PyMessageDatabase::ConstPtr database = nullptr;
-            if (nb::hasattr(cls, "_owner_db"))
+            for (nb::handle base : cls.attr("__mro__"))
             {
-                database = nb::cast<py_common::PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
-                if (database) { interpretation = database->GetBitFieldTypeLookup(cls); }
+                interpretation = database->GetBitFieldTypeLookup(base);
+                if (interpretation) { break; }
             }
+            if (!interpretation) { throw nb::type_error("Attempting to instantiate an invalid type. Associated bitmask could not be identified."); }
 
             uint32_t packed_value = value.is_none() ? 0 : nb::cast<uint32_t>(value);
-            if (interpretation)
+            for (auto kv : kwargs)
             {
-                for (auto kv : kwargs)
+                const std::string mask_name = nb::cast<nb::str>(kv.first).c_str();
+                const auto mask_it = interpretation->masks.find(mask_name);
+                if (mask_it == interpretation->masks.end()) { throw nb::type_error(("Unknown bitfield sub-mask: " + mask_name).c_str()); }
+
+                const BitMask& bitfield = mask_it->second.bitfield;
+                const uint64_t sub_value = nb::cast<uint32_t>(kv.second);
+                const uint64_t limit = uint64_t{1} << bitfield.width;
+                if (sub_value >= limit)
                 {
-                    const std::string mask_name = nb::cast<nb::str>(kv.first).c_str();
-                    const auto mask_it = interpretation->masks.find(mask_name);
-                    if (mask_it == interpretation->masks.end()) { throw nb::type_error(("Unknown bitfield sub-mask: " + mask_name).c_str()); }
-
-                    const BitMask& bitfield = mask_it->second.bitfield;
-                    const uint64_t sub_value = nb::cast<uint32_t>(kv.second);
-                    const uint64_t limit = uint64_t{1} << bitfield.width;
-                    if (sub_value >= limit)
-                    {
-                        throw nb::value_error(
-                            ("Value for bitfield sub-mask '" + mask_name + "' does not fit in " + std::to_string(bitfield.width) + " bits").c_str());
-                    }
-
-                    const uint32_t mask = bitfield.mask();
-                    packed_value = (packed_value & ~mask) | static_cast<uint32_t>(sub_value << bitfield.offset);
+                    throw nb::value_error(
+                        ("Value for bitfield sub-mask '" + mask_name + "' does not fit in " + std::to_string(bitfield.width) + " bits").c_str());
                 }
+
+                const uint32_t mask = bitfield.mask();
+                packed_value = (packed_value & ~mask) | static_cast<uint32_t>(sub_value << bitfield.offset);
             }
 
             nb::object inst = nb::inst_alloc(cls);
@@ -179,12 +174,9 @@ void py_common::init_field_objects(nb::module_& m)
                  // retrieve base list based on 'BitField' superclass method
                  nb::object super_obj = super(current_type, self);
                  nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
-                 // add dynamic sub-mask names to the list (none for an int-constructed BitField)
-                 py_common::PyBitField* body = nb::inst_ptr<py_common::PyBitField>(self);
-                 if (body->interpretation)
-                 {
-                     for (const auto& [mask_name, mask_entry] : body->interpretation->masks) { base_list.append(nb::cast(mask_name)); }
-                 }
+                 // add dynamic sub-mask names to the list
+                 const py_common::PyBitField* body = nb::inst_ptr<py_common::PyBitField>(self);
+                 for (const auto& [mask_name, mask_entry] : body->GetInterpretation().masks) { base_list.append(nb::cast(mask_name)); }
 
                  return base_list;
              })
@@ -195,8 +187,7 @@ void py_common::init_field_objects(nb::module_& m)
         .def("__bool__", [](const py_common::PyBitField& self) { return self.val != 0; })
         .def("__hash__", [](const py_common::PyBitField& self) { return nb::int_(self.val).attr("__hash__")(); })
         .def("__repr__", [](const py_common::PyBitField& self) {
-            if (self.interpretation) { return nb::str("BitField(value={}, mask_id={!r})").format(self.val, self.interpretation->_id); }
-            return nb::str("BitField(value={})").format(self.val);
+            return nb::str("BitField(value={}, mask_id={!r})").format(self.val, self.GetInterpretation()._id);
         });
 
     // Delegate arithmetic, comparison, and bitwise operators to the underlying
