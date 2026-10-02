@@ -1,3 +1,4 @@
+add_subdirectory(novatel/bitfield_lookup)
 add_subdirectory(novatel/command_encoding)
 add_subdirectory(novatel/converter_file_parser)
 add_subdirectory(novatel/converter_components)
