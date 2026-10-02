@@ -108,7 +108,7 @@ struct BitMask
 //
 //! \return The field's value, shifted down to bit 0.
 //-----------------------------------------------------------------------
-template <typename T> constexpr uint32_t ExtractBitMask(const BitMask& bitMask_, T value_)
+template <typename T> constexpr uint32_t ExtractMaskedValue(const BitMask& bitMask_, T value_)
 {
     return static_cast<uint32_t>(value_ >> bitMask_.offset) & bitMask_.lowMask();
 }

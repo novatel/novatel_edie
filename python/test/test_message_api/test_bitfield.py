@@ -5,7 +5,8 @@ OEM database for the bitmasks under test).
 Scope:
  - Concrete per-bitmask BitField subtypes: direct construction resolves the
    owning MessageDatabase from the class's ``_owner_db`` attribute and looks up
-   the bitmask interpretation using the class handle as the key, mirroring the
+   the bitmask interpretation from the first class in its MRO that the database
+   registered, mirroring the
    Field/Message ``__new__`` pattern. A directly-constructed subtype must expose
    the same named sub-masks (and typed IntEnum sub-masks) as the instance
    produced on the decode path (PyField::convert_field).
@@ -156,7 +157,7 @@ def _spec_value_cases(specs: List[BitmaskSpec]) -> list:
 
 
 class TestBitField:
-    """Concrete BitField subtypes constructed directly, and the interpretation-free base BitField."""
+    """Concrete BitField subtypes constructed directly, and the non-instantiable base BitField."""
 
     @pytest.fixture(scope='class')
     def make_bitmask_db(self):
