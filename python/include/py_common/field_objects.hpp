@@ -52,7 +52,7 @@ class PyBitField
         auto it = interpretation->masks.find(field_name.c_str());
         if (it == interpretation->masks.end()) { throw nb::attribute_error(field_name.c_str()); }
         const BitMaskMapEntry& mapEntry = it->second;
-        const uint32_t extracted = ExtractMaskedValue(mapEntry.bitfield, val);
+        const uint32_t extracted = ExtractMaskedValue(val, mapEntry.bitfield);
 
         // When the sub-mask has an enum meaning, return the typed IntEnum member,
         // mirroring the ENUM branch of PyField::convert_field.

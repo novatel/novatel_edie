@@ -106,12 +106,12 @@ struct BitMask
 //-----------------------------------------------------------------------
 //! \brief Extract the value of a bitfield from a larger integer.
 //
-//! \param[in] bitMask_ The bitmask describing the field's offset and width.
 //! \param[in] value_ The integer to extract the field from.
+//! \param[in] bitMask_ The bitmask describing the field's offset and width.
 //
 //! \return The field's value, shifted down to bit 0.
 //-----------------------------------------------------------------------
-template <typename T> constexpr uint32_t ExtractMaskedValue(const BitMask& bitMask_, T value_)
+template <typename T> constexpr uint32_t ExtractMaskedValue(T value_, const BitMask& bitMask_)
 {
     return static_cast<uint32_t>(value_ >> bitMask_.offset) & bitMask_.lowMask();
 }
