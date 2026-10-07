@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
     const CompositeField stMessage = DecodeLog(clHeaderDecoder, clMessageDecoder, acBestPos);
 
     // Read ext_sol_stat as a plain integer. It is a UCHAR.
-    const auto ucExtSolStat = stMessage.GetFieldValueByName<uint8_t>("ext_sol_stat");
+    const auto ucExtSolStat = stMessage.GetFieldValue<uint8_t>(*pclExtSolStat);
     // Apply the mask.
     const uint32_t uiPsrInnoCorrection = ExtractMaskedValue(ucExtSolStat, stPsrInnoCorrectionMask);
     // Get a human readable representation.

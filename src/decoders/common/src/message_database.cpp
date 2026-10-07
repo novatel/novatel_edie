@@ -59,8 +59,8 @@ void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_)
 //-----------------------------------------------------------------------
 void MessageDatabase::RemoveBitMask(std::string_view strBitMask_)
 {
-    const auto iTer = std::find_if(mBitMasks.begin(), mBitMasks.end(), [strBitMask_](const auto& elem_) { return elem_->name == strBitMask_; });
-    if (iTer == mBitMasks.end()) { return; }
+    const auto iTer = std::find_if(vBitMasks.begin(), vBitMasks.end(), [strBitMask_](const auto& elem_) { return elem_->name == strBitMask_; });
+    if (iTer == vBitMasks.end()) { return; }
 
     // Erase the mappings first, as their string_view keys point into the definition.
     const auto eraseIfMapped = [&iTer](auto& map_, std::string_view key_) {
@@ -69,7 +69,7 @@ void MessageDatabase::RemoveBitMask(std::string_view strBitMask_)
     };
     eraseIfMapped(mBitMaskName, (*iTer)->name);
     eraseIfMapped(mBitMaskId, (*iTer)->_id);
-    mBitMasks.erase(iTer);
+    vBitMasks.erase(iTer);
 }
 
 //-----------------------------------------------------------------------

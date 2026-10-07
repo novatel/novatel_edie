@@ -755,7 +755,7 @@ class MessageDatabase
     std::unordered_map<int32_t, MessageDefinition::ConstPtr> mMessageId;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumName;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
-    std::vector<BitMaskMap::ConstPtr> mBitMasks;
+    std::vector<BitMaskMap::ConstPtr> vBitMasks;
     std::unordered_map<std::string_view, BitMaskMap::ConstPtr> mBitMaskName;
     std::unordered_map<std::string_view, BitMaskMap::ConstPtr> mBitMaskId;
 
@@ -795,7 +795,7 @@ class MessageDatabase
     MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_,
                     DbMetadata::Ptr pDbMetadata_, std::vector<BitMaskMap::ConstPtr> vBitMasks_ = {})
         : pDbMetadata(std::move(pDbMetadata_)), vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_)),
-          mBitMasks(std::move(vBitMasks_))
+          vBitMasks(std::move(vBitMasks_))
     {
         GenerateEnumMappings();
         GenerateBitMaskMappings();
@@ -815,7 +815,7 @@ class MessageDatabase
     void Merge(const MessageDatabase& other_)
     {
         AppendEnumerations(other_.vEnumDefinitions);
-        AppendBitMasks(other_.mBitMasks);
+        AppendBitMasks(other_.vBitMasks);
         AppendMessages(other_.vMessageDefinitions);
     }
 
@@ -885,7 +885,7 @@ class MessageDatabase
         for (const auto& bitMask : vBitMasks_)
         {
             RemoveBitMask(bitMask->name);
-            mBitMasks.push_back(bitMask);
+            vBitMasks.push_back(bitMask);
             mBitMaskName[bitMask->name] = bitMask;
             mBitMaskId[bitMask->_id] = bitMask;
         }
@@ -1014,7 +1014,7 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     //! \brief Returns all defined bitmasks.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const std::vector<BitMaskMap::ConstPtr>& BitMasks() const { return mBitMasks; }
+    [[nodiscard]] const std::vector<BitMaskMap::ConstPtr>& BitMasks() const { return vBitMasks; }
 
     //----------------------------------------------------------------------------
     //! \brief Returns DB metadata.
@@ -1103,7 +1103,7 @@ class MessageDatabase
     {
         mBitMaskName.clear();
         mBitMaskId.clear();
-        for (auto& bitMask : mBitMasks)
+        for (auto& bitMask : vBitMasks)
         {
             mBitMaskName[bitMask->name] = bitMask;
             mBitMaskId[bitMask->_id] = bitMask;
