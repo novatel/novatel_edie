@@ -97,14 +97,18 @@ class PyMessageDatabase
     void Merge(const Ptr& other);
     void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_);
     void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_);
+    void AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_);
     void RemoveMessage(uint32_t iMsgId_);
     void RemoveEnumeration(std::string strEnumeration_);
+    void RemoveBitMask(const std::string& strBitMask_);
 
     // Definition lookups — forward to the underlying MessageDatabase.
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view name) const { return core_->GetMsgDef(name); }
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t id) const { return core_->GetMsgDef(id); }
     [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(const std::string& id) const { return core_->GetEnumDefId(id); }
     [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(const std::string& name) const { return core_->GetEnumDefName(name); }
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitMaskDefId(const std::string& id) const { return core_->GetBitMaskDefId(id); }
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitMaskDefName(const std::string& name) const { return core_->GetBitMaskDefName(name); }
     [[nodiscard]] std::string MsgIdToMsgName(uint32_t id) const { return core_->MsgIdToMsgName(id); }
 
     // Python type-cache lookups.
@@ -154,6 +158,12 @@ class PyMessageDatabase
         return it == enum_type_lookup_.end() ? nullptr : it->second;
     }
 
+    [[nodiscard]] BitMaskMap::ConstPtr GetBitFieldTypeLookup(nb::handle cls) const
+    {
+        auto it = bitfield_type_lookup_.find(cls);
+        return it == bitfield_type_lookup_.end() ? nullptr : it->second;
+    }
+
     [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return field_types; }
 
     [[nodiscard]] const FieldNameMap* GetFieldNameMap(const BaseField* field) const
@@ -179,6 +189,15 @@ class PyMessageDatabase
     }
     [[nodiscard]] nb::object GetEnumTypeByName(const std::string& name) const { return GetEnumType(GetEnumDefName(name).get()); }
     [[nodiscard]] nb::object GetEnumTypeById(const std::string& id) const { return GetEnumType(GetEnumDefId(id).get()); }
+
+    [[nodiscard]] nb::object GetBitFieldType(const BitMaskMap* bitMask) const
+    {
+        if (bitMask == nullptr) { return nb::none(); }
+        auto it = bitfield_types.find(bitMask);
+        return it == bitfield_types.end() ? nb::none() : it->second;
+    }
+    [[nodiscard]] nb::object GetBitFieldTypeByName(const std::string& name) const { return GetBitFieldType(GetBitMaskDefName(name).get()); }
+    [[nodiscard]] nb::object GetBitFieldTypeById(const std::string& id) const { return GetBitFieldType(GetBitMaskDefId(id).get()); }
 
     [[nodiscard]] std::string GetMessageFamily() const;
     void SetMessageFamily(const std::string& messageFamily);
@@ -228,11 +247,13 @@ class PyMessageDatabase
             messageMod_.attr(message_def->name.c_str()) = message_version_defs.at(message_def->latestMessageCrc);
             addFieldAliasToModule(messageMod_, latestDef, message_def->name);
         }
+        // Bitfield types live in the messages module alongside message types.
+        for (const auto& [bit_mask, bitfield_type] : bitfield_types) { messageMod_.attr(bit_mask->name.c_str()) = bitfield_type; }
         for (const auto& [enum_def, enum_type] : enum_types) { enumsMod_.attr(enum_def->name.c_str()) = enum_type; }
     }
 
     // Returns a mutable copy of this database that shares the same definitions
-    // and types for messages and enums. As a side effect, the existing database
+    // and types for messages, enums and bitmasks. As a side effect, the existing database
     // (this one) is locked: any subsequent call that would modify it raises an
     // exception (see Lock / ThrowIfLocked).
     [[nodiscard]] nb::object fork();
@@ -253,6 +274,11 @@ class PyMessageDatabase
     void AppendEnumTypes(const std::vector<EnumDefinition::ConstPtr>& enum_defs);
     void RemoveEnumType(const std::string& enum_name);
     //-----------------------------------------------------------------------
+    //! \brief Creates Python BitField subtypes for multiple bitmask definitions.
+    //-----------------------------------------------------------------------
+    void AppendBitFieldTypes(const std::vector<BitMaskMap::ConstPtr>& bit_masks);
+    void RemoveBitFieldType(const std::string& bit_mask_name);
+    //-----------------------------------------------------------------------
     //! \brief Creates Python types for multiple message definitions and their fields.
     //-----------------------------------------------------------------------
     void AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs);
@@ -260,6 +286,7 @@ class PyMessageDatabase
     void RemoveFieldTypes(const std::vector<BaseField::ConstPtr>& fieldDefs);
 
     void UpdatePythonEnums();
+    void UpdatePythonBitFields();
     void UpdatePythonMessageTypes();
     void AddFieldType(std::vector<BaseField::ConstPtr> fields, std::string base_name, std::string parent_message, nb::handle type_cons);
 
@@ -267,11 +294,13 @@ class PyMessageDatabase
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_types{};
     std::unordered_map<const BaseField*, nb::object> field_types{};
     std::unordered_map<const EnumDefinition*, nb::object> enum_types{};
+    std::unordered_map<const BitMaskMap*, nb::object> bitfield_types{};
     std::unordered_map<const BaseField*, FieldNameMap> field_name_maps_{};
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, FieldNameMap>> message_field_name_maps_{};
     std::unordered_map<nb::handle, MessageTypeLookupEntry, HandlePtrHash, HandlePtrEq> message_type_lookup_{};
     std::unordered_map<nb::handle, BaseField::ConstPtr, HandlePtrHash, HandlePtrEq> field_type_lookup_{};
     std::unordered_map<nb::handle, const EnumDefinition*, HandlePtrHash, HandlePtrEq> enum_type_lookup_{};
+    std::unordered_map<nb::handle, BitMaskMap::ConstPtr, HandlePtrHash, HandlePtrEq> bitfield_type_lookup_{};
 
     std::unique_ptr<MessageDBExtrasBase> extras_;
     MessageDatabase::Ptr core_;
