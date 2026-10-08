@@ -95,9 +95,12 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
 {
     ThrowIfLocked();
     other_->Lock();
-    core_->Merge(*other_->core_);
+    // Mirrors MessageDatabase::Merge, keeping the bitmask copies the core stores.
+    core_->AppendEnumerations(other_->core_->EnumDefinitions());
+    const auto storedBitMasks = core_->AppendBitMasks(other_->core_->BitMasks());
+    core_->AppendMessages(other_->core_->MessageDefinitions());
     AppendEnumTypes(other_->core_->EnumDefinitions());
-    AppendBitFieldTypes(GetStoredBitMasks(other_->core_->BitMasks()));
+    AppendBitFieldTypes(storedBitMasks);
     AppendMessageTypes(core_->MessageDefinitions());
 }
 
@@ -118,16 +121,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std:
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_)
 {
     ThrowIfLocked();
-    core_->AppendBitMasks(vBitMasks_);
-    AppendBitFieldTypes(GetStoredBitMasks(vBitMasks_));
-}
-
-std::vector<BitMaskMap::ConstPtr> py_common::PyMessageDatabase::GetStoredBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_) const
-{
-    std::vector<BitMaskMap::ConstPtr> stored;
-    stored.reserve(vBitMasks_.size());
-    for (const auto& bitMask : vBitMasks_) { stored.push_back(core_->GetBitMaskDefName(bitMask->name)); }
-    return stored;
+    AppendBitFieldTypes(core_->AppendBitMasks(vBitMasks_));
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessage(uint32_t iMsgId_)

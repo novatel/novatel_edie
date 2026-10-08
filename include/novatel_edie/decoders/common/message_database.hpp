@@ -879,9 +879,12 @@ class MessageDatabase
     //!     enum references can be resolved without modifying the source definitions.
     //
     //! \param[in] vBitMasks_ A vector of bitmask definitions
+    //! \return The copies stored in the database, in the order given.
     //----------------------------------------------------------------------------
-    void AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_)
+    std::vector<BitMaskMap::ConstPtr> AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_)
     {
+        std::vector<BitMaskMap::ConstPtr> stored;
+        stored.reserve(vBitMasks_.size());
         for (const auto& bitMask : vBitMasks_)
         {
             RemoveBitMask(bitMask->name);
@@ -892,7 +895,9 @@ class MessageDatabase
             vBitMasks.push_back(copy);
             mBitMaskName[copy->name] = copy;
             mBitMaskId[copy->_id] = copy;
+            stored.push_back(std::move(copy));
         }
+        return stored;
     }
 
     //----------------------------------------------------------------------------
