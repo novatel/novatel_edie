@@ -56,13 +56,14 @@ class PyBitField
 
         // When the sub-mask has an enum meaning, return the typed IntEnum member,
         // mirroring the ENUM branch of PyField::convert_field.
-        if (mapEntry.enumDef)
+        if (!mapEntry.enumId.empty())
         {
-            nb::object enum_type = parentDb->GetEnumType(mapEntry.enumDef.get());
+            const EnumDefinition::ConstPtr enumDef = parentDb->GetEnumDefId(mapEntry.enumId);
+            nb::object enum_type = parentDb->GetEnumType(enumDef.get());
             if (!enum_type.is_none())
             {
-                if (mapEntry.enumDef->valueName.count(extracted) > 0) { return enum_type(extracted); }
-                return enum_type(mapEntry.enumDef->unknownValue);
+                if (enumDef->valueName.count(extracted) > 0) { return enum_type(extracted); }
+                return enum_type(enumDef->unknownValue);
             }
         }
 

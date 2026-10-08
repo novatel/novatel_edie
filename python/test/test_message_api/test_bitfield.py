@@ -164,7 +164,7 @@ def _build_db_from_definitions(spec: BitmaskSpec) -> MessageDatabase:
                  for e in spec.enums}
     bitmask_def = BitMaskCollectionDefinition(
         id=spec.bitmask_id, name=spec.name,
-        masks={sm.name: BitMaskDefinition(sm.start, sm.end, enum_defs.get(sm.enum)) for sm in spec.submasks})
+        masks={sm.name: BitMaskDefinition(sm.start, sm.end, enum_defs[sm.enum].id if sm.enum in enum_defs else '') for sm in spec.submasks})
     msg_def = MessageDefinition(
         id=f'{spec.name.lower()}_msg', log_id=1, name=spec.msg_name, latest_message_crc=0,
         fields={0: [FieldDefinition(name=spec.field_name, type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.ULONG,

@@ -279,6 +279,10 @@ class PyMessageDatabase
     void AppendBitFieldTypes(const std::vector<BitMaskMap::ConstPtr>& bit_masks);
     void RemoveBitFieldType(const std::string& bit_mask_name);
     //-----------------------------------------------------------------------
+    //! \brief Returns this database's own copies of the given bitmask definitions, matched by name.
+    //-----------------------------------------------------------------------
+    [[nodiscard]] std::vector<BitMaskMap::ConstPtr> GetStoredBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_) const;
+    //-----------------------------------------------------------------------
     //! \brief Creates Python types for multiple message definitions and their fields.
     //-----------------------------------------------------------------------
     void AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs);

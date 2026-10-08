@@ -415,8 +415,7 @@ std::vector<EnumDefinition::ConstPtr> ProcessEnumDefinitions(element jRoot_)
 }
 
 //-----------------------------------------------------------------------
-std::unordered_map<std::string, BitMaskMapEntry> ParseBitMaskMasks(element masksObj_,
-                                                                   const std::unordered_map<std::string_view, EnumDefinition::ConstPtr>& enumsById_)
+std::unordered_map<std::string, BitMaskMapEntry> ParseBitMaskMasks(element masksObj_)
 {
     object masks;
     if (masksObj_.get(masks) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'masks' to be a JSON object"); }
@@ -433,30 +432,21 @@ std::unordered_map<std::string, BitMaskMapEntry> ParseBitMaskMasks(element masks
         const auto start = static_cast<uint8_t>(startValue);
         const auto end = static_cast<uint8_t>(endValue);
 
-        EnumDefinition::ConstPtr enumDef;
-        element enumId;
-        if (mask.value["enumID"].get(enumId) == simdjson::SUCCESS && !enumId.is_null())
-        {
-            const auto it = enumsById_.find(AsStringView(enumId));
-            if (it != enumsById_.end()) { enumDef = it->second; }
-        }
+        std::string enumId;
+        element enumIdEl;
+        if (mask.value["enumID"].get(enumIdEl) == simdjson::SUCCESS) { enumId = AsStringOrEmpty(enumIdEl); }
 
-        res.emplace(std::string(mask.key), BitMaskMapEntry{std::move(enumDef), BitMask::fromRange(start, end)});
+        res.emplace(std::string(mask.key), BitMaskMapEntry{std::move(enumId), nullptr, BitMask::fromRange(start, end)});
     }
     return res;
 }
 
 //-----------------------------------------------------------------------
-std::vector<BitMaskMap::ConstPtr> ProcessBitMaskDefinitions(element jRoot_, const std::vector<EnumDefinition::ConstPtr>& vEnums_)
+std::vector<BitMaskMap::ConstPtr> ProcessBitMaskDefinitions(element jRoot_)
 {
     // Bitmasks are optional; not every JSON DB contains them.
     array data;
     if (jRoot_["bitmasks"].get(data) != simdjson::SUCCESS) { return {}; }
-
-    // Enum references in bitmasks are resolved by _id, mirroring MessageDatabase::mEnumId.
-    std::unordered_map<std::string_view, EnumDefinition::ConstPtr> enumsById;
-    enumsById.reserve(vEnums_.size());
-    for (const auto& enm : vEnums_) { enumsById.emplace(enm->_id, enm); }
 
     std::vector<BitMaskMap::ConstPtr> res;
     res.reserve(data.size());
@@ -465,7 +455,7 @@ std::vector<BitMaskMap::ConstPtr> ProcessBitMaskDefinitions(element jRoot_, cons
         auto bitMask = std::make_shared<BitMaskMap>();
         bitMask->_id = AsString(Member(it, "_id"));
         bitMask->name = AsString(Member(it, "name"));
-        bitMask->masks = ParseBitMaskMasks(Member(it, "masks"), enumsById);
+        bitMask->masks = ParseBitMaskMasks(Member(it, "masks"));
         res.emplace_back(std::move(bitMask));
     }
 
@@ -511,11 +501,11 @@ MessageDatabase::Ptr ParseJsonDbImpl(simdjson::padded_string source, std::string
 
         auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root, std::cref(alignFn), std::move(headerTypes));
         auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, root);
+        auto bitMaskFuture = std::async(std::launch::async, ProcessBitMaskDefinitions, root);
 
         auto messages = messageFuture.get();
         auto enums = enumFuture.get();
-        // Bitmask definitions reference enums by id, so they are parsed once the enum future has completed.
-        auto bitmasks = ProcessBitMaskDefinitions(root, enums);
+        auto bitmasks = bitMaskFuture.get();
 
         return std::make_shared<MessageDatabase>(std::move(messages), std::move(enums), dbMeta, std::move(bitmasks));
     }

@@ -83,6 +83,22 @@ TEST_F(JsonDbReaderTest, AppendBitMasks)
     ASSERT_EQ(clJson->GetBitMaskDefName(strName), nullptr);
 }
 
+TEST_F(JsonDbReaderTest, LoadResolvesBitMaskEnums)
+{
+    const auto clJson = LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
+    const BitMaskMap::ConstPtr pstBitMaskDef = clJson->GetBitMaskDefName("ExtendedSolutionStatus");
+    ASSERT_NE(pstBitMaskDef, nullptr);
+
+    const BitMaskMapEntry& enumEntry = pstBitMaskDef->masks.at("pseudorange_inno_correction");
+    ASSERT_FALSE(enumEntry.enumId.empty());
+    ASSERT_NE(enumEntry.enumDef, nullptr);
+    ASSERT_EQ(enumEntry.enumDef, clJson->GetEnumDefId(enumEntry.enumId));
+
+    const BitMaskMapEntry& plainEntry = pstBitMaskDef->masks.at("rtk_solution_verified");
+    ASSERT_TRUE(plainEntry.enumId.empty());
+    ASSERT_EQ(plainEntry.enumDef, nullptr);
+}
+
 TEST_F(JsonDbReaderTest, MergeBitMasks)
 {
     const std::string strName = "ExtendedSolutionStatus";
@@ -92,6 +108,10 @@ TEST_F(JsonDbReaderTest, MergeBitMasks)
 
     const BitMaskMap::ConstPtr pstBitMaskDef = clJson.GetBitMaskDefName(strName);
     ASSERT_NE(pstBitMaskDef, nullptr);
+
+    const BitMaskMapEntry& enumEntry = pstBitMaskDef->masks.at("pseudorange_inno_correction");
+    ASSERT_EQ(enumEntry.enumDef, clJson.GetEnumDefId(enumEntry.enumId));
+    ASSERT_NE(enumEntry.enumDef, nullptr);
 
     const auto pstMsgDef = clJson.GetMsgDef("BESTPOS");
     ASSERT_EQ(pstMsgDef->GetMsgDefFromCrc(pstMsgDef->latestMessageCrc).GetFieldDefByName("ext_sol_stat")->bitMasks, pstBitMaskDef);

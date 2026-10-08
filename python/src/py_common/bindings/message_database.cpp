@@ -143,22 +143,23 @@ void py_common::init_common_message_database(nb::module_& m)
                                 "A named sub-field covering bits [start, end) of a bitmask, and the enum that gives its values meaning, if any.")
         .def(
             "__init__",
-            [makeBitMask](BitMaskMapEntry* t, uint32_t start, uint32_t end, EnumDefinition::ConstPtr enum_def) {
-                new (t) BitMaskMapEntry{std::move(enum_def), makeBitMask(start, end)};
+            [makeBitMask](BitMaskMapEntry* t, uint32_t start, uint32_t end, std::string enum_id) {
+                new (t) BitMaskMapEntry{std::move(enum_id), nullptr, makeBitMask(start, end)};
             },
-            "start"_a, "end"_a, "enum_def"_a.none() = nb::none())
+            "start"_a, "end"_a, "enum_id"_a = std::string{})
         .def_prop_rw(
             "start", [](const BitMaskMapEntry& self) { return self.bitfield.offset; },
             [makeBitMask](BitMaskMapEntry& self, uint32_t start) { self.bitfield = makeBitMask(start, self.bitfield.offset + self.bitfield.width); })
         .def_prop_rw(
             "end", [](const BitMaskMapEntry& self) { return self.bitfield.offset + self.bitfield.width; },
             [makeBitMask](BitMaskMapEntry& self, uint32_t end) { self.bitfield = makeBitMask(self.bitfield.offset, end); })
-        .def_rw("enum_def", &BitMaskMapEntry::enumDef, nb::arg("value").none())
+        .def_rw("enum_id", &BitMaskMapEntry::enumId, "The ID of the enum definition that gives this sub-field's values meaning, or an empty string if none.")
+        .def_ro("enum_def", &BitMaskMapEntry::enumDef)
         .def("__eq__", [](const BitMaskMapEntry& self, const BitMaskMapEntry& other) { return self == other; })
         .def("__repr__", [](const BitMaskMapEntry& self) {
             const uint32_t end = self.bitfield.offset + self.bitfield.width;
-            if (!self.enumDef) { return nb::str("BitMaskDefinition(start={}, end={})").format(self.bitfield.offset, end); }
-            return nb::str("BitMaskDefinition(start={}, end={}, enum_def={!r})").format(self.bitfield.offset, end, self.enumDef->name);
+            if (self.enumId.empty()) { return nb::str("BitMaskDefinition(start={}, end={})").format(self.bitfield.offset, end); }
+            return nb::str("BitMaskDefinition(start={}, end={}, enum_id={!r})").format(self.bitfield.offset, end, self.enumId);
         });
 
     nb::class_<BitMaskMap>(m, "BitMaskCollectionDefinition", "Bitmask Collection Definition representing contents of UI DB")

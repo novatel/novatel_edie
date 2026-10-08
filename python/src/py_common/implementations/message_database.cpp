@@ -97,7 +97,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
     other_->Lock();
     core_->Merge(*other_->core_);
     AppendEnumTypes(other_->core_->EnumDefinitions());
-    AppendBitFieldTypes(other_->core_->BitMasks());
+    AppendBitFieldTypes(GetStoredBitMasks(other_->core_->BitMasks()));
     AppendMessageTypes(core_->MessageDefinitions());
 }
 
@@ -119,7 +119,15 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendBitMasks(const std::vec
 {
     ThrowIfLocked();
     core_->AppendBitMasks(vBitMasks_);
-    AppendBitFieldTypes(vBitMasks_);
+    AppendBitFieldTypes(GetStoredBitMasks(vBitMasks_));
+}
+
+std::vector<BitMaskMap::ConstPtr> py_common::PyMessageDatabase::GetStoredBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_) const
+{
+    std::vector<BitMaskMap::ConstPtr> stored;
+    stored.reserve(vBitMasks_.size());
+    for (const auto& bitMask : vBitMasks_) { stored.push_back(core_->GetBitMaskDefName(bitMask->name)); }
+    return stored;
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessage(uint32_t iMsgId_)

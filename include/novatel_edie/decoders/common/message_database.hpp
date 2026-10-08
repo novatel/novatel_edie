@@ -296,19 +296,16 @@ struct SimpleDataType
 
 //-----------------------------------------------------------------------
 //! \struct BitMaskMapEntry
-//! \brief Struct containing a BitMask and the EnumDefintion for data extracted with it (if any).
+//! \brief Struct containing a BitMask and the ID of the EnumDefinition for data extracted with it (if any).
 //-----------------------------------------------------------------------
 struct BitMaskMapEntry
 {
-    EnumDefinition::ConstPtr enumDef; // null if no enum meaning
+    std::string enumId;                        // id of the associated enum definition; "" if no enum meaning
+    EnumDefinition::ConstPtr enumDef{nullptr}; // cached; resolved from enumId, null if none
     BitMask bitfield;
 
-    //! Two entries are equal if their bitmasks match and they reference the same enum by ID.
-    [[nodiscard]] bool operator==(const BitMaskMapEntry& other) const
-    {
-        const auto enumId = [](const EnumDefinition::ConstPtr& def_) { return def_ ? def_->_id : std::string{}; };
-        return bitfield == other.bitfield && enumId(enumDef) == enumId(other.enumDef);
-    }
+    //! Compares the non-cached fields, so `enumDef` is excluded.
+    [[nodiscard]] bool operator==(const BitMaskMapEntry& other) const { return bitfield == other.bitfield && enumId == other.enumId; }
     [[nodiscard]] bool operator!=(const BitMaskMapEntry& other) const { return !(*this == other); }
 };
 
@@ -878,6 +875,9 @@ class MessageDatabase
     //
     //! A definition replaces any existing definition with the same name.
     //
+    //! \note All of the given definitions are copied into the database so their
+    //!     enum references can be resolved without modifying the source definitions.
+    //
     //! \param[in] vBitMasks_ A vector of bitmask definitions
     //----------------------------------------------------------------------------
     void AppendBitMasks(const std::vector<BitMaskMap::ConstPtr>& vBitMasks_)
@@ -885,9 +885,13 @@ class MessageDatabase
         for (const auto& bitMask : vBitMasks_)
         {
             RemoveBitMask(bitMask->name);
-            vBitMasks.push_back(bitMask);
-            mBitMaskName[bitMask->name] = bitMask;
-            mBitMaskId[bitMask->_id] = bitMask;
+
+            auto copy = std::make_shared<BitMaskMap>(*bitMask);
+            MapBitMaskEnums(*copy);
+
+            vBitMasks.push_back(copy);
+            mBitMaskName[copy->name] = copy;
+            mBitMaskId[copy->_id] = copy;
         }
     }
 
@@ -1105,6 +1109,8 @@ class MessageDatabase
         mBitMaskId.clear();
         for (auto& bitMask : vBitMasks)
         {
+            // Definitions are stored as ConstPtr but enumDef is populated after loading DBs.
+            MapBitMaskEnums(*std::const_pointer_cast<BitMaskMap>(bitMask));
             mBitMaskName[bitMask->name] = bitMask;
             mBitMaskId[bitMask->_id] = bitMask;
         }
@@ -1128,6 +1134,15 @@ class MessageDatabase
     }
 
   private:
+    void MapBitMaskEnums(BitMaskMap& bitMask_) const
+    {
+        for (auto& mask : bitMask_.masks)
+        {
+            BitMaskMapEntry& entry = mask.second;
+            entry.enumDef = entry.enumId.empty() ? nullptr : GetEnumDefId(entry.enumId);
+        }
+    }
+
     void MapMessageEnumFields(const std::vector<BaseField::ConstPtr>& vMsgDefFields_)
     {
         for (const auto& field : vMsgDefFields_)

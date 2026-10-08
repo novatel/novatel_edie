@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
     const MessageDefinition::ConstPtr pclBestPosDef = clJsonDb->GetMsgDef("BESTPOS");
     const FieldInfo& clBestPosFields = pclBestPosDef->GetMsgDefFromCrc(pclBestPosDef->latestMessageCrc);
     const BaseField::ConstPtr pclExtSolStat = clBestPosFields.GetFieldDefByName("ext_sol_stat");
-    const auto& [pclPsrInnoCorrectionEnum, stPsrInnoCorrectionMask] = pclExtSolStat->bitMasks->masks.at("pseudorange_inno_correction");
+    const BitMaskMapEntry& stPsrInnoCorrection = pclExtSolStat->bitMasks->masks.at("pseudorange_inno_correction");
 
     // Decode the log
     const HeaderDecoder clHeaderDecoder(clJsonDb);
@@ -96,9 +96,9 @@ int main(int argc, char* argv[])
     // Read ext_sol_stat as a plain integer. It is a UCHAR.
     const auto ucExtSolStat = stMessage.GetFieldValue<uint8_t>(*pclExtSolStat);
     // Apply the mask.
-    const uint32_t uiPsrInnoCorrection = ExtractMaskedValue(ucExtSolStat, stPsrInnoCorrectionMask);
+    const uint32_t uiPsrInnoCorrection = ExtractMaskedValue(ucExtSolStat, stPsrInnoCorrection.bitfield);
     // Get a human readable representation.
-    const std::string_view svPsrInnoCorrection = pclPsrInnoCorrectionEnum->valueName.at(uiPsrInnoCorrection);
+    const std::string_view svPsrInnoCorrection = stPsrInnoCorrection.enumDef->valueName.at(uiPsrInnoCorrection);
 
     pclLogger->info("ext_sol_stat = 0x{:02X}", ucExtSolStat);
     pclLogger->info("pseudorange_inno_correction = {} ({})", uiPsrInnoCorrection, svPsrInnoCorrection);
