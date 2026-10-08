@@ -153,9 +153,7 @@ void py_common::init_common_message_database(nb::module_& m)
         .def_prop_rw(
             "end", [](const BitMaskMapEntry& self) { return self.bitfield.offset + self.bitfield.width; },
             [makeBitMask](BitMaskMapEntry& self, uint32_t end) { self.bitfield = makeBitMask(self.bitfield.offset, end); })
-        .def_rw("enum_id", &BitMaskMapEntry::enumId, "The ID of the enum definition that gives this sub-field's values meaning, or an empty string if none.")
-        .def_ro("enum_def", &BitMaskMapEntry::enumDef)
-        .def("__eq__", [](const BitMaskMapEntry& self, const BitMaskMapEntry& other) { return self == other; })
+        .def_rw("enum_id", &BitMaskMapEntry::enumId, "The ID of the enum definition that gives this sub-field's values meaning, or an empty string if none.")        .def("__eq__", [](const BitMaskMapEntry& self, const BitMaskMapEntry& other) { return self == other; })
         .def("__repr__", [](const BitMaskMapEntry& self) {
             const uint32_t end = self.bitfield.offset + self.bitfield.width;
             if (self.enumId.empty()) { return nb::str("BitMaskDefinition(start={}, end={})").format(self.bitfield.offset, end); }

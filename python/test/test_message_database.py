@@ -117,10 +117,8 @@ class TestDatabaseObjects:
             # Assert
             assert (plain_def.start, plain_def.end) == (0, 1)
             assert plain_def.enum_id == ""
-            assert plain_def.enum_def is None
             assert (enum_bitmask_def.start, enum_bitmask_def.end) == (1, 4)
             assert enum_bitmask_def.enum_id == "1"
-            assert enum_bitmask_def.enum_def is None
 
         def test_set_direct(self):
             # Arrange
@@ -456,8 +454,8 @@ class TestDatabaseActions:
         assert by_id == by_name
         entry = by_name.masks["pseudorange_inno_correction"]
         assert (entry.start, entry.end) == (1, 4)
-        assert entry.enum_def.name == "PseudorangeInnoCorrection"
-        assert by_name.masks["rtk_solution_verified"].enum_def is None
+        assert json_db.get_enum_def_by_id(entry.enum_id).name == "PseudorangeInnoCorrection"
+        assert by_name.masks["rtk_solution_verified"].enum_id == ""
 
     def test_get_bitmask_def_missing(self, json_db: MessageDatabase):
         # Act / Assert
@@ -494,19 +492,6 @@ class TestDatabaseActions:
         assert isinstance(message.status, db.get_bitfield_type_by_name("Status"))
         assert message.status.low == 0x5
         assert message.status.high == 0xA
-
-    def test_append_bitmasks_resolves_enum_def(self):
-        # Arrange
-        db = MessageDatabase(message_family="OEM")
-        db.append_enumerations([EnumDefinition(id="mode_id", name="Mode")])
-        bitmask_def = _status_bitmask_def({"mode": BitMaskDefinition(0, 4, enum_id="mode_id")})
-
-        # Act
-        db.append_bitmasks([bitmask_def])
-
-        # Assert
-        assert db.get_bitmask_def_by_name("Status").masks["mode"].enum_def.name == "Mode"
-        assert bitmask_def.masks["mode"].enum_def is None
 
     def test_append_bitmasks_replaces_by_name(self):
         # Arrange
