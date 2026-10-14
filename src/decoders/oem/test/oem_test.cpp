@@ -39,6 +39,7 @@
 #include "novatel_edie/common/test_utils/logger_registry_test.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
+#include "novatel_edie/decoders/oem/command_decoder.hpp"
 #include "novatel_edie/decoders/oem/commander.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"
 #include "novatel_edie/decoders/oem/file_parser.hpp"
@@ -3531,6 +3532,191 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_LOG_PARTIAL)
 {
     char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     ASSERT_EQ(STATUS::MALFORMED_INPUT, TestCommandConversion("LOG THISPORT BESTPOSA ONCE\r\n", acEncodeBuffer, sizeof(acEncodeBuffer), ENCODE_FORMAT::BINARY));
+}
+
+// -------------------------------------------------------------------------------------------------------
+// Command Decoder Unit Tests
+// -------------------------------------------------------------------------------------------------------
+class CommandDecoderTest : public ::testing::Test
+{
+  protected:
+    static MessageDatabase::Ptr pclMyJsonDb;
+    static std::unique_ptr<CommandDecoder> pclMyCommandDecoder;
+    static std::unique_ptr<Encoder> pclMyEncoder;
+
+    // Per-test-suite setup
+    static void SetUpTestSuite()
+    {
+        try
+        {
+            pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyCommandDecoder = std::make_unique<CommandDecoder>(pclMyJsonDb);
+            pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb);
+        }
+        catch (const JsonDbReaderFailure& e)
+        {
+            std::cout << e.what() << '\n';
+        }
+    }
+
+    // Per-test-suite teardown
+    static void TearDownTestSuite() { LOGGER_MANAGER->Shutdown(); }
+
+  public:
+    static STATUS Decode(const std::string& sCommand_, IntermediateHeader& stHeader_, CompositeField& stMessage_)
+    {
+        return pclMyCommandDecoder->Decode(sCommand_.c_str(), static_cast<uint32_t>(sCommand_.length()), stHeader_, stMessage_);
+    }
+
+    // Decode a command and encode it to ASCII, giving the body between the header and the CRC
+    static STATUS DecodeToAsciiBody(const std::string& sCommand_, std::string& sBody_)
+    {
+        IntermediateHeader stHeader;
+        CompositeField stMessage;
+        STATUS eStatus = Decode(sCommand_, stHeader, stMessage);
+        if (eStatus != STATUS::SUCCESS) { return eStatus; }
+
+        unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
+        unsigned char* pucEncodeBuffer = acEncodeBuffer;
+        MessageDataStruct stMessageData;
+        eStatus = pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, ENCODE_FORMAT::ASCII);
+        if (eStatus != STATUS::SUCCESS) { return eStatus; }
+
+        const std::string sEncoded(reinterpret_cast<const char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+        const size_t ullBodyStart = sEncoded.find(';') + 1;
+        sBody_ = sEncoded.substr(ullBodyStart, sEncoded.rfind('*') - ullBodyStart);
+        return STATUS::SUCCESS;
+    }
+};
+
+MessageDatabase::Ptr CommandDecoderTest::pclMyJsonDb = nullptr;
+std::unique_ptr<CommandDecoder> CommandDecoderTest::pclMyCommandDecoder = nullptr;
+std::unique_ptr<Encoder> CommandDecoderTest::pclMyEncoder = nullptr;
+
+TEST_F(CommandDecoderTest, LOGGER)
+{
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
+    spdlog::level::level_enum eLevel = spdlog::level::off;
+
+    std::shared_ptr<spdlog::logger> novatel_command_decoder = pclMyCommandDecoder->GetLogger();
+    ASSERT_NE(novatel_command_decoder, nullptr);
+    pclMyCommandDecoder->SetLoggerLevel(eLevel);
+    ASSERT_EQ(novatel_command_decoder->level(), eLevel);
+}
+
+TEST_F(CommandDecoderTest, DECODE_LOG)
+{
+    IntermediateHeader stHeader;
+    CompositeField stMessage;
+    ASSERT_EQ(STATUS::SUCCESS, Decode("log bestxyza once\r\n", stHeader, stMessage));
+
+    ASSERT_EQ(stHeader.usMessageId, 1); // LOG
+    ASSERT_EQ(stHeader.uiPortAddress, 0xC0U);
+
+    uint16_t usPayloadId = 0;
+    uint32_t uiSiblingId = 0;
+    uint32_t uiMessageFormat = 0;
+    uint32_t uiResponse = 0;
+    UnpackMsgId(stMessage.GetFieldValueByName<uint32_t>("message_id"), usPayloadId, uiSiblingId, uiMessageFormat, uiResponse);
+    ASSERT_EQ(usPayloadId, 241); // BESTXYZ
+    ASSERT_EQ(uiMessageFormat, static_cast<uint32_t>(MESSAGE_FORMAT::ASCII));
+    ASSERT_EQ(stMessage.GetFieldValueByName<int32_t>("log_port_address"), 0xC0); // THISPORT
+    ASSERT_EQ(stMessage.GetFieldValueByName<int32_t>("trigger"), 4);             // ONCE
+}
+
+TEST_F(CommandDecoderTest, DECODE_LEADING_DEFAULTS)
+{
+    std::string sBody;
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("LOG VERSIONA", sBody));
+    ASSERT_EQ(sBody, "THISPORT,VERSIONA,ONCE,0.000000,0.000000,NOHOLD");
+
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("ECHO ON", sBody));
+    ASSERT_EQ(sBody, "THISPORT,ON");
+
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("UNLOGALL TRUE", sBody));
+    ASSERT_EQ(sBody, "ALL_PORTS,TRUE");
+
+    // An optional enum is filled in wherever it is, not only at the start
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("ETHCONFIG ETHA MDI", sBody));
+    ASSERT_EQ(sBody, "ETHA,AUTO,AUTO,MDI,AUTO");
+}
+
+TEST_F(CommandDecoderTest, DECODE_TRAILING_DEFAULTS)
+{
+    std::string sBody;
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("UNLOGALL\r\n", sBody));
+    ASSERT_EQ(sBody, "ALL_PORTS,FALSE");
+
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("LOG COM1 BESTPOSA ONTIME 1", sBody));
+    ASSERT_EQ(sBody, "COM1,BESTPOSA,ONTIME,1.000000,0.000000,NOHOLD");
+}
+
+TEST_F(CommandDecoderTest, DECODE_FULL_COMMAND)
+{
+    std::string sBody;
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("LOG COM2 BESTPOSB ONTIME 1 0.5 HOLD", sBody));
+    ASSERT_EQ(sBody, "COM2,BESTPOSB,ONTIME,1.000000,0.500000,HOLD");
+
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SEND COM1 \"hello world\"", sBody));
+    ASSERT_EQ(sBody, "COM1,\"hello world\"");
+}
+
+TEST_F(CommandDecoderTest, DECODE_ARRAYS)
+{
+    std::string sBody;
+
+    // A field array left off the end is empty
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SETTIMEBASE GPS", sBody));
+    ASSERT_EQ(sBody, "GPS,0");
+
+    // The fields of a field array element are filled in like any other
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SETTIMEBASE GPS 1 GLONASS", sBody));
+    ASSERT_EQ(sBody, "GPS,1,GLONASS,0");
+
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SETTIMEBASE GPS 2 GLONASS 30 GALILEO 60", sBody));
+    ASSERT_EQ(sBody, "GPS,2,GLONASS,30,GALILEO,60");
+
+    // A variable-length array given as a single parameter
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SENDHEX 2 4142", sBody));
+    ASSERT_EQ(sBody, "THISPORT,2,4142");
+}
+
+TEST_F(CommandDecoderTest, DECODE_INVALID)
+{
+    IntermediateHeader stHeader;
+    CompositeField stMessage;
+
+    ASSERT_EQ(STATUS::NULL_PROVIDED, pclMyCommandDecoder->Decode(nullptr, 0, stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("", stHeader, stMessage));
+    ASSERT_EQ(STATUS::NO_DEFINITION, Decode("NOTACOMMAND ON", stHeader, stMessage));
+
+    // Unknown enum values and extra parameters
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("ECHO CM1 ON", stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("ECHO COM1 ON ON", stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("UNLOGALL COM1 TRUE 1", stHeader, stMessage));
+
+    // Fields without a default
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("LOG", stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("LOG COM1", stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SEND COM1", stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SENDHEX COM1", stHeader, stMessage));
+
+    // Arrays with the wrong number of values
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SETTIMEBASE GPS 5 GLONASS 30", stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SETTIMEBASE GPS X", stHeader, stMessage));
+}
+
+TEST_F(CommandDecoderTest, DECODE_ENCODE_BINARY)
+{
+    IntermediateHeader stHeader;
+    CompositeField stMessage;
+    ASSERT_EQ(STATUS::SUCCESS, Decode("LOG THISPORT BESTPOSA ONCE\r\n", stHeader, stMessage));
+
+    unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    unsigned char* pucEncodeBuffer = acEncodeBuffer;
+    MessageDataStruct stMessageData;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, ENCODE_FORMAT::BINARY));
+    ASSERT_EQ(stMessageData.uiMessageLength, OEM4_BINARY_HEADER_LENGTH + 32 + OEM4_BINARY_CRC_LENGTH);
 }
 
 TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_UALCONTROL)
