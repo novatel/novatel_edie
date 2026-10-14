@@ -121,7 +121,8 @@ class HeaderDecoder
     //----------------------------------------------------------------------------
     //! \brief Decode an OEM message header from the provided frame.
     //
-    //! \param[in] pucLogBuf_ A pointer to an OEM message header.
+    //! \param[in] pucLogBuf_ A pointer to a NUL-terminated string beginning with
+    //! an OEM message header.
     //! \param[out] stInterHeader_ The IntermediateHeader to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
