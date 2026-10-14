@@ -831,6 +831,7 @@ template <typename Derived> class EncoderBase
             }
             case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
             case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
+            case FIELD_TYPE::RESPONSE_ID: [[fallthrough]];
             case FIELD_TYPE::ENUM: [[fallthrough]];
             case FIELD_TYPE::SIMPLE:
                 if (!EncodeJsonField(fieldDefRef, clCompField_, ppcOutBuf_, uiBytesLeft_)) { return false; }
