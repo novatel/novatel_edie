@@ -31,6 +31,7 @@ Information on the `novatel_edie` [Python package can be found here](./python/re
   - [Adding Message Definitions](#adding-message-definitions)
   - [Decompressing Range Logs](#decompressing-range-logs)
   - [Command Encoding](#command-encoding)
+  - [Command Decoding](#command-decoding)
   - [Converting RXConfig Logs](#converting-rxconfig-logs)
   - [Accessing Message Fields](#accessing-message-fields)
 - [Code Style](#code-style)
@@ -249,6 +250,19 @@ use the Commander class to encode a command from
 Note that all fields, even optional ones, must be provided in the abbreviated ASCII string command.
 
 Run the resulting executable with the following command: `command_encoding.exe <path_to_json_db> <output_format> <abbreviated_ascii_command>`
+
+### Command Decoding
+
+[This example](./examples/novatel/command_decoding/command_decoding.cpp) shows how to
+use the CommandDecoder class to decode a command from
+[Abbreviated ASCII](https://docs.novatel.com/OEM7/Content/Messages/Abbreviated_ASCII.htm) into its
+`IntermediateHeader` and `CompositeField`, which can be read like any other message, and encode it to an
+[ASCII](https://docs.novatel.com/OEM7/Content/Messages/ASCII.htm) or
+[Binary](https://docs.novatel.com/OEM7/Content/Messages/Binary.htm) command with the Encoder.
+Parameters left out of the command are filled in from the database, as the receiver does, so `LOG BESTPOSA`
+is decoded as `LOG THISPORT BESTPOSA ONCE 0 0 NOHOLD`. A field without a default in the database must be given.
+
+Run the resulting executable with the following command: `command_decoding.exe <path_to_json_db> <output_format> <abbreviated_ascii_command>`
 
 ### Converting RXConfig Logs
 
