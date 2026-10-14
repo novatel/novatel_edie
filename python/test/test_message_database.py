@@ -104,7 +104,8 @@ class TestDatabaseObjects:
                 "name": "",
                 "type": FIELD_TYPE.UNKNOWN,
                 "conversion": "",
-                "data_type": DATA_TYPE.UNKNOWN
+                "data_type": DATA_TYPE.UNKNOWN,
+                "default_value": None
             }
             def test_construct(self, values: dict):
                 # Act
@@ -122,6 +123,14 @@ class TestDatabaseObjects:
                 # Assert
                 for attr, default in self.defaults.items():
                     assert getattr(field, attr) == values.get(attr, default)
+
+        def test_default_value(self):
+            # Arrange
+            field = FieldDefinition()
+            # Act
+            field.default_value = 4.0
+            # Assert
+            assert field.default_value == 4.0
 
         @pytest.mark.parametrize("invalid_conversion", [
             "",

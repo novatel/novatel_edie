@@ -312,9 +312,11 @@ struct BaseField
     bool isString{false};             // cached; has a FIELD_TYPE of STRING or conversion string of either %s or %S
     bool isCsv{false};                // cached; Ascii encoding of this field is comma-separated,
                                       // true for arrays which are not strings and do not use the %Z or %P conversion strings
+    bool hasDefaultValue{false};
     SimpleDataType dataType;
     size_t index{0}; // if fixed, this is the byte offset of the field in CompositeField.fixedFields
                      // if variable, this is the index of the field in CompositeField.variableFields
+    double defaultValueData{0.0}; // the value used when a command leaves this field out, only valid if hasDefaultValue
 
     BaseField() = default;
 
@@ -326,6 +328,17 @@ struct BaseField
     }
 
     virtual ~BaseField() = default;
+
+    [[nodiscard]] std::optional<double> GetDefaultValue() const
+    {
+        return hasDefaultValue ? std::optional<double>(defaultValueData) : std::nullopt;
+    }
+
+    void SetDefaultValue(const std::optional<double>& value_)
+    {
+        hasDefaultValue = value_.has_value();
+        defaultValueData = value_.value_or(0.0);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Compares the non-cached fields. Returns true when `other` has the
@@ -414,7 +427,7 @@ struct BaseField
     [[nodiscard]] virtual bool equalsImpl(const BaseField& other) const
     {
         return name == other.name && type == other.type && description == other.description && conversion == other.conversion &&
-               dataType == other.dataType;
+               dataType == other.dataType && GetDefaultValue() == other.GetDefaultValue();
     }
 };
 

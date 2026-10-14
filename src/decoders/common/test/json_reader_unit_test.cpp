@@ -78,3 +78,15 @@ TEST_F(JsonDbReaderTest, AppendMessages)
     clJson->RemoveMessage(uiMsgId);
     ASSERT_EQ(clJson->GetMsgDef(uiMsgId), nullptr);
 }
+
+TEST_F(JsonDbReaderTest, FieldDefaultValues)
+{
+    MessageDatabase::Ptr clJson = LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
+
+    MessageDefinition::ConstPtr pstMsgDef = clJson->GetMsgDef("LOG");
+    ASSERT_NE(pstMsgDef, nullptr);
+
+    const FieldInfo& stFieldInfo = *pstMsgDef->fieldInfo.at(pstMsgDef->latestMessageCrc);
+    ASSERT_EQ(stFieldInfo.GetFieldDefByName("trigger")->GetDefaultValue(), 4.0); // ONCE
+    ASSERT_EQ(stFieldInfo.GetFieldDefByName("offset")->GetDefaultValue(), 0.0);
+}
