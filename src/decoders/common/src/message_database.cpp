@@ -57,6 +57,22 @@ void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_)
 }
 
 //-----------------------------------------------------------------------
+void MessageDatabase::RemoveBitMask(std::string_view strBitMask_)
+{
+    const auto iTer = std::find_if(vBitMasks.begin(), vBitMasks.end(), [strBitMask_](const auto& elem_) { return elem_->name == strBitMask_; });
+    if (iTer == vBitMasks.end()) { return; }
+
+    // Erase the mappings first, as their string_view keys point into the definition.
+    const auto eraseIfMapped = [&iTer](auto& map_, std::string_view key_) {
+        const auto it = map_.find(key_);
+        if (it != map_.end() && it->second == *iTer) { map_.erase(it); }
+    };
+    eraseIfMapped(mBitMaskName, (*iTer)->name);
+    eraseIfMapped(mBitMaskId, (*iTer)->_id);
+    vBitMasks.erase(iTer);
+}
+
+//-----------------------------------------------------------------------
 uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
 {
     uint32_t uiSiblingId = NULL_SIBLING_ID;
@@ -227,7 +243,6 @@ FieldInfo::ConstPtr BuildFieldInfo(std::vector<BaseField::Ptr> fields, std::stri
     {
         switch (f->type)
         {
-        case FIELD_TYPE::BITFIELD: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_ID: [[fallthrough]];
         case FIELD_TYPE::SIMPLE: [[fallthrough]];
         case FIELD_TYPE::ENUM:
