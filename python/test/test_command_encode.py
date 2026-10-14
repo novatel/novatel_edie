@@ -38,8 +38,20 @@ import pytest
 def commander():
     return oem.Commander()
 
+@pytest.fixture(scope="function")
+def database_defaults_commander():
+    return oem.Commander(use_database_defaults=True)
+
 # -------------------------------------------------------------------------------------------------------
 # ASCII Command Encoding Unit Tests
+# -------------------------------------------------------------------------------------------------------
+def test_command_encode_ascii_omitted_parameters_are_strict(commander):
+    with pytest.raises(ne.MalformedInputException):
+        commander.encode(b"LOG RXCONFIGA ONCE", ENCODE_FORMAT.ASCII)
+
+    with pytest.raises(ne.MalformedInputException):
+        commander.encode(b"UNLOGALL", ENCODE_FORMAT.ASCII)
+
 # -------------------------------------------------------------------------------------------------------
 def test_command_encode_ascii_configcode(commander):
     expected_command = b"#CONFIGCODEA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,dbc9,0;ERASE_TABLE,\"WJ4HDW\",\"GM5Z99\",\"T2M7DP\",\"KG2T8T\",\"KF7GKR\",\"TABLECLEAR\"*69419dec\r\n"
@@ -62,10 +74,11 @@ def test_command_encode_binary_configcode(commander):
     encoded_command = commander.encode(command_to_encode, ENCODE_FORMAT.BINARY)
     assert encoded_command == expected_command
 
-def test_command_encode_binary_log_partial(commander):
+def test_command_encode_binary_log_partial(database_defaults_commander):
+    expected_command = bytes([0xAA, 0x44, 0x12, 0x1C, 0x01, 0x00, 0x00, 0xC0, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xB2, 0x92, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x2A, 0x00, 0x20, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2F, 0x75, 0x47, 0x68])
     command_to_encode = b"LOG THISPORT BESTPOSA ONCE\r\n"
-    with pytest.raises(ne.MalformedInputException):
-        commander.encode(command_to_encode, ENCODE_FORMAT.BINARY)
+    encoded_command = database_defaults_commander.encode(command_to_encode, ENCODE_FORMAT.BINARY)
+    assert encoded_command == expected_command
 
 def test_command_encode_binary_ualcontrol(commander):
     expected_command = bytes([0xAA, 0x44, 0x12, 0x1C, 0x5B, 0x06, 0x00, 0xC0, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA3, 0x49, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F, 0xFF, 0xF8, 0x3A, 0xA7])

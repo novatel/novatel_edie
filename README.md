@@ -246,7 +246,8 @@ use the Commander class to encode a command from
 [Abbreviated ASCII](https://docs.novatel.com/OEM7/Content/Messages/Abbreviated_ASCII.htm) to an
 [ASCII](https://docs.novatel.com/OEM7/Content/Messages/ASCII.htm) or
 [Binary](https://docs.novatel.com/OEM7/Content/Messages/Binary.htm) command.
-Note that all fields, even optional ones, must be provided in the abbreviated ASCII string command.
+
+By default, Commander rejects omitted abbreviated ASCII parameters. Construct it with `DEFAULT_PARAMETER_POLICY::DATABASE_DEFAULTS` to fill them from available defaults in the loaded database.
 
 Run the resulting executable with the following command: `command_encoding.exe <path_to_json_db> <output_format> <abbreviated_ascii_command>`
 

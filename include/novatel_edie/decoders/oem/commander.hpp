@@ -36,6 +36,16 @@
 namespace novatel::edie::oem {
 
 //============================================================================
+//! \enum DEFAULT_PARAMETER_POLICY
+//! \brief Controls how omitted abbreviated ASCII command parameters are handled.
+//============================================================================
+enum class DEFAULT_PARAMETER_POLICY
+{
+    REQUIRE_ALL_PARAMETERS, //!< Reject a command with omitted parameters.
+    DATABASE_DEFAULTS       //!< Fill in omitted parameters with defaults from the database.
+};
+
+//============================================================================
 //! \class Commander
 //! \brief Class to convert OEM abbreviated ASCII commands to full ASCII or
 //! BINARY commands.
@@ -47,6 +57,7 @@ class Commander
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
+    DEFAULT_PARAMETER_POLICY eMyDefaultParameterPolicy{DEFAULT_PARAMETER_POLICY::REQUIRE_ALL_PARAMETERS};
 
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
@@ -62,6 +73,28 @@ class Commander
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     Commander(MessageDatabase::Ptr pclMessageDb_ = nullptr);
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the Commander class with an explicit parameter policy.
+    //
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
+    //! \param[in] eDefaultParameterPolicy_ The policy used for omitted parameters.
+    //----------------------------------------------------------------------------
+    Commander(MessageDatabase::Ptr pclMessageDb_, DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Set the policy used for omitted abbreviated ASCII parameters.
+    //
+    //! \param[in] eDefaultParameterPolicy_ The policy to use for subsequent encodes.
+    //----------------------------------------------------------------------------
+    void SetDefaultParameterPolicy(DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_) { eMyDefaultParameterPolicy = eDefaultParameterPolicy_; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the policy used for omitted abbreviated ASCII parameters.
+    //
+    //! \return The policy used for subsequent encodes.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] DEFAULT_PARAMETER_POLICY GetDefaultParameterPolicy() const { return eMyDefaultParameterPolicy; }
 
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
@@ -103,7 +136,10 @@ class Commander
     //! pcEncodeBuffer_.
     //!   NULL_PROVIDED: Either pcAbbrevAsciiCommand_ or pcEncodeBuffer_ are null
     //! pointers.
-    //!   UNSUPPORTED: eEncodeFormat_ is not ASCII or BINARY.
+    //!   UNSUPPORTED: eEncodeFormat_ is not ASCII or BINARY, or the selected
+    //! policy does not support the command.
+    //!   MALFORMED_INPUT: The command contains an unknown or extra parameter, or
+    //! omits a parameter not supported by the selected policy.
     //!   NO_DATABASE: No database was ever loaded into this component.
     //!   NO_DEFINITION: No definition was found in the database that corresponds
     //! to the provided Abbreviated ASCII command.
@@ -136,7 +172,10 @@ class Commander
     //! pcEncodeBuffer_.
     //!   NULL_PROVIDED: Either pcAbbrevAsciiCommand_ or pcEncodeBuffer_ are null
     //! pointers.
-    //!   UNSUPPORTED: eEncodeFormat_ is not ASCII or BINARY.
+    //!   UNSUPPORTED: eEncodeFormat_ is not ASCII or BINARY, or the selected
+    //! policy does not support the command.
+    //!   MALFORMED_INPUT: The command contains an unknown or extra parameter, or
+    //! omits a parameter not supported by the selected policy.
     //!   NO_DATABASE: No database was ever loaded into this component.
     //!   NO_DEFINITION: No definition was found in the database that corresponds
     //! to the provided Abbreviated ASCII command.
@@ -147,6 +186,12 @@ class Commander
     [[nodiscard]] static STATUS Encode(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
                                        const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
                                        uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_);
+
+    //! \brief Encode a command using an explicit omitted-parameter policy.
+    [[nodiscard]] static STATUS Encode(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
+                                       const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                                       uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_,
+                                       DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_);
 };
 
 } // namespace novatel::edie::oem

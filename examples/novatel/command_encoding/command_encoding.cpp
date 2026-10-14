@@ -81,6 +81,9 @@ int main(int argc, char* argv[])
 
     Commander clCommander(clJsonDb);
 
+    // To fill omitted command parameters from the database, use:
+    // Commander clCommander(clJsonDb, DEFAULT_PARAMETER_POLICY::DATABASE_DEFAULTS);
+
     char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     char* pcEncodedMessageBuffer = acEncodeBuffer;
     uint32_t uiEncodeBufferLength = MAX_ASCII_MESSAGE_LENGTH;

@@ -16,12 +16,14 @@ void py_oem::init_novatel_commander(nb::module_& m)
     nb::class_<oem::Commander>(m, "Commander")
         .def(
             "__init__",
-            [](oem::Commander* t, py_common::PyMessageDatabase::Ptr message_db) {
+            [](oem::Commander* t, py_common::PyMessageDatabase::Ptr message_db, const bool use_database_defaults) {
                 if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); };
                 message_db->Lock();
-                new (t) oem::Commander(message_db->core());
+                const auto ePolicy =
+                    use_database_defaults ? oem::DEFAULT_PARAMETER_POLICY::DATABASE_DEFAULTS : oem::DEFAULT_PARAMETER_POLICY::REQUIRE_ALL_PARAMETERS;
+                new (t) oem::Commander(message_db->core(), ePolicy);
             },
-            nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
+            nb::arg("message_db") = nb::none(), nb::arg("use_database_defaults") = false) // NOLINT(*.NewDeleteLeaks)
         .def(
             "encode",
             [](oem::Commander& commander, const nb::bytes& command, const ENCODE_FORMAT format) {

@@ -314,8 +314,8 @@ struct BaseField
                                       // true for arrays which are not strings and do not use the %Z or %P conversion strings
     bool hasDefaultValue{false};
     SimpleDataType dataType;
-    size_t index{0}; // if fixed, this is the byte offset of the field in CompositeField.fixedFields
-                     // if variable, this is the index of the field in CompositeField.variableFields
+    size_t index{0};              // if fixed, this is the byte offset of the field in CompositeField.fixedFields
+                                  // if variable, this is the index of the field in CompositeField.variableFields
     double defaultValueData{0.0}; // the value used when a command leaves this field out, only valid if hasDefaultValue
 
     BaseField() = default;
@@ -329,10 +329,7 @@ struct BaseField
 
     virtual ~BaseField() = default;
 
-    [[nodiscard]] std::optional<double> GetDefaultValue() const
-    {
-        return hasDefaultValue ? std::optional<double>(defaultValueData) : std::nullopt;
-    }
+    [[nodiscard]] std::optional<double> GetDefaultValue() const { return hasDefaultValue ? std::optional<double>(defaultValueData) : std::nullopt; }
 
     void SetDefaultValue(const std::optional<double>& value_)
     {
