@@ -3112,6 +3112,22 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_VERSION)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedMessageData));
 }
 
+TEST_F(DecodeEncodeTest, JSON_RESPONSE)
+{
+    unsigned char aucLog[] = "#FRESETR,COM1,0,73.0,UNKNOWN,0,0.000,00000000,06e5,0;OK*55c70910\r\n";
+    MetaDataStruct stMetaData;
+    MessageDataStruct stMessageData;
+    unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    unsigned char* pucEncodeBuffer = acEncodeBuffer;
+
+    ASSERT_EQ(DecodeEncodeTest::SUCCESS,
+              DecodeEncode(ENCODE_FORMAT::JSON, aucLog, pucEncodeBuffer, sizeof(acEncodeBuffer), stMetaData, stMessageData));
+
+    const std::string_view json(reinterpret_cast<const char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+    EXPECT_NE(json.find(R"("response_id": 1)"), std::string_view::npos);
+    EXPECT_NE(json.find(R"("response_str": "OK")"), std::string_view::npos);
+}
+
 // -------------------------------------------------------------------------------------------------------
 // Edge Case Log Decode/Encode Unit Tests
 // -------------------------------------------------------------------------------------------------------
