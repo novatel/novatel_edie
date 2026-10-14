@@ -131,3 +131,72 @@ TEST_F(JsonDbReaderTest, AppendMessages)
     clJson->RemoveMessage(uiMsgId);
     ASSERT_EQ(clJson->GetMsgDef(uiMsgId), nullptr);
 }
+
+TEST_F(JsonDbReaderTest, FieldDefaultValues)
+{
+    MessageDatabase::Ptr clJson = LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
+
+    MessageDefinition::ConstPtr pstMsgDef = clJson->GetMsgDef("LOG");
+    ASSERT_NE(pstMsgDef, nullptr);
+
+    const FieldInfo& stFieldInfo = *pstMsgDef->fieldInfo.at(pstMsgDef->latestMessageCrc);
+    ASSERT_EQ(stFieldInfo.GetFieldDefByName("trigger")->defaultValue, SimpleValueVariant(int32_t{4})); // ONCE
+    ASSERT_EQ(stFieldInfo.GetFieldDefByName("offset")->defaultValue, SimpleValueVariant(0.0));
+}
+
+TEST_F(JsonDbReaderTest, FieldDefaultValueTypes)
+{
+    // A field of the given type with the given default, or no default if strDefault_ is empty
+    auto Field = [](const std::string& strName_, const std::string& strType_, const std::string& strDataType_, const std::string& strDefault_,
+                    const std::string& strExtra_ = R"("arrayLength": null)") {
+        return R"({"name": ")" + strName_ + R"(", "type": ")" + strType_ + R"(", "description": "", "conversionString": null, )" + strExtra_ +
+               R"(, "dataType": {"name": ")" + strDataType_ + R"(", "length": 4, "description": ""})" +
+               (strDefault_.empty() ? "" : R"(, "defaultValue": )" + strDefault_) + "}";
+    };
+
+    const std::string strFields =
+        Field("bool", "SIMPLE", "BOOL", "1") + "," + Field("char", "SIMPLE", "CHAR", "-2") + "," + Field("uchar", "SIMPLE", "UCHAR", "5") + "," +
+        Field("short", "SIMPLE", "SHORT", "-300") + "," + Field("ushort", "SIMPLE", "USHORT", "300") + "," + Field("long", "SIMPLE", "LONG", "-3") +
+        "," + Field("ulong", "SIMPLE", "ULONG", "4000000000") + "," + Field("longlong", "SIMPLE", "LONGLONG", "-5") + "," +
+        Field("ulonglong", "SIMPLE", "ULONGLONG", "18446744073709551615") + "," + Field("float", "SIMPLE", "FLOAT", "0.5") + "," +
+        Field("double", "SIMPLE", "DOUBLE", "1") + "," + Field("enum", "ENUM", "ENUM", "2", R"("enumID": "e1")") + "," +
+        Field("array", "FIXED_LENGTH_ARRAY", "UCHAR", "7", R"("arrayLength": 3)") + "," + Field("null", "SIMPLE", "ULONG", "null") + "," +
+        Field("missing", "SIMPLE", "ULONG", "") + "," + Field("negative_ulong", "SIMPLE", "ULONG", "-2147483648") + "," +
+        Field("large_uchar", "SIMPLE", "UCHAR", "256") + "," + Field("float_long", "SIMPLE", "LONG", "1.5") + "," +
+        Field("string", "STRING", "STRING", "0", R"("arrayLength": 8)");
+
+    MessageDatabase::Ptr clJson =
+        ParseJsonDb(R"({"meta": {"version": "2.0.0", "messageFamily": "OEM", "subset": "all"},)"
+                    R"("enums": [{"name": "Things", "_id": "e1", "enumerators": [{"name": "TWO", "value": 2, "description": ""}]}],)"
+                    R"("messages": [{"name": "DEFAULTS", "_id": "m1", "messageID": 1, "description": "", )"
+                    R"("latestMsgDefCrc": "1", "fields": {"1": [)" +
+                    strFields + "]}}]}");
+
+    MessageDefinition::ConstPtr pstMsgDef = clJson->GetMsgDef("DEFAULTS");
+    ASSERT_NE(pstMsgDef, nullptr);
+    const FieldInfo& stFieldInfo = *pstMsgDef->fieldInfo.at(pstMsgDef->latestMessageCrc);
+    auto Default = [&](const std::string& strName_) { return stFieldInfo.GetFieldDefByName(strName_)->defaultValue; };
+
+    // Each default is loaded as the type the field decodes to
+    ASSERT_EQ(Default("bool"), SimpleValueVariant(true));
+    ASSERT_EQ(Default("char"), SimpleValueVariant(int8_t{-2}));
+    ASSERT_EQ(Default("uchar"), SimpleValueVariant(uint8_t{5}));
+    ASSERT_EQ(Default("short"), SimpleValueVariant(int16_t{-300}));
+    ASSERT_EQ(Default("ushort"), SimpleValueVariant(uint16_t{300}));
+    ASSERT_EQ(Default("long"), SimpleValueVariant(int32_t{-3}));
+    ASSERT_EQ(Default("ulong"), SimpleValueVariant(uint32_t{4000000000}));
+    ASSERT_EQ(Default("longlong"), SimpleValueVariant(int64_t{-5}));
+    ASSERT_EQ(Default("ulonglong"), SimpleValueVariant(uint64_t{18446744073709551615ULL}));
+    ASSERT_EQ(Default("float"), SimpleValueVariant(0.5F));
+    ASSERT_EQ(Default("double"), SimpleValueVariant(1.0));
+    ASSERT_EQ(Default("enum"), SimpleValueVariant(int32_t{2}));
+    ASSERT_EQ(Default("array"), SimpleValueVariant(uint8_t{7}));
+
+    // Defaults that are null, missing, don't fit the field or are on a string are left unset
+    ASSERT_EQ(Default("null"), std::nullopt);
+    ASSERT_EQ(Default("missing"), std::nullopt);
+    ASSERT_EQ(Default("negative_ulong"), std::nullopt);
+    ASSERT_EQ(Default("large_uchar"), std::nullopt);
+    ASSERT_EQ(Default("float_long"), std::nullopt);
+    ASSERT_EQ(Default("string"), std::nullopt);
+}

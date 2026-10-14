@@ -37,6 +37,7 @@
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/common/version_string.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
+#include "novatel_edie/decoders/common/message_decoder.hpp"
 
 namespace novatel::edie {
 
@@ -116,6 +117,7 @@ using AlignFunction = std::function<size_t(const size_t, const uintptr_t, const 
 void ParseEnumDataType(element j_, EnumDataType& f_);
 void ParseSimpleDataType(element j_, SimpleDataType& f_);
 void ParseBaseField(element j_, BaseField& f_);
+void ParseDefaultValue(element j_, BaseField& f_);
 void ParseEnumField(element j_, EnumField& f_);
 void ParseArrayField(element j_, ArrayField& fd_);
 void ParseFieldArrayField(element j_, FieldArrayField& fd_, const AlignFunction& alignFn_);
@@ -163,6 +165,29 @@ void ParseBaseField(element j_, BaseField& f_)
     if (j_["bitmaskID"].get(bitmaskId) == simdjson::SUCCESS && !bitmaskId.is_null()) { f_.bitMaskId = AsString(bitmaskId); }
 
     ParseSimpleDataType(Member(j_, "dataType"), f_.dataType);
+    ParseDefaultValue(j_, f_);
+}
+
+//-----------------------------------------------------------------------
+//! Read a field's default as the type the field decodes to. A default that is null or doesn't fit that
+//! type is left unset, so a command can't leave the field out.
+void ParseDefaultValue(element j_, BaseField& f_)
+{
+    element defaultValue;
+    if (j_["defaultValue"].get(defaultValue) != simdjson::SUCCESS || defaultValue.is_null()) { return; }
+
+    SimpleValueVariant value;
+    bool bValue;
+    int64_t llValue;
+    uint64_t ullValue;
+    double dValue;
+    if (defaultValue.get(bValue) == simdjson::SUCCESS) { value = bValue; }
+    else if (defaultValue.get(llValue) == simdjson::SUCCESS) { value = llValue; }
+    else if (defaultValue.get(ullValue) == simdjson::SUCCESS) { value = ullValue; }
+    else if (defaultValue.get(dValue) == simdjson::SUCCESS) { value = dValue; }
+    else { return; }
+
+    f_.defaultValue = ConvertToFieldType(f_, value);
 }
 
 //-----------------------------------------------------------------------

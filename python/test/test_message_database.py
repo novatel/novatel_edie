@@ -192,7 +192,8 @@ class TestDatabaseObjects:
                 "type": FIELD_TYPE.UNKNOWN,
                 "conversion": "",
                 "data_type": DATA_TYPE.UNKNOWN,
-                "bitmask_id": ""
+                "bitmask_id": "",
+                "default_value": None
             }
             def test_construct(self, values: dict):
                 # Act
@@ -210,6 +211,60 @@ class TestDatabaseObjects:
                 # Assert
                 for attr, default in self.defaults.items():
                     assert getattr(field, attr) == values.get(attr, default)
+
+        @pytest.mark.parametrize("data_type, value, expected", [
+            (DATA_TYPE.ULONG, 4, 4),
+            (DATA_TYPE.ULONG, 4294967295, 4294967295),
+            (DATA_TYPE.LONG, -4, -4),
+            (DATA_TYPE.DOUBLE, 4, 4.0),
+            (DATA_TYPE.DOUBLE, 0.1, 0.1),
+            (DATA_TYPE.BOOL, True, True),
+            (DATA_TYPE.BOOL, 1, True),
+            (DATA_TYPE.ULONG, None, None)])
+        def test_default_value(self, data_type: DATA_TYPE, value, expected):
+            # Arrange
+            field = FieldDefinition(type=FIELD_TYPE.SIMPLE, data_type=data_type)
+            # Act
+            field.default_value = value
+            # Assert
+            assert field.default_value == expected
+            assert type(field.default_value) is type(expected)
+
+        @pytest.mark.parametrize("data_type, value", [
+            (DATA_TYPE.ULONG, -1),
+            (DATA_TYPE.ULONG, 4294967296),
+            (DATA_TYPE.UCHAR, 256),
+            (DATA_TYPE.LONG, 0.5),
+            (DATA_TYPE.BOOL, 2),
+            (DATA_TYPE.UNKNOWN, 4)])
+        def test_default_value_that_does_not_fit_raises_value_error(self, data_type: DATA_TYPE, value):
+            # Arrange
+            field = FieldDefinition(type=FIELD_TYPE.SIMPLE, data_type=data_type)
+            # Act & Assert
+            with pytest.raises(ValueError):
+                field.default_value = value
+            assert field.default_value is None
+
+        def test_default_value_of_wrong_kind_raises_type_error(self):
+            # Arrange
+            field = FieldDefinition(type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.ULONG)
+            # Act & Assert
+            with pytest.raises(TypeError):
+                field.default_value = "4"
+
+        def test_data_type_converts_default_value(self):
+            # Arrange
+            field = FieldDefinition(type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.ULONG)
+            field.default_value = 300
+            # Act & Assert
+            field.data_type = DATA_TYPE.DOUBLE
+            assert field.default_value == 300.0
+            assert type(field.default_value) is float
+            field.data_type = DATA_TYPE.USHORT
+            assert field.default_value is None  # a float doesn't fit an integer type
+            field.default_value = 300
+            field.data_type = DATA_TYPE.UCHAR
+            assert field.default_value is None  # out of range
 
         @pytest.mark.parametrize("invalid_conversion", [
             "",
@@ -356,6 +411,16 @@ class TestDatabaseObjects:
 
 class TestDatabaseActions:
     """Tests for the effect of preforming actions on a database."""
+    def test_field_default_values(self, json_db: MessageDatabase):
+        # Arrange
+        log_def = json_db.get_msg_def("LOG")
+        fields = {field.name: field for field in log_def.fields[log_def.latest_message_crc]}
+        # Assert
+        assert fields["trigger"].default_value == 4  # ONCE
+        assert type(fields["trigger"].default_value) is int
+        assert fields["offset"].default_value == 0.0
+        assert type(fields["offset"].default_value) is float
+
     class TestDatabaseLocking:
         """Tests for the database's locking mechanism.
 
