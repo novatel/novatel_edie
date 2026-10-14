@@ -218,6 +218,8 @@ void py_common::init_common_message_database(nb::module_& m)
                 self.dataType.name = value;
                 self.dataType.length = static_cast<uint16_t>(DataTypeSize(value));
             })
+        .def_rw("default_value", &BaseField::defaultValue, nb::arg().none(),
+                "The value used when a command leaves this field out, or None if it has none. For arrays, the value of each element.")
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
         .def_ro("index", &BaseField::index)
         .def("__eq__", [](const BaseField& self, const BaseField& other) { return self == other; })

@@ -192,7 +192,8 @@ class TestDatabaseObjects:
                 "type": FIELD_TYPE.UNKNOWN,
                 "conversion": "",
                 "data_type": DATA_TYPE.UNKNOWN,
-                "bitmask_id": ""
+                "bitmask_id": "",
+                "default_value": None
             }
             def test_construct(self, values: dict):
                 # Act
@@ -210,6 +211,16 @@ class TestDatabaseObjects:
                 # Assert
                 for attr, default in self.defaults.items():
                     assert getattr(field, attr) == values.get(attr, default)
+
+        @pytest.mark.parametrize("value", [4, 4.0, True, None])
+        def test_default_value(self, value):
+            # Arrange
+            field = FieldDefinition()
+            # Act
+            field.default_value = value
+            # Assert
+            assert field.default_value == value
+            assert type(field.default_value) is type(value)
 
         @pytest.mark.parametrize("invalid_conversion", [
             "",
@@ -355,6 +366,16 @@ class TestDatabaseObjects:
 
 
 class TestDatabaseActions:
+    def test_field_default_values(self, json_db: MessageDatabase):
+        # Arrange
+        log_def = json_db.get_msg_def("LOG")
+        fields = {field.name: field for field in log_def.fields[log_def.latest_message_crc]}
+        # Assert
+        assert fields["trigger"].default_value == 4  # ONCE
+        assert type(fields["trigger"].default_value) is int
+        assert fields["offset"].default_value == 0.0
+        assert type(fields["offset"].default_value) is float
+
     """Tests for the effect of preforming actions on a database."""
     class TestDatabaseLocking:
         """Tests for the database's locking mechanism.

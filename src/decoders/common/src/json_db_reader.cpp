@@ -29,14 +29,17 @@
 #include <algorithm>
 #include <cassert>
 #include <future>
+#include <limits>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 #include <simdjson.h>
 
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/common/version_string.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
+#include "novatel_edie/decoders/common/message_decoder.hpp"
 
 namespace novatel::edie {
 
@@ -116,6 +119,7 @@ using AlignFunction = std::function<size_t(const size_t, const uintptr_t, const 
 void ParseEnumDataType(element j_, EnumDataType& f_);
 void ParseSimpleDataType(element j_, SimpleDataType& f_);
 void ParseBaseField(element j_, BaseField& f_);
+void ParseDefaultValue(element j_, BaseField& f_);
 void ParseEnumField(element j_, EnumField& f_);
 void ParseArrayField(element j_, ArrayField& fd_);
 void ParseFieldArrayField(element j_, FieldArrayField& fd_, const AlignFunction& alignFn_);
@@ -163,6 +167,55 @@ void ParseBaseField(element j_, BaseField& f_)
     if (j_["bitmaskID"].get(bitmaskId) == simdjson::SUCCESS && !bitmaskId.is_null()) { f_.bitMaskId = AsString(bitmaskId); }
 
     ParseSimpleDataType(Member(j_, "dataType"), f_.dataType);
+    ParseDefaultValue(j_, f_);
+}
+
+//-----------------------------------------------------------------------
+//! Read a field's default as the type the field decodes to. A default that is null or doesn't fit that
+//! type is left unset, so a command can't leave the field out.
+void ParseDefaultValue(element j_, BaseField& f_)
+{
+    element defaultValue;
+    if (j_["defaultValue"].get(defaultValue) != simdjson::SUCCESS || defaultValue.is_null()) { return; }
+
+    // Fields without a simple data type, such as strings, have no default
+    if (f_.type != FIELD_TYPE::ENUM && f_.dataType.name == DATA_TYPE::UNKNOWN) { return; }
+
+    SimpleTypeVisitor(f_, [&](auto tag_) {
+        using T = decltype(tag_);
+        if constexpr (std::is_same_v<T, bool>)
+        {
+            bool bValue;
+            int64_t llValue;
+            if (defaultValue.get(bValue) == simdjson::SUCCESS) { f_.defaultValue = bValue; }
+            else if (defaultValue.get(llValue) == simdjson::SUCCESS && (llValue == 0 || llValue == 1)) { f_.defaultValue = llValue == 1; }
+        }
+        else if constexpr (std::is_floating_point_v<T>)
+        {
+            double dValue;
+            if (defaultValue.get(dValue) == simdjson::SUCCESS) { f_.defaultValue = static_cast<T>(dValue); }
+        }
+        else if constexpr (std::is_signed_v<T>)
+        {
+            int64_t llValue;
+            if (defaultValue.get(llValue) == simdjson::SUCCESS && llValue >= std::numeric_limits<T>::min() &&
+                llValue <= std::numeric_limits<T>::max())
+            {
+                f_.defaultValue = static_cast<T>(llValue);
+            }
+        }
+        else
+        {
+            uint64_t ullValue;
+            int64_t llValue;
+            if (defaultValue.get(ullValue) != simdjson::SUCCESS)
+            {
+                if (defaultValue.get(llValue) != simdjson::SUCCESS || llValue < 0) { return; }
+                ullValue = static_cast<uint64_t>(llValue);
+            }
+            if (ullValue <= std::numeric_limits<T>::max()) { f_.defaultValue = static_cast<T>(ullValue); }
+        }
+    });
 }
 
 //-----------------------------------------------------------------------
