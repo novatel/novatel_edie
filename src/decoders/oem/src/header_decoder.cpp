@@ -320,10 +320,9 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     const auto* pcTempBuf = reinterpret_cast<const char*>(pucLogBuf_);
-    auto stBinaryHeader = LoadValueFromBuffer<Oem4BinaryHeader>(pucLogBuf_);
 
     HEADER_FORMAT eHeaderFormat = [&] {
-        switch (stBinaryHeader.ucSync1)
+        switch (pucLogBuf_[0])
         {
         case OEM4_ASCII_SYNC: return HEADER_FORMAT::ASCII;
         case OEM4_SHORT_ASCII_SYNC: return HEADER_FORMAT::SHORT_ASCII;
@@ -331,7 +330,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         case NMEA_SYNC: return HEADER_FORMAT::NMEA;
         case '{': return HEADER_FORMAT::JSON;
         case OEM4_BINARY_SYNC1:
-            switch (stBinaryHeader.ucSync3)
+            switch (pucLogBuf_[2])
             {
             case OEM4_BINARY_SYNC3: return HEADER_FORMAT::BINARY;
             case OEM4_SHORT_BINARY_SYNC3: return HEADER_FORMAT::SHORT_BINARY;
@@ -403,7 +402,8 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         }
         break;
 
-    case HEADER_FORMAT::BINARY:
+    case HEADER_FORMAT::BINARY: {
+        auto stBinaryHeader = LoadValueFromBuffer<Oem4BinaryHeader>(pucLogBuf_);
         stInterHeader_.usMessageId = stBinaryHeader.usMsgNumber;
         stInterHeader_.ucMessageType = stBinaryHeader.ucMsgType;
         stInterHeader_.uiPortAddress = stBinaryHeader.ucPort;
@@ -418,7 +418,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         stInterHeader_.uiMessageDefinitionCrc = stBinaryHeader.usMsgDefCrc;
         pcTempBuf += sizeof(Oem4BinaryHeader);
         break;
-
+    }
     case HEADER_FORMAT::SHORT_BINARY: {
         // Reset the IntermediateHeader ucMessageType because can incorrectly set ucSiblingId and bResponse if it isn't
         stInterHeader_.ucMessageType = 0;
