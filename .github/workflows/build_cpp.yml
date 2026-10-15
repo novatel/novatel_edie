@@ -52,18 +52,13 @@ jobs:
         shell: bash
         run: |
           if [ "${{ env.COMPILER }}" == "msvc" ]; then
-            MSYS_NO_PATHCONV=1 cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" "-DCMAKE_CXX_FLAGS=/fsanitize=address /D_DISABLE_STL_ANNOTATION" "-DCMAKE_CXX_FLAGS_DEBUG=/Zi /Ob0 /Od" "-DCMAKE_EXE_LINKER_FLAGS_DEBUG=/DEBUG /INCREMENTAL:NO" -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
+            MSYS_NO_PATHCONV=1 cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" "-DCMAKE_CXX_FLAGS_DEBUG=/fsanitize=address /D_DISABLE_STL_ANNOTATION" "-DCMAKE_CXX_FLAGS_DEBUG=/Zi /Ob0 /Od" "-DCMAKE_EXE_LINKER_FLAGS_DEBUG=/DEBUG /INCREMENTAL:NO" -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang-cl" ]; then
             cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL -DBUILD_BENCHMARKS=ON #TODO: -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS=-fsanitize=address -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS_DEBUG=-fsanitize=address -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "gnu" ]; then
-            if [ "$OPERATING_SYSTEM" == "windows" ]; then
-              # The runner's MinGW GCC package does not include the libasan runtime.
-              cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
-            else
-              cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_FLAGS=-fsanitize=address -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
-            fi
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_FLAGS_DEBUG=-fsanitize=address -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           fi
 
       - name: Build
