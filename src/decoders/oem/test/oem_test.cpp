@@ -4258,7 +4258,7 @@ TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
     ASSERT_EQ(numSuccess, 2);
 }
 
-TEST_F(ParserTest, PARSER_NO_BUFFER_OVERREAD_WITH_MALFORMED_LOG)
+TEST_F(ParserTest, PARSER_NO_BUFFER_OVERREAD_WITH_INCOMPLETE_ABBREV_ASCII_LOG)
 {
     MessageDataStruct messageData;
     IntermediateHeader header;
@@ -4272,9 +4272,9 @@ TEST_F(ParserTest, PARSER_NO_BUFFER_OVERREAD_WITH_MALFORMED_LOG)
     ASSERT_EQ(parser.Read(messageData, metadata), STATUS::UNKNOWN); // Discard fill bytes
     ASSERT_EQ(parser.Flush(), 0);
 
-    std::string badLog = "#RANGEA,COM1,0,49.0,FINESTEERING,2167,159740.000,02000000,5103,16248;1*37b67a6a\r\n";
+    std::string badLog = "<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     1";
     ASSERT_EQ(parser.Write(reinterpret_cast<const unsigned char*>(badLog.data()), badLog.size()), badLog.size());
-    EXPECT_EQ(parser.ReadIntermediate(messageData, header, message, metadata), STATUS::UNKNOWN);
+    EXPECT_EQ(parser.ReadIntermediate(messageData, header, message, metadata, true), STATUS::UNKNOWN);
 }
 
 // -------------------------------------------------------------------------------------------------------
