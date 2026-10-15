@@ -1814,6 +1814,9 @@ class MessageDecoderBase
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
     //
+    //! \remark The message buffer must be NUL-terminated for ASCII, abbreviated
+    //! ASCII, and JSON decoding. Binary STRING fields must also be NUL-terminated.
+    //
     //! \remark Note, that pucMessage_ must not point to the message header,
     //! rather the message payload. This can be done by advancing the pointer
     //! of a message frame by stMetaData.uiHeaderLength.
