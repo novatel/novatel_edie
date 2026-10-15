@@ -38,9 +38,10 @@ using namespace novatel::edie;
 
     // Helper to set metadata and handle unknown bytes
     auto handleUnknown = [&](uint32_t length) -> STATUS {
+        const auto toFlush = std::min(length, uiFrameBufferSize_);
         stMetaData_.eFormat = DECODE_FORMAT::UNKNOWN;
-        stMetaData_.uiLength = length;
-        if (!bMetadataOnly_) { HandleUnknownBytes(pucFrameBuffer_, length); }
+        stMetaData_.uiLength = toFlush;
+        if (!bMetadataOnly_) { HandleUnknownBytes(pucFrameBuffer_, toFlush); }
         return STATUS::UNKNOWN;
     };
 
