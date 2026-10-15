@@ -58,7 +58,12 @@ jobs:
           elif [ "${{ env.COMPILER }}" == "clang" ]; then
             cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS_DEBUG=-fsanitize=address -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "gnu" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_FLAGS_DEBUG=-fsanitize=address -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
+            if [ "$OPERATING_SYSTEM" == "windows" ]; then
+              # The runner's MinGW GCC package does not include the libasan runtime.
+              cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
+            else
+              cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_FLAGS_DEBUG=-fsanitize=address -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
+            fi
           fi
 
       - name: Build
