@@ -118,6 +118,9 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
             }
         }
 
+        // Ensure the message frame is nul-terminated
+        pucMyFrameBufferPointer[stMetaData_.uiLength] = '\0';
+
         stMessageData_.pucMessage = pucMyFrameBufferPointer;
         stMessageData_.uiMessageLength = stMetaData_.uiLength;
         if (eStatus == STATUS::UNKNOWN)
