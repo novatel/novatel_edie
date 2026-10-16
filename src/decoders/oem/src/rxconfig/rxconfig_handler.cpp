@@ -467,6 +467,9 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
+    // Null-terminate the frame buffer to accommodate string operations.
+    pcMyFrameBuffer[stRxConfigMetaData_.uiLength] = '\0';
+
     // Decode the RXCONFIG log.
     eStatus = clMyHeaderDecoder.Decode(pcMyFrameBuffer.get(), stRxConfigHeader, stRxConfigMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
