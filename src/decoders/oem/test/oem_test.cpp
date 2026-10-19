@@ -3576,6 +3576,40 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_ASCII_LOG_DEFAULT_TRAILING)
     ASSERT_EQ(0, memcmp(acEncodeBuffer, aucExpectedCommand, sizeof(aucExpectedCommand)));
 }
 
+TEST_F(CommandEncodeTest, COMMAND_ENCODE_LOG_METADATA)
+{
+    char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    uint32_t uiEncodeBufferSize = sizeof(acEncodeBuffer);
+    CommandMetadata stMetadata;
+
+    ASSERT_EQ(
+        STATUS::SUCCESS,
+        pclMyDatabaseDefaultsCommander->Encode(
+            "LOG COM1_2 BESTXYZA ONCE", static_cast<uint32_t>(sizeof("LOG COM1_2 BESTXYZA ONCE") - 1), acEncodeBuffer, uiEncodeBufferSize, ENCODE_FORMAT::ASCII,
+            stMetadata));
+    ASSERT_EQ(1, stMetadata.commandId);
+    ASSERT_EQ(241, stMetadata.payloadId);
+    ASSERT_TRUE(stMetadata.payloadPort.has_value());
+    ASSERT_EQ(34, stMetadata.payloadPort.value());
+
+    uiEncodeBufferSize = sizeof(acEncodeBuffer);
+    ASSERT_EQ(
+        STATUS::SUCCESS,
+        pclMyDatabaseDefaultsCommander->Encode(
+            "LOG THISPORT BESTXYZA ONCE", static_cast<uint32_t>(sizeof("LOG THISPORT BESTXYZA ONCE") - 1), acEncodeBuffer, uiEncodeBufferSize, ENCODE_FORMAT::ASCII,
+            stMetadata));
+    ASSERT_EQ(1, stMetadata.commandId);
+    ASSERT_EQ(241, stMetadata.payloadId);
+    ASSERT_FALSE(stMetadata.payloadPort.has_value());
+
+    ASSERT_EQ(
+        STATUS::NULL_PROVIDED,
+        pclMyDatabaseDefaultsCommander->Encode(nullptr, 0, acEncodeBuffer, uiEncodeBufferSize, ENCODE_FORMAT::ASCII, stMetadata));
+    ASSERT_EQ(0, stMetadata.commandId);
+    ASSERT_EQ(0, stMetadata.payloadId);
+    ASSERT_FALSE(stMetadata.payloadPort.has_value());
+}
+
 TEST_F(CommandEncodeTest, COMMAND_ENCODE_ASCII_UNLOGALL_NO_PARAMETERS)
 {
     char aucExpectedCommand[] = "#UNLOGALLA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,3629,0;ALL_PORTS,FALSE*95b8f454\r\n";

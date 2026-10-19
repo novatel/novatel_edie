@@ -253,12 +253,51 @@ STATUS PrepareAbbrevAsciiParams(const FieldInfo& clFieldInfo_, std::string& strP
 }
 
 // -------------------------------------------------------------------------------------------------------
+// Check if a value is the named enumerator of an enum in the database.
+bool IsEnumerator(const MessageDatabase& clMessageDb_, const char* pcEnumName_, const char* pcEnumerator_, const uint32_t uiValue_)
+{
+    const EnumDefinition::ConstPtr pclEnumDef = clMessageDb_.GetEnumDefName(pcEnumName_);
+    if (pclEnumDef == nullptr) { return false; }
+
+    const auto itEnumerator = pclEnumDef->nameValue.find(pcEnumerator_);
+    return itEnumerator != pclEnumDef->nameValue.end() && itEnumerator->second == uiValue_;
+}
+
+// -------------------------------------------------------------------------------------------------------
+// Populate metadata for a command and the payload produced by a LOG ... ONCE command.
+void PopulateCommandMetadata(const MessageDatabase& clMessageDb_, const MessageDefinition& clMessageDef_, const CompositeField& clMessage_,
+                             CommandMetadata& stMetadata_)
+{
+    stMetadata_ = {};
+    stMetadata_.commandId = static_cast<uint16_t>(clMessageDef_.logID);
+    if (clMessageDef_.name != "LOG") { return; }
+
+    // Only ONCE gives a single log that follows the response. The other triggers (ONCHANGED, ONTIME, ...)
+    // start a stream of logs that go on after the command is answered, so there is no payload to wait for.
+    const auto uiTrigger = static_cast<uint32_t>(clMessage_.GetFieldValueByName<int32_t>("trigger"));
+    if (!IsEnumerator(clMessageDb_, "LogTrigger", "ONCE", uiTrigger)) { return; }
+
+    [[maybe_unused]] uint32_t uiSiblingId = 0;
+    [[maybe_unused]] uint32_t uiMessageFormat = 0;
+    [[maybe_unused]] uint32_t uiResponse = 0;
+    UnpackMsgId(clMessage_.GetFieldValueByName<uint32_t>("message_id"), stMetadata_.payloadId, uiSiblingId, uiMessageFormat, uiResponse);
+
+    // A payload on THISPORT comes back on whichever port the command was sent on, so it has no fixed port
+    const auto uiPort = static_cast<uint32_t>(clMessage_.GetFieldValueByName<int32_t>("log_port_address"));
+    if (!IsEnumerator(clMessageDb_, "PortAddress", "THISPORT", uiPort)) { stMetadata_.payloadPort = uiPort; }
+}
+
+// -------------------------------------------------------------------------------------------------------
 // Encode a prepared abbreviated ASCII command using the supplied EDIE components.
 STATUS EncodeCommand(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
                      const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
-                     uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_, const DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_)
+                     uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_, CommandMetadata& stMetadata_,
+                     const DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_)
 {
     constexpr uint32_t thisPort = 0xC0;
+
+    stMetadata_ = {};
+    CommandMetadata stCommandMetadata;
 
     if ((pcAbbrevAsciiCommand_ == nullptr) || (pcEncodeBuffer_ == nullptr)) { return STATUS::NULL_PROVIDED; }
 
@@ -297,6 +336,8 @@ STATUS EncodeCommand(const MessageDatabase& clJsonDb_, const MessageDecoder& clM
     const STATUS eDecoderStatus = clMessageDecoder_.Decode(pucCmdParams, stIntermediateMessage, stMetaData);
     if (eDecoderStatus != STATUS::SUCCESS) { return eDecoderStatus; }
 
+    PopulateCommandMetadata(clJsonDb_, *pclMessageDef, stIntermediateMessage, stCommandMetadata);
+
     // Prime the intermediate header with information we already know
     stIntermediateHeader.uiPortAddress = thisPort;
     stIntermediateHeader.usMessageId = stMetaData.usMessageId;
@@ -307,6 +348,8 @@ STATUS EncodeCommand(const MessageDatabase& clJsonDb_, const MessageDecoder& clM
         clEncoder_.Encode(&pucEncodeBuffer, uiEncodeBufferSize_, stIntermediateHeader, stIntermediateMessage, stMessageData, eEncodeFormat_);
 
     if (eEncoderStatus != STATUS::SUCCESS) { return eEncoderStatus; }
+
+    stMetadata_ = stCommandMetadata;
 
     // Null-terminate the command, if possible. Otherwise, the command will be the size of the buffer.
     if (stMessageData.uiMessageLength < uiEncodeBufferSize_) { stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0'; }
@@ -348,12 +391,22 @@ void Commander::InitEnumDefinitions()
 STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
                          uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_)
 {
+    CommandMetadata stMetadata;
+    return Encode(pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_, pcEncodeBuffer_, uiEncodeBufferSize_, eEncodeFormat_, stMetadata);
+}
+
+// -------------------------------------------------------------------------------------------------------
+STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                         uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_, CommandMetadata& stMetadata)
+{
+    stMetadata = {};
+
     if ((pcAbbrevAsciiCommand_ == nullptr) || (pcEncodeBuffer_ == nullptr)) { return STATUS::NULL_PROVIDED; }
     if (eEncodeFormat_ != ENCODE_FORMAT::ASCII && eEncodeFormat_ != ENCODE_FORMAT::BINARY) { return STATUS::UNSUPPORTED; }
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     return EncodeCommand(*pclMyMsgDb, clMyMessageDecoder, clMyEncoder, pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_, pcEncodeBuffer_,
-                         uiEncodeBufferSize_, eEncodeFormat_, eMyDefaultParameterPolicy);
+                         uiEncodeBufferSize_, eEncodeFormat_, stMetadata, eMyDefaultParameterPolicy);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -361,8 +414,18 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
                          const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
                          uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_)
 {
+    CommandMetadata stMetadata;
     return Encode(clJsonDb_, clMessageDecoder_, clEncoder_, pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_, pcEncodeBuffer_, uiEncodeBufferSize_,
-                  eEncodeFormat_, DEFAULT_PARAMETER_POLICY::STRICT);
+                  eEncodeFormat_, stMetadata);
+}
+
+// -------------------------------------------------------------------------------------------------------
+STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
+                         const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                         uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_, CommandMetadata& stMetadata)
+{
+    return Encode(clJsonDb_, clMessageDecoder_, clEncoder_, pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_, pcEncodeBuffer_, uiEncodeBufferSize_,
+                  eEncodeFormat_, stMetadata, DEFAULT_PARAMETER_POLICY::REQUIRE_ALL_PARAMETERS);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -370,6 +433,17 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
                          const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
                          uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_, const DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_)
 {
+    CommandMetadata stMetadata;
+    return Encode(clJsonDb_, clMessageDecoder_, clEncoder_, pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_, pcEncodeBuffer_, uiEncodeBufferSize_,
+                  eEncodeFormat_, stMetadata, eDefaultParameterPolicy_);
+}
+
+// -------------------------------------------------------------------------------------------------------
+STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
+                         const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                         uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_, CommandMetadata& stMetadata_,
+                         const DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_)
+{
     return EncodeCommand(clJsonDb_, clMessageDecoder_, clEncoder_, pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_, pcEncodeBuffer_,
-                         uiEncodeBufferSize_, eEncodeFormat_, eDefaultParameterPolicy_);
+                         uiEncodeBufferSize_, eEncodeFormat_, stMetadata_, eDefaultParameterPolicy_);
 }

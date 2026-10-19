@@ -27,6 +27,8 @@
 #ifndef NOVATEL_COMMANDER_HPP
 #define NOVATEL_COMMANDER_HPP
 
+#include <optional>
+
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
@@ -34,6 +36,30 @@
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 
 namespace novatel::edie::oem {
+
+//============================================================================
+//! \struct CommandMetadata
+//! \brief Metadata describing the response and optional payload of a command.
+//
+//! A command is answered by the receiver with a response whose header carries the command's message
+//! ID. This is the case for both ASCII and Binary commands. A "LOG ... ONCE" command is also followed
+//! by the requested log, which is the payload. The payload is output in the format given by the log's
+//! name, such as BESTXYZA or BESTXYZB, regardless of the format the command was sent in. It is
+//! identified by its message ID and the port it is output on, because the same log may also be
+//! output on other ports in the background.
+//
+//! - commandId: The message ID of the command, which is echoed in the header of its response.
+//! - payloadId: For "LOG ... ONCE", the message ID of the requested log. 0 if no log follows the
+//! response.
+//! - payloadPort: The port the requested log is output on. Only meaningful when payloadId is not 0.
+//! Empty if the log is requested on THISPORT, which is the port the command was sent on.
+//============================================================================
+struct CommandMetadata
+{
+    uint16_t commandId{0};
+    uint16_t payloadId{0};
+    std::optional<uint32_t> payloadPort;
+};
 
 //============================================================================
 //! \enum DEFAULT_PARAMETER_POLICY
@@ -150,6 +176,10 @@ class Commander
     [[nodiscard]] STATUS Encode(const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
                                 uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_);
 
+    //! \brief Encode a command and return metadata describing its expected response.
+    [[nodiscard]] STATUS Encode(const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                                uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_, CommandMetadata& stMetadata_);
+
     //----------------------------------------------------------------------------
     //! \brief A static method to encode an abbreviated ASCII command to a full
     //! ASCII or BINARY command.
@@ -191,6 +221,17 @@ class Commander
     [[nodiscard]] static STATUS Encode(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
                                        const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
                                        uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_,
+                                       DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_);
+
+    //! \brief Encode a command and return metadata describing its expected response.
+    [[nodiscard]] static STATUS Encode(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
+                                       const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                                       uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_, CommandMetadata& stMetadata_);
+
+    //! \brief Encode a command, return metadata, and use an explicit omitted-parameter policy.
+    [[nodiscard]] static STATUS Encode(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
+                                       const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                                       uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_, CommandMetadata& stMetadata_,
                                        DEFAULT_PARAMETER_POLICY eDefaultParameterPolicy_);
 };
 
