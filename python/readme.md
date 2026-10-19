@@ -234,6 +234,27 @@ Commands are messages, so they are built and encoded exactly like any other mess
 Look to [message_construction.py](./examples/message_construction.py) for a demonstration
 of constructing a command from scratch in Python and encoding it for a receiver.
 
+A command can also be decoded from abbreviated ASCII with a `CommandDecoder`. Parameters left out of the command are
+filled in from the database, as the receiver does. The decoded command is a `Message` like any other, so its fields
+tell you which replies to look for:
+
+```python
+command_decoder = oem.CommandDecoder()
+command = command_decoder.decode(b"LOG COM1 BESTPOSA")
+command_id = command.header.message_id
+payload_id = command.message_id & 0xFFFF
+payload_port = command.log_port_address
+serial_port.write(command.to_ascii().message)
+
+parser = oem.Parser()
+parser.write(serial_port.read())
+for msg in parser:
+    if isinstance(msg, oem.Response) and msg.header.message_id == command_id:
+        print(f"Response to the command: {msg.response_string}")
+    elif isinstance(msg, oem.Message) and msg.header.message_id == payload_id and msg.header.port_address == payload_port:
+        print(f"The requested log: {msg}")
+```
+
 ## Data Types
 
 There are six main data types which `novatel_edie` makes use of:
@@ -540,7 +561,7 @@ raises an exception. Whether a database is locked can be checked via its `is_loc
 A database becomes locked when any of the following happen:
 
 - **Explicit lock**: calling `db.lock()`.
-- **Used by a consumer**: constructing a `Parser`, `FileParser`, `Decoder`, `Commander`, `RxConfigHandler`, or `RangeDecompressor` with the database locks it.
+- **Used by a consumer**: constructing a `Parser`, `FileParser`, `Decoder`, `Commander`, `CommandDecoder`, `RxConfigHandler`, or `RangeDecompressor` with the database locks it.
 - **Generating a type**: requesting a generated message or enum type via `get_msg_type`, `get_enum_type_by_name`, or `get_enum_type_by_id`.
 - **Merging into another database**: `other_db.merge(db)` locks the source database `db`.
 - **Forking**: `db.fork()` locks the source database (the returned copy is unlocked). (`db.clone()` is a deprecated alias for `fork()`.)

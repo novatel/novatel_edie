@@ -6,7 +6,7 @@ from .oem_bindings import (
     OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3,
     Header, MessageType, RecieverStatus, RECEIVER_STATUS_VERSION, UnknownMessage, Message, Response, GpsTime,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData,
-    Framer, Filter, Decoder, Commander, Parser, FileParser,
+    Framer, Filter, Decoder, Commander, CommandDecoder, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
     get_builtin_database
 )
