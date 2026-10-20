@@ -177,7 +177,7 @@ class NovatelEdieConan(ConanFile):
         # libraries packaged above, so their license text has to travel with them.
         copy(self, "*", os.path.join(self.build_folder, "third_party_licenses"),
              os.path.join(self.package_folder, "licenses", "third_party"))
-        rmdir(self, os.path.join(self.source_folder, "lib", "cmake"))
+        rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
 
     def package_info(self):
         """Provides information to consumers."""
@@ -190,5 +190,9 @@ class NovatelEdieConan(ConanFile):
             "edie_decoders_common",
             "edie_common",
         ]
-        db_path = os.path.join(self.package_folder, "res", "novatel_edie", "database.json")
-        self.runenv_info.define_path("EDIE_DATABASE_FILE", db_path)
+        data_dir = Path(self.package_folder, "res")
+        db_path = data_dir / "novatel_edie" / "database.json"
+        self.runenv_info.define_path("EDIE_DATABASE_FILE", str(db_path))
+        self.cpp_info.set_property("cmake_extra_variables", {
+            "NOVATEL_EDIE_DATA_DIR": data_dir.as_posix(),
+        })
