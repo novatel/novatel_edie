@@ -417,11 +417,12 @@ template <typename Derived> class EncoderBase
                             if (count > 0)
                             {
                                 bool encoded = false;
-                                const auto encodeRecord = [&](const CompositeField& record, std::byte* buffer, size_t capacity) -> std::optional<size_t> {
+                                const auto encodeRecord = [&](const CompositeField& record, std::byte* buffer,
+                                                              size_t capacity) -> std::optional<size_t> {
                                     auto* output = reinterpret_cast<unsigned char*>(buffer);
                                     auto bytesLeft = static_cast<uint32_t>(capacity);
-                                    encoded = EncodeBinaryBody<Flatten>(record, fieldArrayFieldDef->fieldInfo->messageOrderedFields, &output,
-                                                                        bytesLeft);
+                                    encoded =
+                                        EncodeBinaryBody<Flatten>(record, fieldArrayFieldDef->fieldInfo->messageOrderedFields, &output, bytesLeft);
                                     if (!encoded) { return std::nullopt; }
                                     return capacity - bytesLeft;
                                 };

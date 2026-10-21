@@ -44,8 +44,8 @@
 
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/common/composite_field.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 
 namespace novatel::edie {
 
