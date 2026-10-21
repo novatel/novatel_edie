@@ -34,8 +34,8 @@
 #include <optional>
 
 #include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/decoders/common/composite_field.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
-#include "novatel_edie/decoders/common/message_decoder.hpp"
 
 namespace novatel::edie {
 
@@ -412,18 +412,24 @@ template <typename Derived> class EncoderBase
 
                         const unsigned char* startPos = *ppucOutBuf_;
 
-                        // FIELD_ARRAY not stored contiguously: encode record by record
                         if constexpr (std::is_same_v<ValueType, FieldArray>)
                         {
-                            if (fieldVector.ContiguousData() == nullptr)
+                            if (count > 0)
                             {
-                                const auto encodeRecord = [&](const CompositeField& record) {
-                                    return EncodeBinaryBody<Flatten>(record, fieldArrayFieldDef->fieldInfo->messageOrderedFields, ppucOutBuf_,
-                                                                     uiBytesLeft_);
+                                bool encoded = false;
+                                const auto encodeRecord = [&](const CompositeField& record, std::byte* buffer, size_t capacity) -> std::optional<size_t> {
+                                    auto* output = reinterpret_cast<unsigned char*>(buffer);
+                                    auto bytesLeft = static_cast<uint32_t>(capacity);
+                                    encoded = EncodeBinaryBody<Flatten>(record, fieldArrayFieldDef->fieldInfo->messageOrderedFields, &output,
+                                                                        bytesLeft);
+                                    if (!encoded) { return std::nullopt; }
+                                    return capacity - bytesLeft;
                                 };
-                                if (!fieldVector.ForEachRecord(encodeRecord)) { return false; }
+                                if (!stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_, encodeRecord) && !encoded)
+                                {
+                                    return false;
+                                }
                             }
-                            else if (count > 0 && !stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_)) { return false; }
                         }
                         // VARIABLE_LENGTH_ARRAY and STRING
                         else if (count > 0 && !stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_)) { return false; }

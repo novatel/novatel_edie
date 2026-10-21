@@ -341,7 +341,7 @@ PYCOMMON_EXPORT void PyFieldArray::setitem(ssize_t signedIndex, nb::object value
     CompositeField* source = fieldVal->GetCompositeField();
     if (source == nullptr) { throw nb::type_error("Field does not have accessible CompositeField storage."); }
 
-    CompositeField previous = dataPtr->ReplaceRecord(index, *source);
+    CompositeField previous = (*dataPtr)[index].ReplaceRecord(*source);
     // Let the old element wrapper (if still alive) take ownership of its prior data.
     if (PyField* existingFieldVal = cached_element(index)) { existingFieldVal->take_ownership(std::move(previous)); }
     cache[index].reset();
@@ -393,7 +393,7 @@ template <bool Fixed, typename T> void PyField::set_field_value(size_t ind_, T* 
         else
         {
             auto parentFieldArray = nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage));
-            parentFieldArray->dataPtr->SetFixedFieldValue(myFieldIndex, ind_, val_, n_);
+            (*parentFieldArray->dataPtr)[myFieldIndex].SetFieldValue<Fixed>(ind_, val_, n_);
         }
     }
     else { throw std::runtime_error("set_field_value(): unsupported storage type for field access"); }

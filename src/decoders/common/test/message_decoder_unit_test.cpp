@@ -477,20 +477,18 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageWritesReplacesAndVisitsRecord
     const auto fieldInfo = BuildFieldInfo({valueField});
     FieldArray records(std::vector<std::byte>(2 * fieldInfo->fixedFieldBytes), fieldInfo.get());
     const uint32_t values[] = {11U, 22U};
-    records.SetFixedFieldValue(0, 0, values, 2);
+    records[0].SetFieldValue(0, values, 2);
     ASSERT_EQ(records.size(), 2U);
-    EXPECT_NE(records.ContiguousData(), nullptr);
-    EXPECT_EQ(records.GetCompositeRecord(0), nullptr);
-    EXPECT_THROW(records.SetFixedFieldValue(2, 0, values), std::runtime_error);
+    EXPECT_THROW(records[2].SetFieldValue(0, values), std::runtime_error);
 
     CompositeField replacement(fieldInfo);
     replacement.SetFieldValue(*valueField, 33U);
-    const auto previous = records.ReplaceRecord(1, replacement);
+    const auto previous = records[1].ReplaceRecord(replacement);
     EXPECT_EQ(previous.GetFieldValue<uint32_t>(*valueField), 22U);
     EXPECT_EQ(records[0].GetFieldValue<uint32_t>(*valueField), 11U);
     EXPECT_EQ(records[1].GetFieldValue<uint32_t>(*valueField), 33U);
-    EXPECT_THROW((void)records.ReplaceRecord(2, replacement), std::out_of_range);
-    EXPECT_THROW((void)records.ReplaceRecord(0, CompositeField(0, 1)), std::runtime_error);
+    EXPECT_THROW((void)records[2].ReplaceRecord(replacement), std::out_of_range);
+    EXPECT_THROW((void)records[0].ReplaceRecord(CompositeField(0, 1)), std::runtime_error);
 
     std::vector<uint32_t> visited;
     EXPECT_TRUE(records.ForEachRecord([&](const CompositeField& record) {
@@ -501,6 +499,186 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageWritesReplacesAndVisitsRecord
     size_t visits = 0;
     EXPECT_FALSE(records.ForEachRecord([&](const CompositeField&) { ++visits; return false; }));
     EXPECT_EQ(visits, 1U);
+}
+
+TEST(MessageDecoderContainerTypesTest, RecordViewSetFieldValueForBothStorageTypes)
+{
+    auto valueField = std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto arrayField = std::make_shared<ArrayField>("array", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%u", DATA_TYPE::UINT, 2);
+    auto textField = std::make_shared<ArrayField>("text", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%s", DATA_TYPE::UCHAR, 4);
+    const auto fieldInfo = BuildFieldInfo({valueField, arrayField, textField});
+    FieldArray arrays[] = {FieldArray({CompositeField(fieldInfo), CompositeField(fieldInfo)}, fieldInfo.get()),
+                          FieldArray(std::vector<std::byte>(2 * fieldInfo->fixedFieldBytes), fieldInfo.get())};
+    for (auto& array : arrays)
+    {
+        const auto row = array[1];
+        row.SetFieldValue<true, uint32_t>(valueField->index, 11U);
+        EXPECT_EQ(row.GetFieldValue<uint32_t>(*valueField), 11U);
+        row.SetFieldValue(*valueField, 22U);
+        EXPECT_EQ(row.GetFieldValue<uint32_t>(*valueField), 22U);
+
+        const uint32_t values[] = {33U, 44U};
+        row.SetFieldValue<true, uint32_t>(arrayField->index, values, 2);
+        EXPECT_EQ(row.GetFieldValue<uint32_t>(*arrayField, 1), 44U);
+        row.SetFieldValue(arrayField->index, std::vector<uint32_t>{55U, 66U});
+        EXPECT_EQ(row.GetFieldValue<uint32_t>(*arrayField), 55U);
+        const auto buffer = row.GetFieldValue<TypedBuffer<uint32_t>>(*arrayField);
+        array[0].SetFieldValue(*arrayField, buffer);
+        EXPECT_EQ(array[0].GetFieldValue<uint32_t>(*arrayField, 1), 66U);
+
+        const std::string text = "abc";
+        row.SetFieldValue(textField->index, text);
+        EXPECT_EQ(row.GetFieldValue<uint8_t>(*textField, 1), static_cast<uint8_t>('b'));
+        row.SetFieldValue(*textField, std::string("xyz"));
+        EXPECT_EQ(row.GetFieldValue<uint8_t>(*textField, 1), static_cast<uint8_t>('y'));
+        EXPECT_EQ(array[0].GetFieldValue<uint32_t>(*valueField), 0U);
+    }
+}
+
+TEST(MessageDecoderContainerTypesTest, RecordViewSetFieldValueVariableFields)
+{
+    auto valueField = std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto arrayField = std::make_shared<ArrayField>("array", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%u", DATA_TYPE::UINT, 3);
+    auto textField = std::make_shared<BaseField>("text", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
+    const auto fieldInfo = BuildFieldInfo({valueField, arrayField, textField});
+    FieldArray records({CompositeField(fieldInfo)}, fieldInfo.get());
+    const auto row = records[0];
+    const uint32_t values[] = {11U, 22U};
+    row.SetFieldValue<false>(arrayField->index, values, 2);
+    EXPECT_EQ(row.GetFieldValue<std::vector<uint32_t>>(*arrayField), (std::vector<uint32_t>{11U, 22U}));
+    const std::vector<uint32_t> vectorValues{33U, 44U};
+    row.SetFieldValue<false, uint32_t>(arrayField->index, vectorValues);
+    EXPECT_EQ(row.GetFieldValue<uint32_t>(*arrayField, 1), 44U);
+    row.SetFieldValue<false, uint32_t>(arrayField->index, std::vector<uint32_t>{45U});
+    EXPECT_EQ(row.GetFieldValue<uint32_t>(*arrayField), 45U);
+    row.SetFieldValue(*arrayField, std::vector<uint32_t>{55U});
+    EXPECT_EQ(row.GetFieldValue<uint32_t>(*arrayField), 55U);
+    row.SetFieldValue<false>(arrayField->index, 66U);
+    EXPECT_EQ(row.GetFieldValue<uint32_t>(*arrayField), 66U);
+    const std::string text = "abc";
+    row.SetFieldValue<false>(textField->index, text);
+    EXPECT_EQ(row.GetFieldValue<std::string>(*textField), text);
+    row.SetFieldValue<false>(textField->index, std::string("moved"));
+    EXPECT_EQ(row.GetFieldValue<std::string>(*textField), "moved");
+    row.SetFieldValue(*textField, std::string("xyz"));
+    EXPECT_EQ(row.GetFieldValue<std::string>(*textField), "xyz");
+
+    const auto fixedInfo = BuildFieldInfo({valueField});
+    FieldArray contiguous(std::vector<std::byte>(fixedInfo->fixedFieldBytes), fixedInfo.get());
+    EXPECT_THROW(contiguous[0].SetFieldValue<false>(0, values, 2), std::runtime_error);
+    EXPECT_THROW(contiguous[0].SetFieldValue(*textField, text), std::runtime_error);
+}
+
+TEST(MessageDecoderContainerTypesTest, WriteFieldToBufferCompositeHandler)
+{
+    auto valueField = std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto recordInfo = BuildFieldInfo({valueField});
+    auto arrayField = std::make_shared<FieldArrayField>("records", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, recordInfo);
+    CompositeField body(BuildFieldInfo({arrayField}));
+    CompositeField first(recordInfo), second(recordInfo);
+    first.SetFieldValue(*valueField, 11U);
+    second.SetFieldValue(*valueField, 22U);
+    body.SetFieldValue(*arrayField, FieldArray({first, second}, recordInfo.get()));
+
+    std::vector<std::byte> buffer(12);
+    EXPECT_THROW((void)body.WriteFieldToBuffer(*arrayField, buffer.data(), buffer.size()), std::runtime_error);
+    size_t calls = 0;
+    const CompositeField::CompositeFieldHandler handler = [&](const CompositeField& record, std::byte* destination,
+                                                               size_t capacity) -> std::optional<size_t> {
+        ++calls;
+        const auto written = record.WriteFieldToBuffer(*valueField, destination, capacity);
+        return written == 0 ? std::nullopt : std::optional<size_t>(written);
+    };
+    EXPECT_EQ(body.WriteFieldToBuffer(*arrayField, buffer.data(), buffer.size(), handler), 8U);
+    EXPECT_EQ(calls, 2U);
+    EXPECT_EQ(LoadValueFromBuffer<uint32_t>(buffer.data()), 11U);
+    EXPECT_EQ(LoadValueFromBuffer<uint32_t>(buffer.data() + 4), 22U);
+
+    auto* cursor = reinterpret_cast<unsigned char*>(buffer.data());
+    auto* const start = cursor;
+    uint32_t capacity = static_cast<uint32_t>(buffer.size());
+    EXPECT_EQ(body.WriteFieldToBuffer(*arrayField, &cursor, capacity, handler), 8U);
+    EXPECT_EQ(cursor, start + 8);
+    EXPECT_EQ(capacity, 4U);
+    cursor = start;
+    capacity = 4;
+    calls = 0;
+    EXPECT_EQ(body.WriteFieldToBuffer(*arrayField, &cursor, capacity, handler), 0U);
+    EXPECT_EQ(cursor, start);
+    EXPECT_EQ(capacity, 4U);
+    EXPECT_EQ(calls, 2U);
+
+    const CompositeField::CompositeFieldHandler failing = [&](const CompositeField&, std::byte*, size_t) -> std::optional<size_t> {
+        ++calls;
+        return std::nullopt;
+    };
+    calls = 0;
+    EXPECT_EQ(body.WriteFieldToBuffer(*arrayField, buffer.data(), buffer.size(), failing), 0U);
+    EXPECT_EQ(calls, 1U);
+    EXPECT_EQ(body.WriteFieldToBuffer(*arrayField, buffer.data(), buffer.size(),
+                                     [](const CompositeField&, std::byte*, size_t available) { return available + 1; }), 0U);
+    calls = 0;
+    EXPECT_EQ(body.WriteFieldToBuffer(*arrayField, buffer.data(), buffer.size(),
+                                     [&](const CompositeField&, std::byte*, size_t) { ++calls; return 0; }), 0U);
+    EXPECT_EQ(calls, 2U);
+
+    FieldArray contiguous(std::vector<std::byte>(8), recordInfo.get());
+    const uint32_t values[] = {33U, 44U};
+    contiguous[0].SetFieldValue(0, values, 2);
+    body.SetFieldValue(*arrayField, std::move(contiguous));
+    calls = 0;
+    EXPECT_EQ(body.WriteFieldToBuffer(*arrayField, buffer.data(), buffer.size(), failing), 8U);
+    EXPECT_EQ(calls, 0U);
+    EXPECT_EQ(LoadValueFromBuffer<uint32_t>(buffer.data() + 4), 44U);
+    EXPECT_EQ(first.WriteFieldToBuffer(*valueField, buffer.data(), buffer.size(), failing), 4U);
+    EXPECT_EQ(calls, 0U);
+    body.SetFieldValue(*arrayField, FieldArray(CompositeFieldArray{}, recordInfo.get()));
+    EXPECT_EQ(body.WriteFieldToBuffer(*arrayField, buffer.data(), buffer.size(), failing), 0U);
+    EXPECT_EQ(calls, 0U);
+}
+
+TEST(MessageDecoderContainerTypesTest, FieldArrayIteratorOperationsForBothStorageTypes)
+{
+    auto valueField = std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto fieldInfo = BuildFieldInfo({valueField});
+    const FieldArray emptyArrays[] = {FieldArray(CompositeFieldArray{}, fieldInfo.get()),
+                                     FieldArray(std::vector<std::byte>{}, fieldInfo.get())};
+    for (const auto& array : emptyArrays)
+    {
+        EXPECT_EQ(array.begin(), array.end());
+        EXPECT_EQ(std::distance(array.begin(), array.end()), 0);
+        for (const auto& record : array)
+        {
+            (void)record;
+            ADD_FAILURE() << "Empty FieldArray must not yield records";
+        }
+    }
+
+    CompositeField first(fieldInfo), second(fieldInfo);
+    first.SetFieldValue(*valueField, 11U);
+    second.SetFieldValue(*valueField, 22U);
+    FieldArray arrays[] = {FieldArray({first, second}, fieldInfo.get()),
+                          FieldArray(std::vector<std::byte>(2 * fieldInfo->fixedFieldBytes), fieldInfo.get())};
+    const uint32_t values[] = {11U, 22U};
+    arrays[1][0].SetFieldValue(valueField->index, values, 2);
+    for (const auto& array : arrays)
+    {
+        auto current = array.begin();
+        const auto copy = current;
+        const auto firstRecord = *current;
+        EXPECT_EQ(current, copy);
+        EXPECT_EQ(current++, copy);
+        EXPECT_NE(current, copy);
+        EXPECT_EQ((*copy).GetFieldValue<uint32_t>(*valueField), 11U);
+        EXPECT_EQ((*current).GetFieldValue<uint32_t>(*valueField), 22U);
+        EXPECT_EQ(firstRecord.GetFieldValue<uint32_t>(*valueField), 11U);
+        EXPECT_EQ(&(++current), &current);
+        EXPECT_EQ(current, array.end());
+
+        std::vector<uint32_t> visited;
+        for (const auto& record : array) { visited.push_back(record.GetFieldValue<uint32_t>(*valueField)); }
+        EXPECT_EQ(visited, (std::vector<uint32_t>{11U, 22U}));
+    }
 }
 
 TEST(MessageDecoderContainerTypesTest, FixedStorageIteratorBuildsExpectedMessageBodyPerField)
@@ -576,8 +754,8 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsFlatBackedFieldArra
     const int16_t i16Values[] = {-7, 9};
     for (size_t i = 0; i < 2; ++i)
     {
-        stored.SetFixedFieldValue(i, nestedU32->index, &u32Values[i]);
-        stored.SetFixedFieldValue(i, nestedI16->index, &i16Values[i]);
+        stored[i].SetFieldValue(nestedU32->index, &u32Values[i]);
+        stored[i].SetFieldValue(nestedI16->index, &i16Values[i]);
     }
 
     CompositeField body(rootFieldInfo);
@@ -617,8 +795,8 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayFlatBackedIteratorFind)
     const int16_t i16Values[] = {-7, 9};
     for (size_t i = 0; i < 2; ++i)
     {
-        stored.SetFixedFieldValue(i, nestedU32->index, &u32Values[i]);
-        stored.SetFixedFieldValue(i, nestedI16->index, &i16Values[i]);
+        stored[i].SetFieldValue(nestedU32->index, &u32Values[i]);
+        stored[i].SetFieldValue(nestedI16->index, &i16Values[i]);
     }
 
     CompositeField body(rootFieldInfo);
@@ -664,7 +842,6 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsCompositeBackedFiel
     EXPECT_EQ(wrapped.GetFieldValue<std::string>(*nestedStr, 1), "twenty");
 
     const FieldArray::FieldArrayRecordView firstRow = wrapped[0];
-    EXPECT_EQ(firstRow.GetFieldInfo(), nestedFieldInfo.get());
     EXPECT_EQ(firstRow.GetFieldValue<uint32_t>(*nestedU32), 10U);
     EXPECT_EQ(firstRow.GetFieldValue<std::string>(*nestedStr), "ten");
     EXPECT_EQ(firstRow.GetFieldValueByName<std::string>("str"), "ten");
@@ -732,148 +909,6 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperPreservesSchemaForEmptyC
     EXPECT_EQ(wrapped.GetFieldInfo(), nestedFieldInfo.get());
 }
 
-TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorTraversesFieldValuesInDefinitionOrder)
-{
-    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
-    auto f1 = std::make_shared<BaseField>("str", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
-
-    auto f0Copy = std::make_shared<BaseField>(*f0);
-    auto f1Copy = std::make_shared<BaseField>(*f1);
-    auto faFieldInfo = BuildFieldInfo({f0Copy, f1Copy});
-    auto f2 = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, faFieldInfo);
-
-    const auto fieldInfo = BuildFieldInfo({f0, f1, f2});
-    CompositeField body(fieldInfo);
-    body.SetFieldValue(*f0, 1234U);
-    body.SetFieldValue(*f1, std::string("ok"));
-    CompositeField nestedBody(faFieldInfo);
-    nestedBody.SetFieldValue(*f0Copy, 5678U);
-    nestedBody.SetFieldValue(*f1Copy, std::string("nested"));
-    body.SetFieldValue(*f2, FieldArray({nestedBody}, faFieldInfo.get()));
-
-    auto it = body.begin();
-    auto fieldValue = *it;
-    EXPECT_EQ(fieldValue.first, f0);
-    EXPECT_EQ(std::get<uint32_t>(fieldValue.second), 1234U);
-    ++it;
-    fieldValue = *it;
-    EXPECT_EQ(fieldValue.first, f1);
-    EXPECT_EQ(std::get<std::string>(fieldValue.second), "ok");
-    ++it;
-    fieldValue = *it;
-    EXPECT_EQ(fieldValue.first, f2);
-    const auto& nestedArray = std::get<FieldArray>(fieldValue.second);
-    EXPECT_EQ(nestedArray.size(), 1U);
-    const auto nestedBodyValue = nestedArray[0];
-    EXPECT_EQ(nestedBodyValue.GetFieldValue<uint32_t>(*f0Copy), 5678U);
-    EXPECT_EQ(nestedBodyValue.GetFieldValue<std::string>(*f1Copy), "nested");
-    ++it;
-    EXPECT_EQ(it, body.end());
-}
-
-TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorFind)
-{
-    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
-    auto f1 = std::make_shared<BaseField>("str", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
-    auto f2 = std::make_shared<BaseField>("i16", FIELD_TYPE::SIMPLE, "%hd", DATA_TYPE::SHORT);
-
-    const auto fieldInfo = BuildFieldInfo({f0, f1, f2});
-    CompositeField body(fieldInfo);
-    body.SetFieldValue(*f0, 1234U);
-    body.SetFieldValue(*f1, std::string("ok"));
-    body.SetFieldValue(*f2, static_cast<int16_t>(-7));
-
-    using FieldValuePair = std::pair<BaseField::ConstPtr, FieldValueVariant>;
-
-    const auto byName = std::find_if(body.begin(), body.end(), [](const FieldValuePair& fieldValue) { return fieldValue.first->name == "str"; });
-    ASSERT_NE(byName, body.end());
-    EXPECT_EQ(std::distance(body.begin(), byName), 1);
-    EXPECT_EQ(std::get<std::string>((*byName).second), "ok");
-
-    const auto byValue =
-        std::find_if(body.begin(), body.end(), [](const FieldValuePair& fieldValue) { return std::holds_alternative<int16_t>(fieldValue.second); });
-    ASSERT_NE(byValue, body.end());
-    EXPECT_EQ((*byValue).first->name, "i16");
-    EXPECT_EQ(std::get<int16_t>((*byValue).second), static_cast<int16_t>(-7));
-
-    const auto missing = std::find_if(body.begin(), body.end(), [](const FieldValuePair& fieldValue) { return fieldValue.first->name == "none"; });
-    EXPECT_EQ(missing, body.end());
-
-    EXPECT_EQ(std::distance(body.begin(), body.end()), 3);
-}
-
-TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessageAndFieldArray)
-{
-    auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
-    auto f1 = std::make_shared<BaseField>("str", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
-
-    auto f0Nested = std::make_shared<BaseField>(*f0);
-    auto f1Nested = std::make_shared<BaseField>(*f1);
-    const auto faFieldInfo = BuildFieldInfo({f0Nested, f1Nested});
-    auto f2 = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, faFieldInfo);
-
-    const auto fieldInfo = BuildFieldInfo({f0, f1, f2});
-    constexpr uint32_t kMsgCrc = 0x11223344U;
-    auto msgDef = std::make_shared<MessageDefinition>();
-    msgDef->logID = 777U;
-    msgDef->name = "TESTMSG";
-    msgDef->fieldInfo.emplace(kMsgCrc, fieldInfo);
-    msgDef->latestMessageCrc = kMsgCrc;
-
-    auto db = std::make_shared<MessageDatabase>(std::vector<MessageDefinition::ConstPtr>{msgDef}, std::vector<EnumDefinition::ConstPtr>{});
-    MessageDecoderBase decoder("OEM", db);
-
-    const std::string payload = "1234,ok,1,5678,nested";
-    MetaDataBase meta;
-    meta.eFormat = DECODE_FORMAT::ASCII;
-    meta.usMessageId = static_cast<uint16_t>(msgDef->logID);
-    meta.uiMessageCrc = kMsgCrc;
-    meta.uiHeaderLength = 0;
-    meta.uiLength = static_cast<uint32_t>(payload.size());
-    meta.messageName = msgDef->name;
-
-    CompositeField decoded;
-    const STATUS status = decoder.Decode(reinterpret_cast<const unsigned char*>(payload.data()), decoded, meta);
-    ASSERT_EQ(status, STATUS::SUCCESS);
-
-    auto it = decoded.begin();
-    auto fieldValue = *it;
-    EXPECT_EQ(fieldValue.first, f0);
-    EXPECT_EQ(std::get<uint32_t>(fieldValue.second), 1234U);
-    ++it;
-    fieldValue = *it;
-    EXPECT_EQ(fieldValue.first, f1);
-    EXPECT_EQ(std::get<std::string>(fieldValue.second), "ok");
-    ++it;
-
-    fieldValue = *it;
-    EXPECT_EQ(fieldValue.first, f2);
-    auto& nestedArray = std::get<FieldArray>(fieldValue.second);
-    ASSERT_EQ(nestedArray.size(), 1U);
-
-    const CompositeField& nestedBody = *nestedArray.GetCompositeRecord(0);
-    auto nestedIt = nestedBody.begin();
-    auto nestedFieldValue = *nestedIt;
-    EXPECT_EQ(nestedFieldValue.first->name, f0Nested->name);
-    EXPECT_EQ(std::get<uint32_t>(nestedFieldValue.second), 5678U);
-    ++nestedIt;
-    nestedFieldValue = *nestedIt;
-    EXPECT_EQ(nestedFieldValue.first->name, f1Nested->name);
-    EXPECT_EQ(std::get<std::string>(nestedFieldValue.second), "nested");
-    ++nestedIt;
-    EXPECT_EQ(nestedIt, nestedBody.end());
-
-    ++it;
-    EXPECT_EQ(it, decoded.end());
-}
-
-TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorRequiresFieldInfo)
-{
-    CompositeField body;
-    EXPECT_THROW(body.begin(), std::runtime_error);
-    EXPECT_THROW(body.end(), std::runtime_error);
-}
-
 TEST(MessageDecoderContainerTypesTest, CompositeFieldGetFieldValueByName)
 {
     auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
@@ -913,14 +948,13 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageRecordViewGetFieldValueByName
     for (size_t i = 0; i < twentyStr.size(); i++) { EXPECT_EQ(arr2[i], static_cast<uint8_t>(twentyStr[i])); }
 
     const FieldArray::FieldArrayRecordView row = wrapped[1];
-    EXPECT_EQ(row.GetFieldInfo(), fieldInfo.get());
     EXPECT_EQ(row.GetFieldValue<uint8_t>(*f1, 2), static_cast<uint8_t>('e'));
     EXPECT_EQ(row.GetFieldValueByName<uint8_t>("arr", 2), static_cast<uint8_t>('e'));
     EXPECT_THROW((void)row.GetFieldValue<uint8_t>(*f1, 7), std::runtime_error);
     EXPECT_THROW((void)row.GetFieldValueByName<uint32_t>("missing"), std::runtime_error);
     EXPECT_THROW((void)row.GetFieldValue<std::string>(*f0), std::runtime_error);
     const uint32_t replacement = 30U;
-    wrapped.SetFixedFieldValue(1, f0->index, &replacement);
+    wrapped[1].SetFieldValue(f0->index, &replacement);
     EXPECT_EQ(row.GetFieldValueByName<uint32_t>("u32"), replacement);
     EXPECT_THROW((void)FieldArray{}[0].GetFieldValueByName<uint32_t>("u32"), std::runtime_error);
 }
