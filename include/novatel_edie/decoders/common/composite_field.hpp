@@ -466,14 +466,12 @@ class FieldArray
 
         FieldArrayRecordView(FieldArrayPointer fieldArray_, size_t index_) : fieldArray(fieldArray_), index(index_) {}
 
-        template <typename T>
-        [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const
+        template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const
         {
             return fieldArray->GetFieldValue<T>(field_, index, elementIndex_);
         }
 
-        template <typename T>
-        [[nodiscard]] FieldValueResult<T> GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const
+        template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const
         {
             return fieldArray->GetFieldValueByName<T>(name_, index, elementIndex_);
         }
@@ -484,8 +482,7 @@ class FieldArray
             fieldArray->template SetFieldValue<Fixed>(startIndex_, index, values_, n);
         }
 
-        template <bool Fixed = true, typename T, bool Enabled = Mutable,
-                  std::enable_if_t<Enabled && Mutable && !std::is_pointer_v<T>, int> = 0>
+        template <bool Fixed = true, typename T, bool Enabled = Mutable, std::enable_if_t<Enabled && Mutable && !std::is_pointer_v<T>, int> = 0>
         void SetFieldValue(size_t startIndex_, const T& value_) const
         {
             fieldArray->template SetFieldValue<Fixed>(startIndex_, index, value_);
@@ -580,15 +577,9 @@ class FieldArray
         return GetFieldValue<T>(*field, index_, elementIndex_);
     }
 
-    [[nodiscard]] FieldArrayRecordView<true> operator[](size_t index_)
-    {
-        return FieldArrayRecordView<true>(this, index_);
-    }
+    [[nodiscard]] FieldArrayRecordView<true> operator[](size_t index_) { return FieldArrayRecordView<true>(this, index_); }
 
-    [[nodiscard]] FieldArrayRecordView<false> operator[](size_t index_) const
-    {
-        return FieldArrayRecordView<false>(this, index_);
-    }
+    [[nodiscard]] FieldArrayRecordView<false> operator[](size_t index_) const { return FieldArrayRecordView<false>(this, index_); }
 
     struct const_iterator
     {
@@ -730,7 +721,8 @@ class CompositeField
                 switch (fieldDef->type)
                 {
                 case FIELD_TYPE::FIELD_ARRAY: {
-                    varFields[fieldDef->index] = FieldArray(std::vector<CompositeField>{}, static_cast<const FieldArrayField&>(*fieldDef).fieldInfo.get());
+                    varFields[fieldDef->index] =
+                        FieldArray(std::vector<CompositeField>{}, static_cast<const FieldArrayField&>(*fieldDef).fieldInfo.get());
                     break;
                 }
                 case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
@@ -1167,7 +1159,8 @@ class CompositeField
         switch (fieldDef_.type)
         {
         case FIELD_TYPE::FIXED_LENGTH_ARRAY:
-            if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, TypedBuffer> || is_specialization_of_v<ValueT, std::vector>)
+            if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, TypedBuffer> ||
+                          is_specialization_of_v<ValueT, std::vector>)
             {
                 SetFieldValue<true>(fieldDef_.index, std::forward<T>(value_));
             }
@@ -1247,8 +1240,7 @@ class CompositeField
     //! \throws std::runtime_error on invalid index, type mismatch, or insufficient
     //!     buffer capacity.
     // ---------------------------------------------------------------------------
-    size_t WriteFieldToBuffer(const BaseField& field_, std::byte* buffer_, const size_t capacity_,
-                             const CompositeFieldHandler& handler_ = {}) const
+    size_t WriteFieldToBuffer(const BaseField& field_, std::byte* buffer_, const size_t capacity_, const CompositeFieldHandler& handler_ = {}) const
     {
         if (buffer_ == nullptr && capacity_ != 0) { throw std::runtime_error("WriteFieldToBuffer(): destination buffer is null"); }
 
@@ -1326,8 +1318,7 @@ class CompositeField
     //! \throws std::runtime_error on invalid index, type mismatch, or insufficient
     //!     buffer capacity.
     // ---------------------------------------------------------------------------
-    size_t WriteFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_,
-                             const CompositeFieldHandler& handler_ = {}) const
+    size_t WriteFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_, const CompositeFieldHandler& handler_ = {}) const
     {
         if (buffer_ == nullptr || *buffer_ == nullptr)
         {
@@ -1361,8 +1352,7 @@ inline FieldValueVariant LoadVariant(const ArrayField& fd_, const std::byte* fie
     return LoadVariantImpl(fd_, [&](auto tag) { return TypedBuffer<decltype(tag)>{fieldPtr_, fd_.arrayLength}; });
 }
 
-template <typename T>
-inline FieldValueResult<T> FieldArray::GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_) const
+template <typename T> inline FieldValueResult<T> FieldArray::GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_) const
 {
     if (const auto* fields = std::get_if<FixedFieldRegion>(&storage))
     {
@@ -1375,10 +1365,7 @@ inline FieldValueResult<T> FieldArray::GetFieldValue(const BaseField& field_, si
             }
             return LoadFixedField<T>(*fields, field_, rowOffset);
         }
-        else
-        {
-            throw std::runtime_error("FieldArray::GetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization");
-        }
+        else { throw std::runtime_error("FieldArray::GetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization"); }
     }
     return std::get<CompositeFieldArray>(storage)[index_].GetFieldValue<T>(field_, elementIndex_);
 }
@@ -1407,15 +1394,11 @@ template <typename Fn> bool FieldArray::ForEachRecord(Fn&& fn_) const
     return true;
 }
 
-template <bool Fixed, typename... Args>
-void FieldArray::SetFieldValue(size_t startIndex_, size_t index_, Args&&... values_)
+template <bool Fixed, typename... Args> void FieldArray::SetFieldValue(size_t startIndex_, size_t index_, Args&&... values_)
 {
     if (auto* fields = std::get_if<FixedFieldRegion>(&storage))
     {
-        if constexpr (Fixed)
-        {
-            fields->SetFieldValue((index_ * fieldInfo->fixedFieldBytes) + startIndex_, std::forward<Args>(values_)...);
-        }
+        if constexpr (Fixed) { fields->SetFieldValue((index_ * fieldInfo->fixedFieldBytes) + startIndex_, std::forward<Args>(values_)...); }
         else { throw std::runtime_error("SetFieldValue(): contiguous records do not support variable-length fields"); }
     }
     else { std::get<CompositeFieldArray>(storage).at(index_).template SetFieldValue<Fixed>(startIndex_, std::forward<Args>(values_)...); }
@@ -1432,7 +1415,8 @@ template <typename T> void FieldArray::SetFieldValue(const BaseField& fieldDef_,
     using ValueT = std::decay_t<T>;
     if (fieldDef_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
     {
-        if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, TypedBuffer> || is_specialization_of_v<ValueT, std::vector>)
+        if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, TypedBuffer> ||
+                      is_specialization_of_v<ValueT, std::vector>)
         {
             SetFieldValue(fieldDef_.index, index_, std::forward<T>(value_));
             return;
