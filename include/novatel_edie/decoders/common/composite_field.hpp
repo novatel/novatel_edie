@@ -468,12 +468,12 @@ class FieldArray
 
         template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const
         {
-            return fieldArray->GetFieldValue<T>(field_, index, elementIndex_);
+            return fieldArray->template GetFieldValue<T>(field_, index, elementIndex_);
         }
 
         template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const
         {
-            return fieldArray->GetFieldValueByName<T>(name_, index, elementIndex_);
+            return fieldArray->template GetFieldValueByName<T>(name_, index, elementIndex_);
         }
 
         template <bool Fixed = true, typename T, bool Enabled = Mutable, std::enable_if_t<Enabled && Mutable, int> = 0>
