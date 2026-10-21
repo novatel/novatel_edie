@@ -21,7 +21,7 @@ using ssize_t = std::make_signed_t<size_t>;
 // parent (held alive by an nb::object reference).
 using OwnedFields = std::unique_ptr<CompositeField>;
 using FieldStorage = std::variant<OwnedFields, nb::object>;
-using OwnedFieldArrayData = std::unique_ptr<FieldValueVariant>;
+using OwnedFieldArrayData = std::unique_ptr<FieldArray>;
 
 class PyFieldArray;
 
@@ -203,20 +203,10 @@ class PyFieldArray
   public:
     explicit PyFieldArray(nb::list values);
 
-    explicit PyFieldArray(FieldValueVariant& data_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
+    explicit PyFieldArray(FieldArray& data_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
                           py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parent_)
-                : storage(std::move(parent_)), dataPtr(&data_), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
+                : storage(std::move(parent_)), dataPtr(&data_), length(data_.size()), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
     {
-        length = std::visit(
-            [](auto& v) -> size_t {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
-                {
-                    return v.size();
-                }
-                else { throw std::runtime_error("PyFieldArray: data_ is not a FlatFieldArray or CompositeFieldArray"); }
-            },
-            data_);
         cache.resize(length);
     };
 
@@ -238,20 +228,11 @@ class PyFieldArray
     // Take ownership of `fields` as this array's backing storage, repointing `data`
     // at the newly-owned vector. Used to seed a freshly-constructed array or to
     // detach an array from a parent it was previously borrowing from.
-    void take_ownership(FieldValueVariant&& fields)
+    void take_ownership(FieldArray fields)
     {
-        auto owned = std::make_unique<FieldValueVariant>(std::move(fields));
+        auto owned = std::make_unique<FieldArray>(std::move(fields));
         dataPtr = owned.get();
-        length = std::visit(
-            [](auto& v) -> size_t {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>)
-                {
-                    return v.size();
-                }
-                else { throw std::runtime_error("take_ownership: data_ is not a FlatFieldArray or CompositeFieldArray"); }
-            },
-            *dataPtr);
+        length = dataPtr->size();
         storage = std::move(owned);
     }
 
@@ -263,7 +244,7 @@ class PyFieldArray
     std::variant<OwnedFieldArrayData, nb::object> storage;
 
     // Data access
-    FieldValueVariant* dataPtr;
+    FieldArray* dataPtr;
     size_t length;
     mutable std::vector<std::optional<nb::weakref>> cache;
 

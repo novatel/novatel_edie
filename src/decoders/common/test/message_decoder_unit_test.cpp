@@ -521,14 +521,17 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsFlatBackedFieldArra
     auto fieldArrayField = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, nestedFieldInfo);
     const auto rootFieldInfo = BuildFieldInfo({fieldArrayField});
 
-    FlatFieldArray stored(2, nestedFieldInfo.get());
-    stored.SetFieldValue<uint32_t>(0, *nestedU32, 11U);
-    stored.SetFieldValue<int16_t>(0, *nestedI16, static_cast<int16_t>(-7));
-    stored.SetFieldValue<uint32_t>(1, *nestedU32, 22U);
-    stored.SetFieldValue<int16_t>(1, *nestedI16, static_cast<int16_t>(9));
+    FieldArray stored(std::vector<std::byte>(2 * nestedFieldInfo->fixedFieldBytes), nestedFieldInfo.get());
+    const uint32_t u32Values[] = {11U, 22U};
+    const int16_t i16Values[] = {-7, 9};
+    for (size_t i = 0; i < 2; ++i)
+    {
+        stored.SetFixedFieldValue(i, nestedU32->index, &u32Values[i]);
+        stored.SetFixedFieldValue(i, nestedI16->index, &i16Values[i]);
+    }
 
     CompositeField body(rootFieldInfo);
-    body.SetFieldValue(*fieldArrayField, stored);
+    body.SetFieldValue(*fieldArrayField, std::move(stored));
 
     const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     ASSERT_EQ(wrapped.size(), 2U);
@@ -559,14 +562,17 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayFlatBackedIteratorFind)
     auto fieldArrayField = std::make_shared<FieldArrayField>("fa", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2, nestedFieldInfo);
     const auto rootFieldInfo = BuildFieldInfo({fieldArrayField});
 
-    FlatFieldArray stored(2, nestedFieldInfo.get());
-    stored.SetFieldValue<uint32_t>(0, *nestedU32, 11U);
-    stored.SetFieldValue<int16_t>(0, *nestedI16, static_cast<int16_t>(-7));
-    stored.SetFieldValue<uint32_t>(1, *nestedU32, 22U);
-    stored.SetFieldValue<int16_t>(1, *nestedI16, static_cast<int16_t>(9));
+    FieldArray stored(std::vector<std::byte>(2 * nestedFieldInfo->fixedFieldBytes), nestedFieldInfo.get());
+    const uint32_t u32Values[] = {11U, 22U};
+    const int16_t i16Values[] = {-7, 9};
+    for (size_t i = 0; i < 2; ++i)
+    {
+        stored.SetFixedFieldValue(i, nestedU32->index, &u32Values[i]);
+        stored.SetFixedFieldValue(i, nestedI16->index, &i16Values[i]);
+    }
 
     CompositeField body(rootFieldInfo);
-    body.SetFieldValue(*fieldArrayField, stored);
+    body.SetFieldValue(*fieldArrayField, std::move(stored));
 
     const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const FieldArrayRecordView& row) {
@@ -599,7 +605,7 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsCompositeBackedFiel
     row1.SetFieldValue(*nestedStr, std::string("twenty"));
 
     CompositeField body(rootFieldInfo);
-    body.SetFieldValue(*fieldArrayField, CompositeFieldArray{row0, row1});
+    body.SetFieldValue(*fieldArrayField, FieldArray({row0, row1}, nestedFieldInfo.get()));
 
     const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     ASSERT_EQ(wrapped.size(), 2U);
@@ -641,7 +647,7 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayCompositeBackedIteratorFind)
     row1.SetFieldValue(*nestedStr, std::string("twenty"));
 
     CompositeField body(rootFieldInfo);
-    body.SetFieldValue(*fieldArrayField, CompositeFieldArray{row0, row1});
+    body.SetFieldValue(*fieldArrayField, FieldArray({row0, row1}, nestedFieldInfo.get()));
 
     const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const FieldArrayRecordView& row) {
@@ -666,7 +672,7 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperPreservesSchemaForEmptyC
     const auto rootFieldInfo = BuildFieldInfo({fieldArrayField});
 
     CompositeField body(rootFieldInfo);
-    body.SetFieldValue(*fieldArrayField, CompositeFieldArray{});
+    body.SetFieldValue(*fieldArrayField, FieldArray(std::vector<CompositeField>{}, nestedFieldInfo.get()));
 
     const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     EXPECT_TRUE(wrapped.empty());
@@ -690,7 +696,7 @@ TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorTraversesFieldValuesIn
     CompositeField nestedBody(faFieldInfo);
     nestedBody.SetFieldValue(*f0Copy, 5678U);
     nestedBody.SetFieldValue(*f1Copy, std::string("nested"));
-    body.SetFieldValue(*f2, CompositeFieldArray{nestedBody});
+    body.SetFieldValue(*f2, FieldArray({nestedBody}, faFieldInfo.get()));
 
     auto it = body.begin();
     auto fieldValue = *it;
@@ -703,9 +709,9 @@ TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorTraversesFieldValuesIn
     ++it;
     fieldValue = *it;
     EXPECT_EQ(fieldValue.first, f2);
-    const auto nestedArray = std::get<CompositeFieldArray>(fieldValue.second);
+    const auto& nestedArray = std::get<FieldArray>(fieldValue.second);
     EXPECT_EQ(nestedArray.size(), 1U);
-    const auto& nestedBodyValue = nestedArray[0];
+    const auto nestedBodyValue = nestedArray[0];
     EXPECT_EQ(nestedBodyValue.GetFieldValue<uint32_t>(*f0Copy), 5678U);
     EXPECT_EQ(nestedBodyValue.GetFieldValue<std::string>(*f1Copy), "nested");
     ++it;
@@ -789,10 +795,10 @@ TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessag
 
     fieldValue = *it;
     EXPECT_EQ(fieldValue.first, f2);
-    const auto nestedArray = std::get<CompositeFieldArray>(fieldValue.second);
+    auto& nestedArray = std::get<FieldArray>(fieldValue.second);
     ASSERT_EQ(nestedArray.size(), 1U);
 
-    const CompositeField& nestedBody = nestedArray.front();
+    const CompositeField& nestedBody = *nestedArray.GetCompositeRecord(0);
     auto nestedIt = nestedBody.begin();
     auto nestedFieldValue = *nestedIt;
     EXPECT_EQ(nestedFieldValue.first->name, f0Nested->name);

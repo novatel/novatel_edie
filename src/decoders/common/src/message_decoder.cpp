@@ -340,7 +340,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 // Store flat FIELD_ARRAY directly as std::vector<std::byte>
                 std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
                                                      reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
-                clCompField_.SetFieldValue(*field, FlatFieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo.get()));
+                clCompField_.SetFieldValue(*field, FieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo.get()));
                 *ppucLogBuf_ += totalBytes;
             }
             else
@@ -357,7 +357,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 }
-                clCompField_.SetFieldValue(*field, std::move(vFieldArrayContainer));
+                clCompField_.SetFieldValue(*field, FieldArray(std::move(vFieldArrayContainer), subFieldDefinitions->fieldInfo.get()));
             }
             break;
         }
@@ -675,7 +675,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 STATUS eStatus = DecodeAscii<Abbreviated>(*subFieldDefinitions->fieldInfo, ppcLogBuf_, pvFieldArrayContainer[i], pcBufEnd_);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
-            clCompField_.SetFieldValue(*field, std::move(pvFieldArrayContainer));
+            clCompField_.SetFieldValue(*field, FieldArray(std::move(pvFieldArrayContainer), subFieldDefinitions->fieldInfo.get()));
             break;
         }
         default:
@@ -876,7 +876,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
 
-            clCompField_.SetFieldValue(*field, std::move(vFieldArrayContainer));
+            clCompField_.SetFieldValue(*field, FieldArray(std::move(vFieldArrayContainer), subFieldDefinitions->fieldInfo.get()));
             break;
         }
 

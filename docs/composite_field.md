@@ -27,12 +27,13 @@ A `CompositeField` stores the decoded contents of a message. It holds:
 
 #### Field arrays
 
-- Stored as `FlatFieldArray` if every field has fixed size
-- Stored as `CompositeFieldArray = std::vector<CompositeField>` otherwise
+- Stored as a `FieldArray`, which holds one of:
+  - `FlatFieldArray` if every field has fixed size
+  - `CompositeFieldArray = std::vector<CompositeField>` otherwise
 
 ### Reading fields
 
-- `CompositeField::GetFieldValue` and `FlatFieldArray::GetFieldValue` can be used to get the value of most fields by their definition
+- `CompositeField::GetFieldValue` and `FieldArray::GetFieldValue` can be used to get the value of most fields by their definition
 - `CompositeField::GetFieldValueVariant` wraps a field's value in a variant for programming convenience
 
 ### Writing fields

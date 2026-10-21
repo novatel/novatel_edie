@@ -308,8 +308,7 @@ The template argument `T` is the C++ type returned by `GetFieldValue<T>`:
 
 | Field type | `T` for the complete field |
 | --- | --- |
-| `FIELD_ARRAY` | `FieldArray` |
-| `FIELD_ARRAY` with direct representation access (advanced users) | `CompositeFieldArray` or `FlatFieldArray` |
+| `FIELD_ARRAY` | `FieldArray` (returned as `const FieldArray&`) |
 | `VARIABLE_LENGTH_ARRAY` | `std::vector<T>` |
 | `FIXED_LENGTH_ARRAY` | `TypedBuffer<T>` (*see below) |
 | `STRING` or `RESPONSE_STR` | `std::string` |
@@ -361,35 +360,30 @@ while (eStatus != STATUS::STREAM_EMPTY)
 }
 ```
 
-The same accesses can use `stMessage.GetFieldValueByName<FieldArray>("obs")` and `obs.GetFieldValueByName<float>("C_No")`, but that performs a definition search for every access and is slower. Advanced users can request `CompositeFieldArray` or `FlatFieldArray` directly when the concrete storage representation is known. `FieldArray` is preferred when code should work with either representation.
+The same accesses can use `stMessage.GetFieldValueByName<FieldArray>("obs")` and `obs.GetFieldValueByName<float>("C_No")`, but that performs a definition search for every access and is slower.
 
 > [!WARNING]
 > The `CompositeField` that owns a message's data must remain alive for as long as any field values obtained from that message are being used.
 > For example, the following code is unsafe:
 
 ```cpp
-FieldArray obsArr;
-if (...)
-{
-    CompositeField stMessage;
-    ...
-    obsArr = stMessage.GetFieldValueByName<FieldArray>("obs");
-} // Lifetime of stMessage ends after this block
-obsArr.GetFieldValueByName<float>("C_No"); // BAD - undefined behaviour!
+CompositeField ReadMessage(); // Returns a decoded message by value
+
+const FieldArray& obsArr = ReadMessage().GetFieldValueByName<FieldArray>("obs");
+// The temporary CompositeField returned by ReadMessage() is destroyed at the end of the line above
+obsArr.GetFieldValueByName<float>("C_No", 0); // BAD - undefined behaviour!
 ```
 
 > To avoid this, make sure the `CompositeField` stays alive while its data is being accessed. For example:
 
 ```cpp
-CompositeField stMessage;
-FieldArray obsArr;
-if (...)
-{
-    ...
-    obsArr = stMessage.GetFieldValueByName<FieldArray>("obs");
-}
-obsArr.GetFieldValueByName<float>("C_No"); // GOOD - stMessage is still alive
+const CompositeField stMessage = ReadMessage();
+const FieldArray& obsArr = stMessage.GetFieldValueByName<FieldArray>("obs");
+obsArr.GetFieldValueByName<float>("C_No", 0); // GOOD - stMessage is still alive
 ```
+
+> [!TIP]
+> `GetFieldValue<FieldArray>` returns a reference, so bind it with `const auto&` or `const FieldArray&`. Binding it with `auto` or `FieldArray` copies the entire array.
 
 #### Copy to generated struct (specialized use cases)
 
