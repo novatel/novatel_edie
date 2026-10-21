@@ -468,13 +468,14 @@ TEST(MessageDecoderContainerTypesTest, FlatFieldArrayIteratorBuildsExpectedMessa
     fieldArray.SetFieldValue<uint32_t>(1, *f0, 22U);
     fieldArray.SetFieldValue<int16_t>(1, *f1, static_cast<int16_t>(9));
 
-    auto it = fieldArray.begin();
-    const FieldArrayRecordView row0 = *it;
+    FieldArray wrapped(std::vector<std::byte>(fieldArray.data(), fieldArray.data() + fieldArray.ByteSize()), fieldInfo.get());
+    auto it = wrapped.begin();
+    const auto row0 = *it;
     EXPECT_EQ(row0.GetFieldValue<uint32_t>(*f0), 11U);
     EXPECT_EQ(row0.GetFieldValue<int16_t>(*f1), static_cast<int16_t>(-7));
 
     ++it;
-    const FieldArrayRecordView row1 = *it;
+    const auto row1 = *it;
     EXPECT_EQ(row1.GetFieldValue<uint32_t>(*f0), 22U);
     EXPECT_EQ(row1.GetFieldValue<int16_t>(*f1), static_cast<int16_t>(9));
 }
@@ -494,20 +495,21 @@ TEST(MessageDecoderContainerTypesTest, FlatFieldArrayIteratorFind)
     fieldArray.SetFieldValue<uint32_t>(2, *f0, 33U);
     fieldArray.SetFieldValue<int16_t>(2, *f1, static_cast<int16_t>(15));
 
-    const auto it = std::find_if(fieldArray.begin(), fieldArray.end(), [&](const FieldArrayRecordView& row) {
+    FieldArray wrapped(std::vector<std::byte>(fieldArray.data(), fieldArray.data() + fieldArray.ByteSize()), fieldInfo.get());
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.GetFieldValue<uint32_t>(*f0) == 22U;
     });
-    ASSERT_NE(it, fieldArray.end());
-    EXPECT_EQ(std::distance(fieldArray.begin(), it), 1);
+    ASSERT_NE(it, wrapped.end());
+    EXPECT_EQ(std::distance(wrapped.begin(), it), 1);
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*f0), 22U);
     EXPECT_EQ((*it).GetFieldValue<int16_t>(*f1), static_cast<int16_t>(9));
 
-    const auto missing = std::find_if(fieldArray.begin(), fieldArray.end(), [&](const FieldArrayRecordView& row) {
+    const auto missing = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.GetFieldValue<uint32_t>(*f0) == 99U;
     });
-    EXPECT_EQ(missing, fieldArray.end());
+    EXPECT_EQ(missing, wrapped.end());
 
-    EXPECT_EQ(std::count_if(fieldArray.begin(), fieldArray.end(), [&](const FieldArrayRecordView& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.GetFieldValue<int16_t>(*f1) > 0;
     }), 2);
 }
@@ -540,12 +542,12 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsFlatBackedFieldArra
     EXPECT_EQ(wrapped.GetFieldValue<int16_t>(*nestedI16, 1), static_cast<int16_t>(9));
 
     auto it = wrapped.begin();
-    const FieldArrayRecordView row0 = *it;
+    const auto row0 = *it;
     EXPECT_EQ(row0.GetFieldValue<uint32_t>(*nestedU32), 11U);
     EXPECT_EQ(row0.GetFieldValue<int16_t>(*nestedI16), static_cast<int16_t>(-7));
 
     ++it;
-    const FieldArrayRecordView row1 = *it;
+    const auto row1 = *it;
     EXPECT_EQ(row1.GetFieldValue<uint32_t>(*nestedU32), 22U);
     EXPECT_EQ(row1.GetFieldValue<int16_t>(*nestedI16), static_cast<int16_t>(9));
 
@@ -575,14 +577,14 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayFlatBackedIteratorFind)
     body.SetFieldValue(*fieldArrayField, std::move(stored));
 
     const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
-    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const FieldArrayRecordView& row) {
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.GetFieldValue<uint32_t>(*nestedU32) == 22U;
     });
     ASSERT_NE(it, wrapped.end());
     EXPECT_EQ(std::distance(wrapped.begin(), it), 1);
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 22U);
     EXPECT_EQ((*it).GetFieldValue<int16_t>(*nestedI16), static_cast<int16_t>(9));
-    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const FieldArrayRecordView& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.GetFieldValue<int16_t>(*nestedI16) > 0;
     }), 1);
 }
@@ -613,9 +615,12 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsCompositeBackedFiel
     EXPECT_EQ(wrapped.GetFieldValue<uint32_t>(*nestedU32, 0), 10U);
     EXPECT_EQ(wrapped.GetFieldValue<std::string>(*nestedStr, 1), "twenty");
 
-    const FieldArrayRecordView firstRow = wrapped[0];
+    const FieldArray::FieldArrayRecordView firstRow = wrapped[0];
+    EXPECT_EQ(firstRow.GetFieldInfo(), nestedFieldInfo.get());
     EXPECT_EQ(firstRow.GetFieldValue<uint32_t>(*nestedU32), 10U);
     EXPECT_EQ(firstRow.GetFieldValue<std::string>(*nestedStr), "ten");
+    EXPECT_EQ(firstRow.GetFieldValueByName<std::string>("str"), "ten");
+    EXPECT_THROW((void)firstRow.GetFieldValueByName<uint32_t>("missing"), std::runtime_error);
 
     auto it = wrapped.begin();
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 10U);
@@ -650,14 +655,14 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayCompositeBackedIteratorFind)
     body.SetFieldValue(*fieldArrayField, FieldArray({row0, row1}, nestedFieldInfo.get()));
 
     const auto wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
-    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const FieldArrayRecordView& row) {
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.GetFieldValue<uint32_t>(*nestedU32) == 20U;
     });
     ASSERT_NE(it, wrapped.end());
     EXPECT_EQ(std::distance(wrapped.begin(), it), 1);
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 20U);
     EXPECT_EQ((*it).GetFieldValue<std::string>(*nestedStr), "twenty");
-    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const FieldArrayRecordView& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.GetFieldValue<uint32_t>(*nestedU32) > 0U;
     }), 2);
 }
@@ -849,14 +854,27 @@ TEST(MessageDecoderContainerTypesTest, FlatFieldArrayRecordViewGetFieldValueByNa
     ffa.SetFieldValue(1, *f0, 20U);
     ffa.SetFieldValue(1, *f1, std::string("twenty"));
 
+    FieldArray wrapped(std::vector<std::byte>(ffa.data(), ffa.data() + ffa.ByteSize()), fieldInfo.get());
     auto tenStr = std::string("ten");
     auto twentyStr = std::string("twenty");
-    EXPECT_EQ(ffa[0].GetFieldValueByName<uint32_t>("u32"), 10);
-    const auto arr1 = ffa[0].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
+    EXPECT_EQ(wrapped[0].GetFieldValueByName<uint32_t>("u32"), 10);
+    const auto arr1 = wrapped[0].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
     for (size_t i = 0; i < tenStr.size(); i++) { EXPECT_EQ(arr1[i], static_cast<uint8_t>(tenStr[i])); }
-    EXPECT_EQ(ffa[1].GetFieldValueByName<uint32_t>("u32"), 20);
-    const auto arr2 = ffa[1].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
+    EXPECT_EQ(wrapped[1].GetFieldValueByName<uint32_t>("u32"), 20);
+    const auto arr2 = wrapped[1].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
     for (size_t i = 0; i < twentyStr.size(); i++) { EXPECT_EQ(arr2[i], static_cast<uint8_t>(twentyStr[i])); }
+
+    const FieldArray::FieldArrayRecordView row = wrapped[1];
+    EXPECT_EQ(row.GetFieldInfo(), fieldInfo.get());
+    EXPECT_EQ(row.GetFieldValue<uint8_t>(*f1, 2), static_cast<uint8_t>('e'));
+    EXPECT_EQ(row.GetFieldValueByName<uint8_t>("arr", 2), static_cast<uint8_t>('e'));
+    EXPECT_THROW((void)row.GetFieldValue<uint8_t>(*f1, 7), std::runtime_error);
+    EXPECT_THROW((void)row.GetFieldValueByName<uint32_t>("missing"), std::runtime_error);
+    EXPECT_THROW((void)row.GetFieldValue<std::string>(*f0), std::runtime_error);
+    const uint32_t replacement = 30U;
+    wrapped.SetFixedFieldValue(1, f0->index, &replacement);
+    EXPECT_EQ(row.GetFieldValueByName<uint32_t>("u32"), replacement);
+    EXPECT_THROW((void)FieldArray{}[0].GetFieldValueByName<uint32_t>("u32"), std::runtime_error);
 }
 
 TEST(MessageDecoderContainerTypesTest, CompositeFieldSetFieldValueFixedLengthArray)
