@@ -231,8 +231,10 @@ a demonstration of how to achieve more fined grain control over parsing.
 ## Command Encoding
 
 Commands are messages, so they are built and encoded exactly like any other message.
-Look to [message_construction.py](./examples/message_construction.py) for a demonstration
-of constructing a command from scratch in Python and encoding it for a receiver.
+For abbreviated ASCII command encoding, `oem.Commander()` rejects omitted parameters by default. Construct it with
+`use_database_defaults=True` to fill them from available defaults in the loaded database. Look to
+[message_construction.py](./examples/message_construction.py) for a demonstration of constructing a command from
+scratch in Python and encoding it for a receiver.
 
 ## Data Types
 

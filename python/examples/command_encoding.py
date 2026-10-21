@@ -50,6 +50,10 @@ def main():
     # Encode the command
     logger.info(f'Converting "{command}" to {encode_format}')
     commander = oem.Commander()
+
+    # To fill omitted command parameters from the database, use:
+    # commander = oem.Commander(use_database_defaults=True)
+
     encoded_command = commander.encode(command, encode_format)
     print(encoded_command)
 
