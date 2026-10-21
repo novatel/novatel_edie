@@ -452,161 +452,11 @@ template <typename T>
 }
 
 // ---------------------------------------------------------------------------
-//! \class FlatFieldArray
-//! \brief A field array containing only fixed-length fields.
-//!
-//! \details This class is a thin wrapper around FixedFieldRegion that pairs the
-//!     byte buffer with field definitions. It also handles indexing into the
-//!     buffer using the fixed field size defined in the FieldInfo.
-// ---------------------------------------------------------------------------
-class FlatFieldArray
-{
-  private:
-    FixedFieldRegion fields;
-    const FieldInfo* fieldInfo;
-
-    static void CheckFieldInfo(const FieldInfo* fieldInfo_)
-    {
-        if (fieldInfo_ == nullptr) { throw std::runtime_error("FlatFieldArray(): fieldInfo must not be null"); }
-        if (fieldInfo_->varFieldCount > 0) { throw std::runtime_error("FlatFieldArray(): fieldInfo must not have variable fields"); }
-    }
-
-  public:
-    FlatFieldArray(std::vector<std::byte>&& data_, const FieldInfo* fieldInfo_) : fields(std::move(data_)), fieldInfo(fieldInfo_)
-    {
-        CheckFieldInfo(fieldInfo_);
-        if (fields.size() % fieldInfo_->fixedFieldBytes != 0)
-        {
-            throw std::runtime_error("FlatFieldArray(): data size must be a multiple of fixed field bytes");
-        }
-    }
-
-    FlatFieldArray(size_t sz_, const FieldInfo* fieldInfo_) : fieldInfo(fieldInfo_)
-    {
-        CheckFieldInfo(fieldInfo);
-        fields = FixedFieldRegion(sz_ * fieldInfo->fixedFieldBytes);
-    }
-
-    const FieldInfo* GetFieldInfo() const { return fieldInfo; }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get the number of fixed-length fields in the FlatFieldArray.
-    // ---------------------------------------------------------------------------
-    size_t size() const
-    {
-        if (!fieldInfo || fieldInfo->fixedFieldBytes == 0)
-        {
-            throw std::runtime_error("FlatFieldArray::size(): fieldInfo is null or has zero fixed field bytes");
-        }
-        return fields.size() / fieldInfo->fixedFieldBytes;
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get the byte size of the FixedFieldRegion in the FlatFieldArray.
-    // ---------------------------------------------------------------------------
-    size_t ByteSize() const { return fields.size(); }
-
-    const std::byte* data() const { return fields.data(); }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Resize the FlatFieldArray.
-    //!
-    //! \param[in] sz_ The new size of the fixed field region in bytes.
-    // ---------------------------------------------------------------------------
-    void resize(size_t sz_) { fields.resize(sz_); }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field value at the given index as a specified type.
-    //!
-    //! \tparam T The type to extract from the field.
-    //! \param[in] field_ The definition of the field to retrieve.
-    //! \param[in] index_ The index of the field in the field array.
-    //! \return The field value as T.
-    // ---------------------------------------------------------------------------
-    template <typename T> T GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_ = 0) const
-    {
-        const size_t rowOffset = index_ * fieldInfo->fixedFieldBytes;
-        if constexpr (!is_specialization_of_v<T, TypedBuffer>)
-        {
-            if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return LoadFixedFieldElement<T>(fields, elementIndex_, field_, rowOffset); }
-        }
-        return LoadFixedField<T>(fields, field_, rowOffset);
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field value at the given index by its name.
-    //! \see FlatFieldArray::GetFieldValue
-    // ---------------------------------------------------------------------------
-    template <typename T> [[nodiscard]] T GetFieldValueByName(const std::string& name_, size_t index_) const
-    {
-        if (fieldInfo == nullptr) { throw std::runtime_error("FlatFieldArray::GetFieldValueByName(): field info is not set"); }
-        const auto field = fieldInfo->GetFieldDefByName(name_);
-        if (field == nullptr) { throw std::runtime_error("FlatFieldArray::GetFieldValueByName(): field not found: " + name_); }
-        return GetFieldValue<T>(*field, index_);
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Set the field info used by this FlatFieldArray.
-    //!
-    //! \param[in] fieldInfo_ The field info pointer.
-    // ---------------------------------------------------------------------------
-    void SetFieldInfo(const FieldInfo* fieldInfo_)
-    {
-        fieldInfo = fieldInfo_;
-        if (fieldInfo) { resize(fieldInfo->fixedFieldBytes); }
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Set field values at the specified index.
-    //!
-    //! \tparam T The value type (must be trivially copyable).
-    //! \param[in] fieldIndex_ The index of the field.
-    //! \param[in] startIndex_ The index in the field's byte region.
-    //! \param[in] values_ Pointer to values to set.
-    //! \param[in] n Number of values to copy (defaults to 1).
-    //! \throws std::runtime_error on buffer overflow or invalid index.
-    // ---------------------------------------------------------------------------
-    template <typename T> void SetFieldValue(const size_t fieldIndex_, const size_t startIndex_, const T* values_, size_t n = 1)
-    {
-        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + startIndex_, values_, n);
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Set a single field value at the specified index.
-    //!
-    //! \tparam T The value type (must not be a pointer).
-    //! \param[in] fieldIndex_ The index of the field.
-    //! \param[in] startIndex_ The index in the field's byte region.
-    //! \param[in] value_ The value to set.
-    // ---------------------------------------------------------------------------
-    template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void SetFieldValue(const size_t fieldIndex_, const size_t startIndex_, const T& value_)
-    {
-        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + startIndex_, &value_);
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Set field from a given value.
-    //!
-    //! \tparam T The value type (must be trivially copyable).
-    //! \param[in] fieldIndex_ The index of the field.
-    //! \param[in] fd_ The BaseField definition of the field.
-    //! \param[in] value_ Rvalue reference to value to forward.
-    //! \throws std::runtime_error on buffer overflow or invalid index.
-    // ---------------------------------------------------------------------------
-    template <typename T> void SetFieldValue(const size_t fieldIndex_, const BaseField& fd_, const T& value_)
-    {
-        fields.SetFieldValue((fieldIndex_ * fieldInfo->fixedFieldBytes) + fd_.index, value_);
-    }
-
-};
-
-// ---------------------------------------------------------------------------
 //! \class FieldArray
 //! \brief The value of a FIELD_ARRAY field.
 //!
 //! \details This lets callers read FIELD_ARRAY contents without knowing
-//!     whether the underlying representation is FlatFieldArray or
+//!     whether the underlying representation is FixedFieldRegion or
 //!     CompositeFieldArray.
 // ---------------------------------------------------------------------------
 class FieldArray
@@ -642,8 +492,16 @@ class FieldArray
 
     //! Construct from the raw bytes of fixed-size records.
     explicit FieldArray(std::vector<std::byte> bytes_, const FieldInfo* fieldInfo_)
-        : storage(FlatFieldArray(std::move(bytes_), fieldInfo_)), fieldInfo(fieldInfo_)
+        : storage(FixedFieldRegion(std::move(bytes_))), fieldInfo(fieldInfo_)
     {
+        if (fieldInfo == nullptr || fieldInfo->varFieldCount > 0 || fieldInfo->fixedFieldBytes == 0)
+        {
+            throw std::runtime_error("FieldArray(): fixed storage requires field info with nonzero fixed field bytes and no variable fields");
+        }
+        if (std::get<FixedFieldRegion>(storage).size() % fieldInfo->fixedFieldBytes != 0)
+        {
+            throw std::runtime_error("FieldArray(): data size must be a multiple of fixed field bytes");
+        }
     }
 
     [[nodiscard]] size_t size() const;
@@ -658,8 +516,8 @@ class FieldArray
     //! The records' bytes if they are stored contiguously, otherwise nullptr.
     [[nodiscard]] const std::byte* ContiguousData() const
     {
-        const auto* flatArray = std::get_if<FlatFieldArray>(&storage);
-        return flatArray != nullptr ? flatArray->data() : nullptr;
+        const auto* fields = std::get_if<FixedFieldRegion>(&storage);
+        return fields != nullptr ? fields->data() : nullptr;
     }
 
     //! The record at index_ if it is stored as a CompositeField, otherwise nullptr.
@@ -733,7 +591,7 @@ class FieldArray
     [[nodiscard]] const_iterator end() const { return const_iterator(this, size()); }
 
   private:
-    std::variant<CompositeFieldArray, FlatFieldArray> storage;
+    std::variant<CompositeFieldArray, FixedFieldRegion> storage;
     const FieldInfo* fieldInfo;
 };
 
@@ -1490,11 +1348,16 @@ inline FieldValueVariant LoadVariant(const ArrayField& fd_, const std::byte* fie
 template <typename T>
 inline FieldValueResult<T> FieldArray::GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_) const
 {
-    if (const auto* flatArray = std::get_if<FlatFieldArray>(&storage))
+    if (const auto* fields = std::get_if<FixedFieldRegion>(&storage))
     {
         if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>)
         {
-            return flatArray->GetFieldValue<T>(field_, index_, elementIndex_);
+            const size_t rowOffset = index_ * fieldInfo->fixedFieldBytes;
+            if constexpr (!is_specialization_of_v<T, TypedBuffer>)
+            {
+                if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return LoadFixedFieldElement<T>(*fields, elementIndex_, field_, rowOffset); }
+            }
+            return LoadFixedField<T>(*fields, field_, rowOffset);
         }
         else
         {
@@ -1506,17 +1369,18 @@ inline FieldValueResult<T> FieldArray::GetFieldValue(const BaseField& field_, si
 
 inline size_t FieldArray::size() const
 {
-    return std::visit([](const auto& value_) { return value_.size(); }, storage);
+    if (const auto* fields = std::get_if<FixedFieldRegion>(&storage)) { return fields->size() / fieldInfo->fixedFieldBytes; }
+    return std::get<CompositeFieldArray>(storage).size();
 }
 
 template <typename Fn> bool FieldArray::ForEachRecord(Fn&& fn_) const
 {
-    if (const auto* flatArray = std::get_if<FlatFieldArray>(&storage))
+    if (const auto* fields = std::get_if<FixedFieldRegion>(&storage))
     {
-        const size_t recordBytes = flatArray->GetFieldInfo()->fixedFieldBytes;
-        for (size_t i = 0; i < flatArray->size(); ++i)
+        const size_t recordBytes = fieldInfo->fixedFieldBytes;
+        for (size_t i = 0; i < size(); ++i)
         {
-            if (!fn_(CompositeField::ViewFixedFields(flatArray->data() + (i * recordBytes), recordBytes))) { return false; }
+            if (!fn_(CompositeField::ViewFixedFields(fields->data() + (i * recordBytes), recordBytes))) { return false; }
         }
         return true;
     }
@@ -1535,7 +1399,10 @@ inline CompositeField* FieldArray::GetCompositeRecord(size_t index_)
 
 template <typename T> void FieldArray::SetFixedFieldValue(size_t index_, size_t startIndex_, const T* values_, size_t n_)
 {
-    if (auto* flatArray = std::get_if<FlatFieldArray>(&storage)) { flatArray->SetFieldValue(index_, startIndex_, values_, n_); }
+    if (auto* fields = std::get_if<FixedFieldRegion>(&storage))
+    {
+        fields->SetFieldValue((index_ * fieldInfo->fixedFieldBytes) + startIndex_, values_, n_);
+    }
     else { std::get<CompositeFieldArray>(storage).at(index_).SetFieldValue<true>(startIndex_, values_, n_); }
 }
 
@@ -1543,13 +1410,13 @@ inline CompositeField FieldArray::ReplaceRecord(size_t index_, const CompositeFi
 {
     if (auto* records = std::get_if<CompositeFieldArray>(&storage)) { return std::exchange(records->at(index_), record_); }
 
-    auto& flatArray = std::get<FlatFieldArray>(storage);
-    if (index_ >= flatArray.size()) { throw std::out_of_range("FieldArray::ReplaceRecord(): index out of range"); }
+    auto& fields = std::get<FixedFieldRegion>(storage);
+    if (index_ >= size()) { throw std::out_of_range("FieldArray::ReplaceRecord(): index out of range"); }
     if (!record_.GetVarFields().empty()) { throw std::runtime_error("FieldArray::ReplaceRecord(): record must not contain variable-length fields"); }
-    const size_t recordBytes = flatArray.GetFieldInfo()->fixedFieldBytes;
+    const size_t recordBytes = fieldInfo->fixedFieldBytes;
     CompositeField previous(recordBytes, 0);
-    previous.SetFieldValue<true>(0, flatArray.data() + (index_ * recordBytes), recordBytes);
-    flatArray.SetFieldValue(index_, 0, record_.GetFixedFields().data(), recordBytes);
+    previous.SetFieldValue<true>(0, fields.data() + (index_ * recordBytes), recordBytes);
+    fields.SetFieldValue(index_ * recordBytes, record_.GetFixedFields().data(), recordBytes);
     return previous;
 }
 

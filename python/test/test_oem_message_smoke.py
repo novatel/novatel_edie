@@ -350,7 +350,7 @@ class TestFieldArray:
         # Act
         parser = oem.Parser()
         parser.write(r.encode(ENCODE_FORMAT.BINARY).message)
-        msg = parser.read() # RANGE.obs is parsed as a FlatFieldArray
+        msg = parser.read() # RANGE.obs uses contiguous fixed-field storage
         old_field = msg.obs[1]
         msg.obs[1] = RANGE_obs_Field(sv_prn=4, psr=1300.0, adr=2300.0, dop=13.0, C_No=33.0)
         # Assert
