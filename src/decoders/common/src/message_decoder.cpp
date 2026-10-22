@@ -407,7 +407,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 // Store flat FIELD_ARRAY directly as std::vector<std::byte>
                 std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
                                                      reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
-                clCompField_.SetFieldValue(*field, FieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo.get()));
+                clCompField_.SetFieldValue(*field, FieldArray(std::move(flatFieldData), subFieldDefinitions->fieldInfo));
                 *ppucLogBuf_ += totalBytes;
             }
             else
@@ -426,7 +426,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 }
-                clCompField_.SetFieldValue(*field, FieldArray(std::move(vFieldArrayContainer), subFieldDefinitions->fieldInfo.get()));
+                clCompField_.SetFieldValue(*field, FieldArray(std::move(vFieldArrayContainer), subFieldDefinitions->fieldInfo));
             }
             break;
         }
@@ -759,7 +759,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
                 STATUS eStatus = DecodeAscii<Abbreviated>(*subFieldDefinitions->fieldInfo, sMessage_, newField);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
-            clCompField_.SetFieldValue(*field, FieldArray(std::move(pvFieldArrayContainer), subFieldDefinitions->fieldInfo.get()));
+            clCompField_.SetFieldValue(*field, FieldArray(std::move(pvFieldArrayContainer), subFieldDefinitions->fieldInfo));
             break;
         }
         default:
@@ -958,7 +958,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
 
-            clCompField_.SetFieldValue(*field, FieldArray(std::move(vFieldArrayContainer), subFieldDefinitions->fieldInfo.get()));
+            clCompField_.SetFieldValue(*field, FieldArray(std::move(vFieldArrayContainer), subFieldDefinitions->fieldInfo));
             break;
         }
 
