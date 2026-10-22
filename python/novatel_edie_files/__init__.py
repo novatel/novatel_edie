@@ -52,12 +52,13 @@ from .common_bindings import (
     MessageDatabase,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
     EnumDefinition, EnumDataType,
+    BitMaskDefinition, BitMaskCollectionDefinition,
     ENCODE_FORMAT, DECODE_FORMAT, MESSAGE_FORMAT,
     MAX_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH,
     MAX_ABB_ASCII_RESPONSE_LENGTH, MAX_NMEA_MESSAGE_LENGTH,
     CPP_VERSION, CPP_PRETTY_VERSION, GIT_SHA, GIT_BRANCH, GIT_IS_DIRTY, BUILD_TIMESTAMP,
     calculate_crc, SatelliteId,
-    UNKNOWN_REASON, UnknownBytes, Field, FieldArray, MessageData,
+    UNKNOWN_REASON, UnknownBytes, Field, FieldArray, BitField, MessageData,
     FramerManager, MetaDataBase
 )
 EnummeratorDefinition = EnumDefinition
