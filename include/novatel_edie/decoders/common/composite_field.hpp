@@ -30,7 +30,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <functional>
 #include <iterator>
 #include <optional>
 #include <stdexcept>
@@ -57,7 +56,6 @@ template <typename T, template <typename...> class Template> inline constexpr bo
 
 class CompositeField;
 class FieldArray;
-using CompositeFieldArray = std::vector<CompositeField>;
 
 //! Return type of GetFieldValue<T>: FieldArray is returned by reference to avoid copying its storage.
 template <typename T> using FieldValueResult = std::conditional_t<std::is_same_v<T, FieldArray>, const FieldArray&, T>;
@@ -293,16 +291,14 @@ class FixedFieldRegion
     //! \tparam T The value type (must not be a pointer).
     //! \param[in] startIndex_ The index in the byte region.
     //! \param[in] value_ The value to set.
-    //! \param[in] n Number of values to copy (defaults to 1).
     // ---------------------------------------------------------------------------
-    template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void SetFieldValue(const size_t startIndex_, const T& value_, size_t n = 1)
+    template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>> void SetFieldValue(const size_t startIndex_, const T& value_)
     {
         if constexpr (is_specialization_of_v<T, TypedBuffer>)
         {
             SetFieldValue(startIndex_, value_.data(), value_.size() * sizeof(typename T::value_type));
         }
-        else { SetFieldValue(startIndex_, &value_, n); }
+        else { SetFieldValue(startIndex_, &value_); }
     }
 
     // ---------------------------------------------------------------------------
@@ -450,9 +446,9 @@ template <typename T>
 //! \class FieldArray
 //! \brief The value of a FIELD_ARRAY field.
 //!
-//! \details This lets callers read FIELD_ARRAY contents without knowing
-//!     whether the underlying representation is FixedFieldRegion or
-//!     CompositeFieldArray.
+//! \details Records are stored either as CompositeFields or, when every field
+//!     has a fixed size, as contiguous raw bytes. Callers access records the
+//!     same way regardless of the representation.
 // ---------------------------------------------------------------------------
 class FieldArray
 {
@@ -522,14 +518,14 @@ class FieldArray
         CompositeField ReplaceRecord(const CompositeField& record_) const;
     };
 
-    explicit FieldArray(std::vector<CompositeField> records_ = {}, const FieldInfo* fieldInfo_ = nullptr)
-        : storage(std::move(records_)), fieldInfo(fieldInfo_)
+    explicit FieldArray(std::vector<CompositeField> records_ = {}, FieldInfo::ConstPtr fieldInfo_ = nullptr)
+        : storage(std::move(records_)), fieldInfo(std::move(fieldInfo_))
     {
     }
 
     //! Construct from the raw bytes of fixed-size records.
-    explicit FieldArray(std::vector<std::byte> bytes_, const FieldInfo* fieldInfo_)
-        : storage(FixedFieldRegion(std::move(bytes_))), fieldInfo(fieldInfo_)
+    explicit FieldArray(std::vector<std::byte> bytes_, FieldInfo::ConstPtr fieldInfo_)
+        : storage(FixedFieldRegion(std::move(bytes_))), fieldInfo(std::move(fieldInfo_))
     {
         if (fieldInfo == nullptr || fieldInfo->varFieldCount > 0 || fieldInfo->fixedFieldBytes == 0)
         {
@@ -545,7 +541,7 @@ class FieldArray
 
     [[nodiscard]] bool empty() const { return size() == 0; }
 
-    [[nodiscard]] const FieldInfo* GetFieldInfo() const { return fieldInfo; }
+    [[nodiscard]] const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
 
     //! Call fn_(const CompositeField&) on each record in order, stopping early if it returns false.
     template <typename Fn> bool ForEachRecord(Fn&& fn_) const;
@@ -557,12 +553,9 @@ class FieldArray
     //! \param[in] index_ The index of the row in the field array.
     //! \param[in] elementIndex_ The index of the element within the field to
     //!     retrieve. Ignored if field is not FIXED/VARIABLE_LENGTH_ARRAY.
-    //! \return A FieldValueVariant containing the field value.
+    //! \return The field value as T.
     // ---------------------------------------------------------------------------
     template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_ = 0) const;
-
-    template <bool Fixed = true, typename... Args> void SetFieldValue(size_t startIndex_, size_t index_, Args&&... values_);
-    template <typename T> void SetFieldValue(const BaseField& fieldDef_, size_t index_, T&& value_);
 
     // ---------------------------------------------------------------------------
     //! \brief Get a field value by its name.
@@ -619,8 +612,14 @@ class FieldArray
     [[nodiscard]] const_iterator end() const { return const_iterator(this, size()); }
 
   private:
+    using CompositeFieldArray = std::vector<CompositeField>;
+
     std::variant<CompositeFieldArray, FixedFieldRegion> storage;
-    const FieldInfo* fieldInfo;
+    FieldInfo::ConstPtr fieldInfo;
+
+    // Setters take the record index after the byte offset; use operator[] to set values on a record
+    template <bool Fixed = true, typename... Args> void SetFieldValue(size_t startIndex_, size_t index_, Args&&... values_);
+    template <typename T> void SetFieldValue(const BaseField& fieldDef_, size_t index_, T&& value_);
 
     //! The records' bytes if they are stored contiguously, otherwise nullptr.
     [[nodiscard]] const std::byte* GetRawDataPointer() const
@@ -638,8 +637,6 @@ using FieldValueVariant =
                  TypedBuffer<int64_t>, TypedBuffer<uint64_t>, TypedBuffer<float>, TypedBuffer<double>, std::vector<int8_t>, std::vector<int16_t>,
                  std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>,
                  std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::string, FieldArray>;
-
-// Defined after CompositeField: using FieldValueVariant requires CompositeField to be complete.
 
 //! Load a scalar field's bytes into a FieldValueVariant, selecting the concrete type from the schema.
 inline FieldValueVariant LoadVariant(const BaseField& fd_, const std::byte* fieldPtr_);
@@ -660,8 +657,6 @@ class CompositeField
     FieldInfo::ConstPtr fieldInfo;
 
   public:
-    using CompositeFieldHandler = std::function<std::optional<size_t>(const CompositeField&, std::byte*, size_t)>;
-
     // ---------------------------------------------------------------------------
     //! \brief Default constructor.
     // ---------------------------------------------------------------------------
@@ -697,10 +692,13 @@ class CompositeField
     //!
     //! \param[in] data_ Pointer to the first byte of the borrowed fixed-field slice.
     //! \param[in] size_ Number of bytes in the borrowed slice.
+    //! \param[in] fieldInfo_ The field info describing the slice.
     // ---------------------------------------------------------------------------
-    [[nodiscard]] static CompositeField ViewFixedFields(const std::byte* data_, size_t size_)
+    [[nodiscard]] static CompositeField ViewFixedFields(const std::byte* data_, size_t size_, FieldInfo::ConstPtr fieldInfo_)
     {
-        return CompositeField(FixedFieldRegion::View(data_, size_), std::vector<FieldValueVariant>{});
+        CompositeField view(FixedFieldRegion::View(data_, size_), {});
+        view.fieldInfo = std::move(fieldInfo_);
+        return view;
     }
 
     // ---------------------------------------------------------------------------
@@ -711,64 +709,29 @@ class CompositeField
     // ---------------------------------------------------------------------------
     CompositeField(FieldInfo::ConstPtr fieldInfo_) : fieldInfo(std::move(fieldInfo_))
     {
-        if (fieldInfo)
-        {
-            fixedFields.resize(fieldInfo->fixedFieldBytes);
-            varFields.resize(fieldInfo->varFieldCount);
+        if (!fieldInfo) { return; }
 
-            for (const auto& fieldDef : fieldInfo->messageOrderedFields)
+        fixedFields.resize(fieldInfo->fixedFieldBytes); // Zero-initializes every fixed field
+        varFields.resize(fieldInfo->varFieldCount);
+        for (const auto& fieldDef : fieldInfo->messageOrderedFields)
+        {
+            switch (fieldDef->type)
             {
-                switch (fieldDef->type)
-                {
-                case FIELD_TYPE::FIELD_ARRAY: {
-                    varFields[fieldDef->index] =
-                        FieldArray(std::vector<CompositeField>{}, static_cast<const FieldArrayField&>(*fieldDef).fieldInfo.get());
-                    break;
-                }
-                case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-                    const auto* arrFieldDef = dynamic_cast<const ArrayField*>(fieldDef.get());
-                    const size_t arrayLength = arrFieldDef ? arrFieldDef->arrayLength : 0;
-                    for (size_t i = 0; i < arrayLength; i++)
-                    {
-                        SimpleTypeVisitor(*arrFieldDef, [&](auto&& arg) {
-                            using ValueT = std::decay_t<decltype(arg)>;
-                            SetArrayElement<true>(*arrFieldDef, i, ValueT{});
-                        });
-                    }
-                    break;
-                }
-                case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
-                    SimpleTypeVisitor(*fieldDef, [&](auto&& arg) {
-                        using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
-                        varFields[fieldDef->index] = std::vector<ValueT>{};
-                    });
-                    break;
-                case FIELD_TYPE::STRING: varFields[fieldDef->index] = std::string{}; break;
-                case FIELD_TYPE::ENUM:
-                    switch (fieldDef->dataType.length)
-                    {
-                    case 1: SetFieldValue<true>(fieldDef->index, int8_t{}); break;
-                    case 2: SetFieldValue<true>(fieldDef->index, int16_t{}); break;
-                    case 4: SetFieldValue<true>(fieldDef->index, int32_t{}); break;
-                    default: throw std::runtime_error("CompositeField(): unsupported enum width");
-                    }
-                    break;
-                default:
-                    SimpleTypeVisitor(*fieldDef, [&](auto&& arg) {
-                        using ValueT = std::decay_t<decltype(arg)>;
-                        SetFieldValue<true>(fieldDef->index, ValueT{});
-                    });
-                    break;
-                }
+            case FIELD_TYPE::FIELD_ARRAY:
+                varFields[fieldDef->index] = FieldArray(std::vector<CompositeField>{}, static_cast<const FieldArrayField&>(*fieldDef).fieldInfo);
+                break;
+            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+                SimpleTypeVisitor(*fieldDef, [&](auto&& arg) {
+                    using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
+                    varFields[fieldDef->index] = std::vector<ValueT>{};
+                });
+                break;
+            case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
+            case FIELD_TYPE::STRING: varFields[fieldDef->index] = std::string{}; break;
+            default: break;
             }
         }
     }
-
-    // ---------------------------------------------------------------------------
-    //! Copy constructor and assignment operator
-    // ---------------------------------------------------------------------------
-    CompositeField(const CompositeField& other) : fixedFields(other.fixedFields), varFields(other.varFields), fieldInfo(other.fieldInfo) {}
-    CompositeField& operator=(const CompositeField& other) = default;
 
     // ---------------------------------------------------------------------------
     //! \brief Resize the memory regions of the CompositeField.
@@ -1233,14 +1196,16 @@ class CompositeField
     //! \param[in] field_ The field definition.
     //! \param[out] buffer_ The destination buffer.
     //! \param[in] capacity_ The capacity of the destination buffer.
-    //! \param[in] handler_ Optional writer for composite-backed field array records.
-    //!     Returns bytes written, or std::nullopt on failure; unused for contiguous storage.
+    //! \param[in] handler_ Writer for field array records not stored contiguously, called as
+    //!     handler_(const CompositeField& record, std::byte* buffer, size_t capacity) and returning
+    //!     the bytes written, or std::nullopt on failure. Unused for other fields.
     //! \return The number of bytes written, or zero on failure. Failure may leave
     //!     the destination partially written.
     //! \throws std::runtime_error on invalid index, type mismatch, or insufficient
     //!     buffer capacity.
     // ---------------------------------------------------------------------------
-    size_t WriteFieldToBuffer(const BaseField& field_, std::byte* buffer_, const size_t capacity_, const CompositeFieldHandler& handler_ = {}) const
+    template <typename Handler = std::nullptr_t>
+    size_t WriteFieldToBuffer(const BaseField& field_, std::byte* buffer_, const size_t capacity_, Handler&& handler_ = nullptr) const
     {
         if (buffer_ == nullptr && capacity_ != 0) { throw std::runtime_error("WriteFieldToBuffer(): destination buffer is null"); }
 
@@ -1275,15 +1240,21 @@ class CompositeField
                         if (value.empty()) { return 0; }
                         const std::byte* data = value.GetRawDataPointer();
                         if (data != nullptr) { return copyBytes(data, value.size() * value.GetFieldInfo()->fixedFieldBytes); }
-                        if (!handler_) { throw std::runtime_error("WriteFieldToBuffer(): composite field array requires a handler"); }
-                        size_t written = 0;
-                        const bool success = value.ForEachRecord([&](const CompositeField& record) {
-                            const auto count = handler_(record, written == 0 ? buffer_ : buffer_ + written, capacity_ - written);
-                            if (!count || *count > capacity_ - written) { return false; }
-                            written += *count;
-                            return true;
-                        });
-                        return success ? written : 0;
+                        if constexpr (std::is_null_pointer_v<std::decay_t<Handler>>)
+                        {
+                            throw std::runtime_error("WriteFieldToBuffer(): composite field array requires a handler");
+                        }
+                        else
+                        {
+                            size_t written = 0;
+                            const bool success = value.ForEachRecord([&](const CompositeField& record) {
+                                const std::optional<size_t> count = handler_(record, buffer_ + written, capacity_ - written);
+                                if (!count || *count > capacity_ - written) { return false; }
+                                written += *count;
+                                return true;
+                            });
+                            return success ? written : 0;
+                        }
                     }
                     else if constexpr (std::is_arithmetic_v<T>)
                     {
@@ -1312,13 +1283,14 @@ class CompositeField
     //! \param[in] field_ The field definition.
     //! \param[out] buffer_ The destination buffer.
     //! \param[in] capacity_ The capacity of the destination buffer.
-    //! \param[in] handler_ Optional writer for composite-backed field array records.
-    //! \see WriteFieldToBuffer(const BaseField&, std::byte*, size_t, const CompositeFieldHandler&)
+    //! \param[in] handler_ Writer for field array records not stored contiguously.
+    //! \see WriteFieldToBuffer(const BaseField&, std::byte*, size_t, Handler&&)
     //! \return The number of bytes written.
     //! \throws std::runtime_error on invalid index, type mismatch, or insufficient
     //!     buffer capacity.
     // ---------------------------------------------------------------------------
-    size_t WriteFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_, const CompositeFieldHandler& handler_ = {}) const
+    template <typename Handler = std::nullptr_t>
+    size_t WriteFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_, Handler&& handler_ = nullptr) const
     {
         if (buffer_ == nullptr || *buffer_ == nullptr)
         {
@@ -1326,7 +1298,8 @@ class CompositeField
             throw std::runtime_error("WriteFieldToBuffer(): destination buffer is null");
         }
 
-        const auto written = WriteFieldToBuffer(field_, reinterpret_cast<std::byte*>(*buffer_), static_cast<size_t>(capacity_), handler_);
+        const auto written =
+            WriteFieldToBuffer(field_, reinterpret_cast<std::byte*>(*buffer_), static_cast<size_t>(capacity_), std::forward<Handler>(handler_));
         *buffer_ += written;
         capacity_ -= static_cast<uint32_t>(written);
         return written;
@@ -1359,6 +1332,7 @@ template <typename T> inline FieldValueResult<T> FieldArray::GetFieldValue(const
         if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>)
         {
             const size_t rowOffset = index_ * fieldInfo->fixedFieldBytes;
+            if (rowOffset >= fields->size()) { throw std::out_of_range("FieldArray::GetFieldValue(): index out of range"); }
             if constexpr (!is_specialization_of_v<T, TypedBuffer>)
             {
                 if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return LoadFixedFieldElement<T>(*fields, elementIndex_, field_, rowOffset); }
@@ -1367,7 +1341,7 @@ template <typename T> inline FieldValueResult<T> FieldArray::GetFieldValue(const
         }
         else { throw std::runtime_error("FieldArray::GetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization"); }
     }
-    return std::get<CompositeFieldArray>(storage)[index_].GetFieldValue<T>(field_, elementIndex_);
+    return std::get<CompositeFieldArray>(storage).at(index_).GetFieldValue<T>(field_, elementIndex_);
 }
 
 inline size_t FieldArray::size() const
@@ -1381,9 +1355,9 @@ template <typename Fn> bool FieldArray::ForEachRecord(Fn&& fn_) const
     if (const auto* fields = std::get_if<FixedFieldRegion>(&storage))
     {
         const size_t recordBytes = fieldInfo->fixedFieldBytes;
-        for (size_t i = 0; i < size(); ++i)
+        for (size_t offset = 0; offset < fields->size(); offset += recordBytes)
         {
-            if (!fn_(CompositeField::ViewFixedFields(fields->data() + (i * recordBytes), recordBytes))) { return false; }
+            if (!fn_(CompositeField::ViewFixedFields(fields->data() + offset, recordBytes, fieldInfo))) { return false; }
         }
         return true;
     }
@@ -1441,9 +1415,12 @@ CompositeField FieldArray::FieldArrayRecordView<Mutable>::ReplaceRecord(const Co
 
     auto& fields = std::get<FixedFieldRegion>(fieldArray->storage);
     if (index >= fieldArray->size()) { throw std::out_of_range("ReplaceRecord(): index out of range"); }
-    if (!record_.GetVarFields().empty()) { throw std::runtime_error("FieldArray::ReplaceRecord(): record must not contain variable-length fields"); }
     const size_t recordBytes = fieldArray->fieldInfo->fixedFieldBytes;
-    CompositeField previous(recordBytes, 0);
+    if (!record_.GetVarFields().empty() || record_.GetFixedFields().size() != recordBytes)
+    {
+        throw std::runtime_error("FieldArray::ReplaceRecord(): record must have exactly the array's fixed fields and no variable-length fields");
+    }
+    CompositeField previous(fieldArray->fieldInfo);
     previous.SetFieldValue<true>(0, fields.data() + (index * recordBytes), recordBytes);
     fields.SetFieldValue(index * recordBytes, record_.GetFixedFields().data(), recordBytes);
     return previous;

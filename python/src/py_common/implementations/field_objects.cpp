@@ -381,7 +381,7 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
         // Copy value (minor part of constructor overhead - not worth optimizing)
         owned.emplace_back(CompositeField(*itVal->fieldsPtr));
     }
-    take_ownership(FieldArray(std::move(owned), fieldDef->fieldInfo.get()));
+    take_ownership(FieldArray(std::move(owned), fieldDef->fieldInfo));
 }
 
 template <bool Fixed, typename T> void PyField::set_field_value(size_t ind_, T* val_, size_t n_)
@@ -499,7 +499,7 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
             {
                 // Empty array built from a list: adopt this field's definition
                 fieldArrayVal->fieldDef = fieldArrayDef;
-                *fieldArrayVal->dataPtr = FieldArray(std::vector<CompositeField>{}, fieldArrayDef->fieldInfo.get());
+                *fieldArrayVal->dataPtr = FieldArray(std::vector<CompositeField>{}, fieldArrayDef->fieldInfo);
             }
             if (fieldArrayVal->fieldDef != fieldArrayDef) { throw nb::type_error("FieldArray contains elements of the wrong type!"); }
             auto* cf = GetCompositeField();
