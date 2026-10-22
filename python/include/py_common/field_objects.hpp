@@ -162,8 +162,8 @@ struct PyField
     static nb::object unwrap_for_list(nb::object value);
     static nb::object unwrap_for_dict(nb::object value);
 
-    template <bool Fixed, typename T> void set_field_value(size_t ind_, T* val_, size_t n_ = 1);
-    template <bool Fixed> void set_regular_array(const std::shared_ptr<const ArrayField>& arrFieldDef_, nb::handle value_);
+    template <typename T> void set_field_value(const BaseField& field_, T&& value_);
+    void set_regular_array(const std::shared_ptr<const ArrayField>& arrFieldDef_, nb::handle value_);
 
     friend class PyFieldArray;
 

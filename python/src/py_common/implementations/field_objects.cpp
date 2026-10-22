@@ -39,7 +39,7 @@ PYCOMMON_EXPORT CompositeField* PyField::GetCompositeField() const
     nb::handle owner = std::get<nb::object>(storage);
     if (!nb::isinstance<PyFieldArray>(owner)) { return nullptr; }
 
-    return nb::inst_ptr<PyFieldArray>(owner)->dataPtr->GetCompositeRecord(myFieldIndex);
+    return (*nb::inst_ptr<PyFieldArray>(owner)->dataPtr)[myFieldIndex].GetCompositeField();
 }
 
 PYCOMMON_EXPORT nb::object PyField::py_new(nb::handle cls, nb::kwargs kwargs)
@@ -384,26 +384,21 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
     take_ownership(FieldArray(std::move(owned), fieldDef->fieldInfo));
 }
 
-template <bool Fixed, typename T> void PyField::set_field_value(size_t ind_, T* val_, size_t n_)
+template <typename T> void PyField::set_field_value(const BaseField& field_, T&& value_)
 {
-    if (auto* mb = GetCompositeField()) { mb->SetFieldValue<Fixed>(ind_, val_, n_); }
+    if (auto* mb = GetCompositeField()) { mb->SetFieldValue(field_, std::forward<T>(value_)); }
     else if (std::holds_alternative<nb::object>(storage) && nb::isinstance<PyFieldArray>(std::get<nb::object>(storage)))
     {
-        if constexpr (!Fixed) { throw std::runtime_error("set_field_value(): Variable-length arrays are not valid in this context."); }
-        else
-        {
-            auto parentFieldArray = nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage));
-            (*parentFieldArray->dataPtr)[myFieldIndex].SetFieldValue<Fixed>(ind_, val_, n_);
-        }
+        auto parentFieldArray = nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage));
+        (*parentFieldArray->dataPtr)[myFieldIndex].SetFieldValue(field_, std::forward<T>(value_));
     }
     else { throw std::runtime_error("set_field_value(): unsupported storage type for field access"); }
 }
 
-template <bool Fixed> void PyField::set_regular_array(const ArrayField::ConstPtr& arrFieldDef_, nb::handle value_)
+void PyField::set_regular_array(const ArrayField::ConstPtr& arrFieldDef_, nb::handle value_)
 {
     if (arrFieldDef_ == nullptr) { throw nb::type_error("Array field metadata is missing."); }
 
-    size_t i = 0;
     if (nb::isinstance<nb::str>(value_) || nb::isinstance<nb::bytes>(value_))
     {
         if (arrFieldDef_->isCsv) { throw nb::type_error("String value is not valid for a non-string array."); }
@@ -411,35 +406,22 @@ template <bool Fixed> void PyField::set_regular_array(const ArrayField::ConstPtr
         if (nb::isinstance<nb::str>(value_)) { strVal = nb::cast<nb::str>(value_).c_str(); }
         else { strVal = nb::cast<nb::bytes>(value_).c_str(); }
         if (strVal.size() > arrFieldDef_->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
-        set_field_value<Fixed>(arrFieldDef_->index, reinterpret_cast<const unsigned char*>(strVal.data()), strVal.size());
-        i = strVal.size();
+        std::vector<uint8_t> values(arrFieldDef_->type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? arrFieldDef_->arrayLength : strVal.size());
+        std::copy(strVal.begin(), strVal.end(), values.begin());
+        set_field_value(*arrFieldDef_, std::move(values));
     }
     else if (nb::isinstance<nb::list>(value_))
     {
         auto listVal = nb::cast<nb::list>(value_);
         if (listVal.size() > arrFieldDef_->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
-        if (listVal.size() > 0)
-        {
-            SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
-                using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
-                std::vector<ValueT> temp(listVal.size());
-                for (; i < listVal.size(); i++) { temp[i] = attr_cast<ValueT>(listVal[i]); }
-                set_field_value<Fixed>(arrFieldDef_->index, temp.data(), temp.size());
-            });
-        }
+        SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
+            using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
+            std::vector<ValueT> values(arrFieldDef_->type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? arrFieldDef_->arrayLength : listVal.size());
+            for (size_t index = 0; index < listVal.size(); ++index) { values[index] = attr_cast<ValueT>(listVal[index]); }
+            set_field_value(*arrFieldDef_, std::move(values));
+        });
     }
     else { throw nb::attribute_error("Value cannot be converted to a fixed length array."); }
-    if constexpr (Fixed)
-    {
-        if (arrFieldDef_->arrayLength > i)
-        {
-            SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
-                using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
-                std::vector<ValueT> temp(arrFieldDef_->arrayLength - i);
-                set_field_value<true>(arrFieldDef_->index + (i * sizeof(ValueT)), temp.data(), temp.size());
-            });
-        }
-    }
 }
 
 PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
@@ -462,21 +444,17 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
         case FIELD_TYPE::SIMPLE:
             SimpleTypeVisitor(*entryField, [&](auto&& arg) {
                 auto v = attr_cast<std::decay_t<decltype(arg)>>(value);
-                set_field_value<true>(entryField->index, &v);
+                set_field_value(*entryField, v);
             });
             break;
         case FIELD_TYPE::STRING:
-            if (auto* mb = GetCompositeField()) { mb->SetFieldValue<false>(entryField->index, attr_cast<std::string>(value)); }
+            if (auto* mb = GetCompositeField()) { mb->SetFieldValue(*entryField, attr_cast<std::string>(value)); }
             else { throw nb::attribute_error("STRING types not allowed in fixed-length fields."); }
             break;
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            set_regular_array<true>(std::dynamic_pointer_cast<const ArrayField>(entryField), value);
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            set_regular_array(std::dynamic_pointer_cast<const ArrayField>(entryField), value);
             break;
-        }
-        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            set_regular_array<false>(std::dynamic_pointer_cast<const ArrayField>(entryField), value);
-            break;
-        }
         case FIELD_TYPE::FIELD_ARRAY: {
             nb::object owned_array_obj;
             nb::handle array_handle = value;

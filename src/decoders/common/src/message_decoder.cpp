@@ -259,7 +259,7 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_,
         using T = std::decay_t<decltype(valuePtr)>;
         // Note: T* is just used as a type tag here - SetFieldValue does not dereference the given pointer,
         // so the reinterpret_cast is ok.
-        clCompField_.SetFieldValue<Fixed>(pstMessageDataType_.index, reinterpret_cast<const T*>(*ppucLogBuf_), n);
+        clCompField_.SetFieldValue(pstMessageDataType_, reinterpret_cast<const T*>(*ppucLogBuf_), n);
     });
     *ppucLogBuf_ += pstMessageDataType_.dataType.length * n;
 }
@@ -286,9 +286,9 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         case FIELD_TYPE::ENUM:
             switch (field->dataType.length)
             {
-            case 1: clCompField_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint8_t>(*ppucLogBuf_)); break;
-            case 2: clCompField_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint16_t>(*ppucLogBuf_)); break;
-            case 4: clCompField_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint32_t>(*ppucLogBuf_)); break;
+            case 1: clCompField_.SetFieldValue(*field, LoadValueFromBuffer<uint8_t>(*ppucLogBuf_)); break;
+            case 2: clCompField_.SetFieldValue(*field, LoadValueFromBuffer<uint16_t>(*ppucLogBuf_)); break;
+            case 4: clCompField_.SetFieldValue(*field, LoadValueFromBuffer<uint32_t>(*ppucLogBuf_)); break;
             default:
                 SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeBinary(): Invalid field length\n");
                 throw std::runtime_error("DecodeBinary(): Invalid field length\n");
@@ -296,12 +296,12 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             *ppucLogBuf_ += field->dataType.length;
             break;
         case FIELD_TYPE::RESPONSE_ID:
-            clCompField_.SetFieldValue<true>(field->index, LoadValueFromBuffer<int32_t>(*ppucLogBuf_));
+            clCompField_.SetFieldValue(*field, LoadValueFromBuffer<int32_t>(*ppucLogBuf_));
             *ppucLogBuf_ += sizeof(int32_t);
             break;
         case FIELD_TYPE::RESPONSE_STR: {
             std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), uiMessageLength_ - sizeof(int32_t)); // Remove CRC
-            clCompField_.SetFieldValue<false>(field->index, std::string(sTemp));
+            clCompField_.SetFieldValue(*field, std::string(sTemp));
             // Binary response string is not null terminated or 4 byte aligned
             *ppucLogBuf_ += sTemp.size();
             break;
@@ -319,7 +319,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         case FIELD_TYPE::STRING: {
             // This version of a string is different. It is hopefully null terminated.
             std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_));
-            clCompField_.SetFieldValue<false>(field->index, std::string(sTemp));
+            clCompField_.SetFieldValue(*field, std::string(sTemp));
             *ppucLogBuf_ += sTemp.size() + 1; // + 1 to consume the NULL at the end of the string.
             AddStringFieldPadding(pucTempStart, ppucLogBuf_);
             break;
@@ -428,7 +428,7 @@ template <typename CharType> static STATUS DecodeNonCommaSeparatedAsciiArrayFiel
 // Decode an ASCII array made up of non-comma separated values, e.g. a raw ASCII values or hex representations
 template <typename CharType>
 static STATUS DecodeNonCommaSeparatedAsciiArray(CompositeField& clCompField_, const char** ppcLogBuf_, const BaseField::ConstPtr& field_,
-                                                uint32_t uiArraySize_, bool fixed_)
+                                                uint32_t uiArraySize_)
 {
     std::vector<CharType> vDecodedValues(uiArraySize_);
     for (uint32_t i = 0; i < uiArraySize_; ++i)
@@ -436,8 +436,7 @@ static STATUS DecodeNonCommaSeparatedAsciiArray(CompositeField& clCompField_, co
         STATUS eStatus = DecodeNonCommaSeparatedAsciiArrayField(vDecodedValues[i], ppcLogBuf_);
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
     }
-    if (fixed_) { clCompField_.SetFieldValue<true>(field_->index, std::move(vDecodedValues)); }
-    else { clCompField_.SetFieldValue<false>(field_->index, std::move(vDecodedValues)); }
+    clCompField_.SetFieldValue(*field_, std::move(vDecodedValues));
     return STATUS::SUCCESS;
 }
 
@@ -511,9 +510,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             const int32_t enumValue = GetEnumValue(enumField->enumDef, sEnum);
             switch (enumField->dataType.length)
             {
-            case 1: clCompField_.SetFieldValue<true>(field->index, static_cast<int8_t>(enumValue)); break;
-            case 2: clCompField_.SetFieldValue<true>(field->index, static_cast<int16_t>(enumValue)); break;
-            default: clCompField_.SetFieldValue<true>(field->index, enumValue); break;
+            case 1: clCompField_.SetFieldValue(*field, static_cast<int8_t>(enumValue)); break;
+            case 2: clCompField_.SetFieldValue(*field, static_cast<int16_t>(enumValue)); break;
+            default: clCompField_.SetFieldValue(*field, enumValue); break;
             }
             *ppcLogBuf_ += tokenLength + 1;
             break;
@@ -523,19 +522,19 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             {
             case ',': [[fallthrough]];
             case '*':
-                clCompField_.SetFieldValue<false>(field->index, std::string(""));
+                clCompField_.SetFieldValue(*field, std::string(""));
                 *ppcLogBuf_ += 1;
                 break;
             case '"':
                 // If a field delimiter character is in the string, the previous tokenLength value is invalid.
                 tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '"' character, skipping past the first.
-                clCompField_.SetFieldValue<false>(field->index, std::string(*ppcLogBuf_ + 1, tokenLength)); // + 1 to pass opening double-quote.
+                clCompField_.SetFieldValue(*field, std::string(*ppcLogBuf_ + 1, tokenLength)); // + 1 to pass opening double-quote.
                 // Skip past the first '"', string token and the remaining characters ('"' and ',').
                 *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength + 1, unquotedStringDelimiters.data()) + 2;
                 break;
             default:
                 // Unquoted string: initial tokenLength is the length of the string
-                clCompField_.SetFieldValue<false>(field->index, std::string(*ppcLogBuf_, tokenLength));
+                clCompField_.SetFieldValue(*field, std::string(*ppcLogBuf_, tokenLength));
                 *ppcLogBuf_ += tokenLength + 1;
                 break;
             }
@@ -544,9 +543,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             // Ensure we get the whole response (skip over delimiters in responses)
             tokenLength = strcspn(*ppcLogBuf_, responseDelimiters.data());
             std::string_view sResponse(*ppcLogBuf_, tokenLength);
-            if (sResponse == "OK") { clCompField_.SetFieldValue<true>(field->index, static_cast<int32_t>(1)); }
+            if (sResponse == "OK") { clCompField_.SetFieldValue(*field, static_cast<int32_t>(1)); }
             // Note: This won't match responses with format specifiers in them (%d, %s, etc.), they will be given id=0
-            else { clCompField_.SetFieldValue<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length()))); }
+            else { clCompField_.SetFieldValue(*field, GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length()))); }
             // Do not advance buffer, need to reprocess this field for the following RESPONSE_STR.
             bEarlyEndOfMessage = false;
             break;
@@ -554,7 +553,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
         case FIELD_TYPE::RESPONSE_STR:
             // Response strings aren't surrounded by double quotes, ensure we get the whole response (skip over certain delimiters in responses)
             tokenLength = strcspn(*ppcLogBuf_, responseDelimiters.data());
-            clCompField_.SetFieldValue<false>(field->index, std::string(*ppcLogBuf_, tokenLength));
+            clCompField_.SetFieldValue(*field, std::string(*ppcLogBuf_, tokenLength));
             *ppcLogBuf_ += tokenLength + 1;
             break;
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
@@ -591,9 +590,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 {
                     if (fixed)
                     {
-                        if (uiArraySize > 0) { clCompField_.SetFieldValue<true>(field->index, vDecodedValues.data(), uiArraySize); }
+                        if (uiArraySize > 0) { clCompField_.SetFieldValue(*field, vDecodedValues.data(), uiArraySize); }
                     }
-                    else { clCompField_.SetFieldValue<false>(field->index, std::move(vDecodedValues)); }
+                    else { clCompField_.SetFieldValue(*field, std::move(vDecodedValues)); }
                 }
                 *ppcLogBuf_ += 1;
             }
@@ -602,15 +601,14 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 std::string sDecodedValue;
                 eStatus = DecodeStringAsciiArray(sDecodedValue, ppcLogBuf_, uiArraySize);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
-                if (fixed) { clCompField_.SetFieldValue<true>(field->index, std::move(sDecodedValue)); }
-                else { clCompField_.SetFieldValue<false>(field->index, std::move(sDecodedValue)); }
+                clCompField_.SetFieldValue(*field, std::move(sDecodedValue));
                 *ppcLogBuf_ += 1;
             }
             else if (!field->isCsv)
             {
                 eStatus = field->dataType.name == DATA_TYPE::CHAR
-                              ? DecodeNonCommaSeparatedAsciiArray<int8_t>(clCompField_, ppcLogBuf_, field, uiArraySize, fixed)
-                              : DecodeNonCommaSeparatedAsciiArray<uint8_t>(clCompField_, ppcLogBuf_, field, uiArraySize, fixed);
+                              ? DecodeNonCommaSeparatedAsciiArray<int8_t>(clCompField_, ppcLogBuf_, field, uiArraySize)
+                              : DecodeNonCommaSeparatedAsciiArray<uint8_t>(clCompField_, ppcLogBuf_, field, uiArraySize);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 *ppcLogBuf_ += 1;
             }
@@ -621,7 +619,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                     SimpleTypeVisitor(*field, [&](auto&& arg) {
                         using T = std::decay_t<decltype(arg)>;
                         using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
-                        clCompField_.SetFieldValue<false>(field->index, std::vector<StoredType>(uiArraySize));
+                        clCompField_.SetFieldValue(*field, std::vector<StoredType>(uiArraySize));
                     });
                 }
                 for (uint32_t i = 0; i < uiArraySize; ++i)
@@ -731,9 +729,9 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
 
                 switch (enumField->dataType.length)
                 {
-                case 1: clCompField_.SetFieldValue<true>(field->index, static_cast<int8_t>(parsedEnumValue)); break;
-                case 2: clCompField_.SetFieldValue<true>(field->index, static_cast<int16_t>(parsedEnumValue)); break;
-                default: clCompField_.SetFieldValue<true>(field->index, parsedEnumValue); break;
+                case 1: clCompField_.SetFieldValue(*field, static_cast<int8_t>(parsedEnumValue)); break;
+                case 2: clCompField_.SetFieldValue(*field, static_cast<int16_t>(parsedEnumValue)); break;
+                default: clCompField_.SetFieldValue(*field, parsedEnumValue); break;
                 }
             }
             break;
@@ -742,7 +740,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: {
             std::string_view strValue;
-            if (clField.get(strValue) == simdjson::SUCCESS) { clCompField_.SetFieldValue<false>(field->index, std::string(strValue)); }
+            if (clField.get(strValue) == simdjson::SUCCESS) { clCompField_.SetFieldValue(*field, std::string(strValue)); }
             break;
         }
 
@@ -750,10 +748,10 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
             std::string_view sResponse;
             if (clField.get(sResponse) == simdjson::SUCCESS)
             {
-                if (sResponse == "OK") { clCompField_.SetFieldValue<true>(field->index, 1); }
+                if (sResponse == "OK") { clCompField_.SetFieldValue(*field, 1); }
                 else
                 {
-                    clCompField_.SetFieldValue<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length())));
+                    clCompField_.SetFieldValue(*field, GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length())));
                 }
             }
             break;
@@ -775,9 +773,9 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                         if (strValue.size() > uiArraySize) { return STATUS::MALFORMED_INPUT; }
                         std::vector<uint8_t> vDecodedValues(uiArraySize, 0);
                         for (size_t i = 0; i < strValue.size(); ++i) { vDecodedValues[i] = static_cast<uint8_t>(strValue[i]); }
-                        if (!vDecodedValues.empty()) { clCompField_.SetFieldValue<true>(field->index, vDecodedValues.data(), vDecodedValues.size()); }
+                        if (!vDecodedValues.empty()) { clCompField_.SetFieldValue(*field, vDecodedValues.data(), vDecodedValues.size()); }
                     }
-                    else { clCompField_.SetFieldValue<false>(field->index, std::string(strValue)); }
+                    else { clCompField_.SetFieldValue(*field, std::string(strValue)); }
                 }
             }
             else
@@ -800,7 +798,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                             }
                             if (!vDecodedValues.empty())
                             {
-                                clCompField_.SetFieldValue<true>(field->index, vDecodedValues.data(), vDecodedValues.size());
+                                clCompField_.SetFieldValue(*field, vDecodedValues.data(), vDecodedValues.size());
                             }
                         }
                         else
@@ -813,7 +811,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                                 if (it.get(value) != simdjson::SUCCESS) { return STATUS::MALFORMED_INPUT; }
                                 vDecodedValues.emplace_back(static_cast<uint8_t>(value));
                             }
-                            clCompField_.SetFieldValue<false>(field->index, std::move(vDecodedValues));
+                            clCompField_.SetFieldValue(*field, std::move(vDecodedValues));
                         }
                     }
                     else if (field->conversionHash == CalculateBlockCrc32("P"))
@@ -831,7 +829,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                             }
                             if (!vDecodedValues.empty())
                             {
-                                clCompField_.SetFieldValue<true>(field->index, vDecodedValues.data(), vDecodedValues.size());
+                                clCompField_.SetFieldValue(*field, vDecodedValues.data(), vDecodedValues.size());
                             }
                         }
                         else
@@ -844,7 +842,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                                 if (it.get(value) != simdjson::SUCCESS) { return STATUS::MALFORMED_INPUT; }
                                 vDecodedValues.emplace_back(static_cast<int8_t>(value));
                             }
-                            clCompField_.SetFieldValue<false>(field->index, std::move(vDecodedValues));
+                            clCompField_.SetFieldValue(*field, std::move(vDecodedValues));
                         }
                     }
                     else { return STATUS::MALFORMED_INPUT; }
@@ -950,7 +948,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, CompositeField& stI
         if (msgFieldInfo.varFieldCount == 0)
         {
             // Fast path: if there are no variable-length fields, copy the entire message to the fixed region
-            stInterMessage_.SetFieldValue<true>(0, reinterpret_cast<const std::byte*>(pucTempInData), msgFieldInfo.fixedFieldBytes);
+            stInterMessage_.SetFixedData(reinterpret_cast<const std::byte*>(pucTempInData), msgFieldInfo.fixedFieldBytes);
             return STATUS::SUCCESS;
         }
         return DecodeBinary(msgFieldInfo, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
