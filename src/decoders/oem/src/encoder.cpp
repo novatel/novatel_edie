@@ -460,6 +460,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
     STATUS eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, eHeaderType, eFormat_);
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    uiBufferSize_ -= stMessageData_.uiMessageHeaderLength;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
@@ -470,6 +471,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageBodyLength;
+    uiBufferSize_ -= stMessageData_.uiMessageBodyLength;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
