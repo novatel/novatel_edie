@@ -88,7 +88,6 @@ class MessageDecoderBase
                                      const char* pcBufEnd = nullptr) const;
     [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, CompositeField& clCompField_) const;
 
-    template <bool Fixed = true>
     static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                   size_t n = 1);
     void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, CompositeField& clCompField_,
