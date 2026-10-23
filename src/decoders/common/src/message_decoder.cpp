@@ -256,9 +256,13 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_,
 {
     SimpleTypeVisitor(pstMessageDataType_, [&](auto valuePtr) {
         using T = std::decay_t<decltype(valuePtr)>;
-        // Note: T* is just used as a type tag here - SetFieldValue does not dereference the given pointer,
-        // so the reinterpret_cast is ok.
-        clCompField_.SetFieldValue(pstMessageDataType_, reinterpret_cast<const T*>(*ppucLogBuf_), n);
+        if (pstMessageDataType_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY ||
+            pstMessageDataType_.type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+        {
+            const auto buf = TypedBuffer<T>(reinterpret_cast<const std::byte*>(*ppucLogBuf_), n);
+            clCompField_.SetFieldValue(pstMessageDataType_, buf);
+        }
+        else { clCompField_.SetFieldValue(pstMessageDataType_, LoadValueFromBuffer<T>(*ppucLogBuf_)); }
     });
     *ppucLogBuf_ += pstMessageDataType_.dataType.length * n;
 }
@@ -585,7 +589,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 {
                     if (fixed)
                     {
-                        if (uiArraySize > 0) { clCompField_.SetFieldValue(*field, vDecodedValues.data(), uiArraySize); }
+                        if (uiArraySize > 0) { clCompField_.SetFieldValue(*field, vDecodedValues); }
                     }
                     else { clCompField_.SetFieldValue(*field, std::move(vDecodedValues)); }
                 }
@@ -768,7 +772,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                         if (strValue.size() > uiArraySize) { return STATUS::MALFORMED_INPUT; }
                         std::vector<uint8_t> vDecodedValues(uiArraySize, 0);
                         for (size_t i = 0; i < strValue.size(); ++i) { vDecodedValues[i] = static_cast<uint8_t>(strValue[i]); }
-                        if (!vDecodedValues.empty()) { clCompField_.SetFieldValue(*field, vDecodedValues.data(), vDecodedValues.size()); }
+                        if (!vDecodedValues.empty()) { clCompField_.SetFieldValue(*field, vDecodedValues); }
                     }
                     else { clCompField_.SetFieldValue(*field, std::string(strValue)); }
                 }
@@ -793,7 +797,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                             }
                             if (!vDecodedValues.empty())
                             {
-                                clCompField_.SetFieldValue(*field, vDecodedValues.data(), vDecodedValues.size());
+                                clCompField_.SetFieldValue(*field, vDecodedValues);
                             }
                         }
                         else
@@ -824,7 +828,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                             }
                             if (!vDecodedValues.empty())
                             {
-                                clCompField_.SetFieldValue(*field, vDecodedValues.data(), vDecodedValues.size());
+                                clCompField_.SetFieldValue(*field, vDecodedValues);
                             }
                         }
                         else
