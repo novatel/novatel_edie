@@ -24,6 +24,7 @@
 // ! \file novatel_test.cpp
 // ===============================================================================
 
+#include <algorithm>
 #include <chrono>
 #include <climits>
 // TODO: C++ 14 tech-debt - codecvt is deprecated in C++ 17 and removed in C++ 20 without direct replacement
@@ -3190,6 +3191,48 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
               pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, HEADER_TYPE::STANDARD,
                                        ENCODE_FORMAT::UNSPECIFIED));
 }
+
+// Suite parameterized by encode formats
+class EncodeFormatTest : public DecodeEncodeTest, public ::testing::WithParamInterface<ENCODE_FORMAT>
+{
+};
+
+TEST_P(EncodeFormatTest, ENCODE_NO_BUFFER_OVERFLOW_WHEN_BUFFER_TOO_SMALL)
+{
+    // Arrange
+    const ENCODE_FORMAT eFormat = GetParam();
+    unsigned char aucLog[] = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n";
+    IntermediateHeader stHeader;
+    CompositeField stMessage;
+    MetaDataStruct stMetaData;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyHeaderDecoder->Decode(aucLog, stHeader, stMetaData));
+    ASSERT_EQ(STATUS::SUCCESS, pclMyMessageDecoder->Decode(aucLog + stMetaData.uiHeaderLength, stMessage, stMetaData));
+
+    static constexpr unsigned char ucGuard = 0xA5;
+    std::vector<unsigned char> buffer(MAX_ASCII_MESSAGE_LENGTH, ucGuard);
+    unsigned char* pucBuffer = buffer.data();
+    MessageDataStruct stMessageData;
+
+    // Determine a barely insufficient buffer length
+    (void)pclMyEncoder->Encode(&pucBuffer, static_cast<uint32_t>(buffer.size()), stHeader, stMessage, stMessageData, eFormat);
+    const uint32_t uiBarelyInsufficientBufferLength = stMessageData.uiMessageLength - 1;
+    // Fill buffer with guard value to identify where data is written
+    std::fill(buffer.begin(), buffer.end(), ucGuard);
+
+    // Act
+    STATUS eResult = pclMyEncoder->Encode(&pucBuffer, uiBarelyInsufficientBufferLength, stHeader, stMessage, stMessageData, eFormat);
+
+    // Assert
+    // Confirm that encode failed
+    EXPECT_EQ(STATUS::BUFFER_FULL, eResult);
+    // Check that encoder did not write past buffer end
+    EXPECT_TRUE(std::all_of(buffer.begin() + uiBarelyInsufficientBufferLength, buffer.end(), [](unsigned char c) { return c == ucGuard; }));
+}
+
+INSTANTIATE_TEST_SUITE_P(AllFormats, EncodeFormatTest,
+                         ::testing::Values(ENCODE_FORMAT::ASCII, ENCODE_FORMAT::ABBREV_ASCII, ENCODE_FORMAT::BINARY,
+                                           ENCODE_FORMAT::FLATTENED_BINARY, ENCODE_FORMAT::JSON),
+                         [](const ::testing::TestParamInfo<ENCODE_FORMAT>& info_) { return EncodeFormatToString(info_.param); });
 
 // -------------------------------------------------------------------------------------------------------
 // ASCII Response Decode/Encode Unit Tests
