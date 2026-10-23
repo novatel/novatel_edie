@@ -275,7 +275,6 @@ void MessageDecoderBase::InitFieldMaps()
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <bool Fixed>
 void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                            size_t n)
 {
@@ -287,10 +286,6 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_,
     });
     *ppucLogBuf_ += pstMessageDataType_.dataType.length * n;
 }
-
-// explicit template instantiations
-template void MessageDecoderBase::DecodeBinaryField<true>(const BaseField&, const unsigned char**, CompositeField&, size_t);
-template void MessageDecoderBase::DecodeBinaryField<false>(const BaseField&, const unsigned char**, CompositeField&, size_t);
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
@@ -343,7 +338,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 
         switch (field->type)
         {
-        case FIELD_TYPE::SIMPLE: DecodeBinaryField<true>(*field, ppucLogBuf_, clCompField_, 1); break;
+        case FIELD_TYPE::SIMPLE: DecodeBinaryField(*field, ppucLogBuf_, clCompField_, 1); break;
         case FIELD_TYPE::ENUM:
             switch (fieldTypeLength)
             {
@@ -373,14 +368,14 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             {
                 return malformed("Not enough space for fixed length array");
             }
-            DecodeBinaryField<true>(*field, ppucLogBuf_, clCompField_, uiArraySize);
+            DecodeBinaryField(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
             if ((uiArraySize != 0 && !alignBufToField(field->dataType.length)) || bytesRemaining() < size_t{uiArraySize} * field->dataType.length)
             {
                 return malformed("Not enough space for variable length array");
             }
-            DecodeBinaryField<false>(*field, ppucLogBuf_, clCompField_, uiArraySize);
+            DecodeBinaryField(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
         case FIELD_TYPE::STRING: {
             const auto* end = static_cast<const unsigned char*>(std::memchr(*ppucLogBuf_, 0, bytesRemaining()));
