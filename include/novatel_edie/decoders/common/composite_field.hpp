@@ -443,11 +443,16 @@ template <typename T>
 }
 
 //! Throw if count_ values of type T do not fit in the fixed-region bytes of field_.
-template <typename T> void CheckFixedFieldFits(const BaseField& field_, size_t count_)
+template <typename T> void CheckFixedFieldSize(const BaseField& field_, size_t count_)
 {
     size_t capacity = field_.dataType.length;
-    if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { capacity *= static_cast<const ArrayField&>(field_).arrayLength; }
-    if (count_ * sizeof(T) > capacity) { throw std::runtime_error("SetFieldValue(): values do not fit in the field"); }
+    if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
+    {
+        const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
+        if (arrayField == nullptr) { throw std::runtime_error("CheckFixedFieldSize(): missing fixed array metadata"); }
+        capacity *= arrayField->arrayLength;
+    }
+    if (count_ * sizeof(T) > capacity) { throw std::runtime_error("CheckFixedFieldSize(): values do not fit in the field"); }
 }
 
 // ---------------------------------------------------------------------------
@@ -1003,7 +1008,7 @@ class CompositeField
         else if (fieldDef_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY || fieldDef_.type == FIELD_TYPE::SIMPLE ||
                  fieldDef_.type == FIELD_TYPE::ENUM || fieldDef_.type == FIELD_TYPE::RESPONSE_ID)
         {
-            CheckFixedFieldFits<T>(fieldDef_, count_);
+            CheckFixedFieldSize<T>(fieldDef_, count_);
             if (count_ != 0) { fixedFields.SetFieldValue(fieldDef_.index, values_, count_); }
         }
         else { throw std::runtime_error("SetFieldValue(): pointer values require a scalar or regular array field"); }
@@ -1276,7 +1281,7 @@ template <typename T> void FieldArray::SetFieldValue(const BaseField& fieldDef_,
         throw std::runtime_error("SetFieldValue(): contiguous records do not support variable-length fields");
     }
     if (count_ != 0 && values_ == nullptr) { throw std::runtime_error("SetFieldValue(): source pointer is null"); }
-    CheckFixedFieldFits<T>(fieldDef_, count_);
+    CheckFixedFieldSize<T>(fieldDef_, count_);
     if (count_ != 0) { std::get<FixedFieldRegion>(storage).SetFieldValue(index_ * fieldInfo->fixedFieldBytes + fieldDef_.index, values_, count_); }
 }
 
