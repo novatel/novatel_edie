@@ -352,7 +352,7 @@ constexpr uint32_t SIGNALS_BITS = 16;
 
 // Valid limits for various Reference Primary/Secondary Blocks
 constexpr int32_t SIG_RBLK_INVALID_PHR = -4194304;
-constexpr int32_t PSIG_RBLK_INVALID_DOPPLER = -33554432;
+constexpr std::array<int32_t, 2> RBLK_INVALID_DOPPLER = {-(1 << 27), -(1 << 15)};
 constexpr int32_t SSIG_RBLK_INVALID_PSR = -524288;
 
 // Bitfield sizes for the Measurement Block Header
@@ -370,7 +370,7 @@ constexpr uint32_t SIG_BLK_ADR_STDDEV_BITS = 5;
 constexpr float SIG_BLK_CNO_SCALE_FACTOR = 0.05F;
 constexpr double SIG_BLK_PSR_SCALE_FACTOR = 0.0005;
 constexpr double SIG_BLK_PHR_SCALE_FACTOR = 0.0001;
-constexpr double SIG_BLK_DOPPLER_SCALE_FACTOR = 0.0001;
+constexpr std::array<double, 2> SIG_BLK_DOPPLER_SCALE_FACTOR = {0.0001, 0.0002};
 
 // Bitfield sizes for the Primary and Secondary Reference Signal Measurement Blocks
 constexpr uint64_t SSIG_RBLK_PSR_SIGNEXT_MASK = 0xFFFFFFFFFFF00000;
@@ -379,7 +379,7 @@ constexpr uint32_t RBLK_PHR_SIGNEXT_MASK = 0xFF800000;
 constexpr std::array<uint32_t, 2> RBLK_PSR_BITS = {37, 20};
 constexpr uint32_t RBLK_PHR_BITS = 23;
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_BITS = {28, 16};
-constexpr std::array<uint32_t, 2> RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
+constexpr std::array<uint32_t, 2> RBLK_DOPPLER_SIGNEXT_MASK = {0xF0000000, 0xFFFF0000};
 constexpr std::array<int64_t, 2> RBLK_INVALID_PSR = {137438953471, -524288};
 
 } // namespace rangecmp5
