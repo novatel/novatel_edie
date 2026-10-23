@@ -536,6 +536,34 @@ TEST(MessageDecoderContainerTypesTest, RecordViewSetFieldValueForBothStorageType
     }
 }
 
+TEST(MessageDecoderContainerTypesTest, PointerSetFieldValueRejectsCountLargerThanField)
+{
+    auto valueField = std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto arrayField = std::make_shared<ArrayField>("array", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%u", DATA_TYPE::UINT, 2);
+    auto nextField = std::make_shared<BaseField>("next", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto fieldInfo = BuildFieldInfo({valueField, arrayField, nextField});
+    const uint32_t values[] = {1U, 2U, 3U};
+    const uint64_t wide = 4U;
+
+    // Each write is too large for its field and would overwrite the field after it
+    CompositeField body(fieldInfo);
+    EXPECT_THROW(body.SetFieldValue(*valueField, values, 2), std::runtime_error);
+    EXPECT_THROW(body.SetFieldValue(*arrayField, values, 3), std::runtime_error);
+    EXPECT_THROW(body.SetFieldValue(*valueField, &wide, 1), std::runtime_error);
+    EXPECT_EQ(body.GetFieldValue<uint32_t>(*arrayField), 0U);
+    EXPECT_EQ(body.GetFieldValue<uint32_t>(*nextField), 0U);
+
+    FieldArray arrays[] = {FieldArray({CompositeField(fieldInfo)}, fieldInfo),
+                           FieldArray(std::vector<std::byte>(fieldInfo->fixedFieldBytes), fieldInfo)};
+    for (auto& array : arrays)
+    {
+        EXPECT_THROW(array[0].SetFieldValue(*valueField, values, 2), std::runtime_error);
+        EXPECT_THROW(array[0].SetFieldValue(*arrayField, values, 3), std::runtime_error);
+        EXPECT_EQ(array[0].GetFieldValue<uint32_t>(*arrayField), 0U);
+        EXPECT_EQ(array[0].GetFieldValue<uint32_t>(*nextField), 0U);
+    }
+}
+
 TEST(MessageDecoderContainerTypesTest, RecordViewSetFieldValueVariableFields)
 {
     auto valueField = std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);

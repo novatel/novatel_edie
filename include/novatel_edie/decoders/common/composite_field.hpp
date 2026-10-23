@@ -442,6 +442,14 @@ template <typename T>
     throw std::runtime_error("GetFieldValue<T>(): field must be an array type or element index must be zero");
 }
 
+//! Throw if count_ values of type T do not fit in the fixed-region bytes of field_.
+template <typename T> void CheckFixedFieldFits(const BaseField& field_, size_t count_)
+{
+    size_t capacity = field_.dataType.length;
+    if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { capacity *= static_cast<const ArrayField&>(field_).arrayLength; }
+    if (count_ * sizeof(T) > capacity) { throw std::runtime_error("SetFieldValue(): values do not fit in the field"); }
+}
+
 // ---------------------------------------------------------------------------
 //! \class FieldArray
 //! \brief The value of a FIELD_ARRAY field.
@@ -995,6 +1003,7 @@ class CompositeField
         else if (fieldDef_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY || fieldDef_.type == FIELD_TYPE::SIMPLE ||
                  fieldDef_.type == FIELD_TYPE::ENUM || fieldDef_.type == FIELD_TYPE::RESPONSE_ID)
         {
+            CheckFixedFieldFits<T>(fieldDef_, count_);
             if (count_ != 0) { fixedFields.SetFieldValue(fieldDef_.index, values_, count_); }
         }
         else { throw std::runtime_error("SetFieldValue(): pointer values require a scalar or regular array field"); }
@@ -1267,6 +1276,7 @@ template <typename T> void FieldArray::SetFieldValue(const BaseField& fieldDef_,
         throw std::runtime_error("SetFieldValue(): contiguous records do not support variable-length fields");
     }
     if (count_ != 0 && values_ == nullptr) { throw std::runtime_error("SetFieldValue(): source pointer is null"); }
+    CheckFixedFieldFits<T>(fieldDef_, count_);
     if (count_ != 0) { std::get<FixedFieldRegion>(storage).SetFieldValue(index_ * fieldInfo->fixedFieldBytes + fieldDef_.index, values_, count_); }
 }
 

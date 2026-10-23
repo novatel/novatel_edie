@@ -251,7 +251,6 @@ void MessageDecoderBase::InitFieldMaps()
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <bool Fixed>
 void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                            size_t n)
 {
@@ -263,10 +262,6 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_,
     });
     *ppucLogBuf_ += pstMessageDataType_.dataType.length * n;
 }
-
-// explicit template instantiations
-template void MessageDecoderBase::DecodeBinaryField<true>(const BaseField&, const unsigned char**, CompositeField&, size_t);
-template void MessageDecoderBase::DecodeBinaryField<false>(const BaseField&, const unsigned char**, CompositeField&, size_t);
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
@@ -282,7 +277,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 
         switch (field->type)
         {
-        case FIELD_TYPE::SIMPLE: DecodeBinaryField<true>(*field, ppucLogBuf_, clCompField_, 1); break;
+        case FIELD_TYPE::SIMPLE: DecodeBinaryField(*field, ppucLogBuf_, clCompField_, 1); break;
         case FIELD_TYPE::ENUM:
             switch (field->dataType.length)
             {
@@ -308,12 +303,12 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         }
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
             const uint32_t uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength;
-            DecodeBinaryField<true>(*field, ppucLogBuf_, clCompField_, uiArraySize);
+            DecodeBinaryField(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
             const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), clCompField_);
-            DecodeBinaryField<false>(*field, ppucLogBuf_, clCompField_, uiArraySize);
+            DecodeBinaryField(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
         }
         case FIELD_TYPE::STRING: {
