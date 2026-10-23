@@ -24,6 +24,7 @@
 // ! \file novatel_test.cpp
 // ===============================================================================
 
+#include <algorithm>
 #include <chrono>
 #include <climits>
 // TODO: C++ 14 tech-debt - codecvt is deprecated in C++ 17 and removed in C++ 20 without direct replacement
@@ -3189,6 +3190,31 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     ASSERT_EQ(STATUS::UNSUPPORTED,
               pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, HEADER_TYPE::STANDARD,
                                        ENCODE_FORMAT::UNSPECIFIED));
+}
+
+TEST_F(DecodeEncodeTest, ENCODE_NO_BUFFER_OVERFLOW_WHEN_BUFFER_TOO_SMALL)
+{
+    unsigned char aucLog[] = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n";
+    IntermediateHeader stHeader;
+    CompositeField stMessage;
+    MetaDataStruct stMetaData;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyHeaderDecoder->Decode(aucLog, stHeader, stMetaData));
+    ASSERT_EQ(STATUS::SUCCESS, pclMyMessageDecoder->Decode(aucLog + stMetaData.uiHeaderLength, stMessage, stMetaData));
+
+    static constexpr unsigned char ucGuard = 0xA5;
+    for (const auto eFormat : {ENCODE_FORMAT::ASCII, ENCODE_FORMAT::ABBREV_ASCII, ENCODE_FORMAT::BINARY, ENCODE_FORMAT::FLATTENED_BINARY, ENCODE_FORMAT::JSON})
+    {
+        SCOPED_TRACE(static_cast<int>(eFormat));
+        std::vector<unsigned char> buffer(MAX_ASCII_MESSAGE_LENGTH, ucGuard);
+        unsigned char* pucBuffer = buffer.data();
+        MessageDataStruct stMessageData;
+        ASSERT_EQ(STATUS::SUCCESS, pclMyEncoder->Encode(&pucBuffer, static_cast<uint32_t>(buffer.size()), stHeader, stMessage, stMessageData, eFormat));
+        const uint32_t uiTooSmall = stMessageData.uiMessageLength - 1;
+
+        std::fill(buffer.begin(), buffer.end(), ucGuard);
+        EXPECT_EQ(STATUS::BUFFER_FULL, pclMyEncoder->Encode(&pucBuffer, uiTooSmall, stHeader, stMessage, stMessageData, eFormat));
+        EXPECT_TRUE(std::all_of(buffer.begin() + uiTooSmall, buffer.end(), [](unsigned char c) { return c == ucGuard; }));
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------
