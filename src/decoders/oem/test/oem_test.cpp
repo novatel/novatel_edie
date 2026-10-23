@@ -24,6 +24,7 @@
 // ! \file novatel_test.cpp
 // ===============================================================================
 
+#include <algorithm>
 #include <chrono>
 #include <climits>
 // TODO: C++ 14 tech-debt - codecvt is deprecated in C++ 17 and removed in C++ 20 without direct replacement
@@ -72,7 +73,6 @@ template <typename FramerType> class FramerTest : public ::testing::Test
         pclMyFramer = std::make_unique<FramerType>(pclMyFixedBuffer);
         pclMyFramer->SetReportUnknownBytes(true);
         pclMyFramer->SetPayloadOnly(false);
-        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
 
     // Per-test-suite teardown
@@ -87,6 +87,7 @@ template <typename FramerType> class FramerTest : public ::testing::Test
   public:
     template <DECODE_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
     {
+        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(uiFrameLength_);
         MetaDataStruct stExpectedMetaData;
         stExpectedMetaData.eFormat = F;
         stExpectedMetaData.uiLength = uiLength_;
@@ -118,6 +119,7 @@ template <typename FramerType> class FramerTest : public ::testing::Test
 
     static void FlushFramer()
     {
+        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(MAX_ASCII_MESSAGE_LENGTH);
         while (pclMyFramer->Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
     }
 };
@@ -349,6 +351,13 @@ TYPED_TEST(AsciiFramerTest, ASCII_TRICK)
     this->template FramerHelper<DECODE_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
+TYPED_TEST(AsciiFramerTest, ASCII_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
+}
+
 // -------------------------------------------------------------------------------------------------------
 // Binary Framer Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -513,6 +522,13 @@ TYPED_TEST(BinaryFramerTest, BINARY_TRICK)
     this->template FramerHelper<DECODE_FORMAT::BINARY, STATUS::SUCCESS>(104, MAX_BINARY_MESSAGE_LENGTH);
 }
 
+TYPED_TEST(BinaryFramerTest, BINARY_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
+}
+
 // -------------------------------------------------------------------------------------------------------
 // Short ASCII Framer Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -648,6 +664,13 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_TRICK)
         this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     }
     this->template FramerHelper<DECODE_FORMAT::ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+}
+
+TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -796,6 +819,13 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_TRICK)
         this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, MAX_SHORT_BINARY_MESSAGE_LENGTH);
     }
     this->template FramerHelper<DECODE_FORMAT::BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+}
+
+TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1104,6 +1134,13 @@ TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_SEGMENTED)
     ASSERT_EQ(stTestMetaData, stExpectedMetaData);
     ASSERT_EQ(uiLogSize, uiBytesWritten);
     this->FlushFramer();
+}
+
+TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -3155,6 +3192,48 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
                                        ENCODE_FORMAT::UNSPECIFIED));
 }
 
+// Suite parameterized by encode formats
+class EncodeFormatTest : public DecodeEncodeTest, public ::testing::WithParamInterface<ENCODE_FORMAT>
+{
+};
+
+TEST_P(EncodeFormatTest, ENCODE_NO_BUFFER_OVERFLOW_WHEN_BUFFER_TOO_SMALL)
+{
+    // Arrange
+    const ENCODE_FORMAT eFormat = GetParam();
+    unsigned char aucLog[] = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n";
+    IntermediateHeader stHeader;
+    CompositeField stMessage;
+    MetaDataStruct stMetaData;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyHeaderDecoder->Decode(aucLog, stHeader, stMetaData));
+    ASSERT_EQ(STATUS::SUCCESS, pclMyMessageDecoder->Decode(aucLog + stMetaData.uiHeaderLength, stMessage, stMetaData));
+
+    static constexpr unsigned char ucGuard = 0xA5;
+    std::vector<unsigned char> buffer(MAX_ASCII_MESSAGE_LENGTH, ucGuard);
+    unsigned char* pucBuffer = buffer.data();
+    MessageDataStruct stMessageData;
+
+    // Determine a barely insufficient buffer length
+    (void)pclMyEncoder->Encode(&pucBuffer, static_cast<uint32_t>(buffer.size()), stHeader, stMessage, stMessageData, eFormat);
+    const uint32_t uiBarelyInsufficientBufferLength = stMessageData.uiMessageLength - 1;
+    // Fill buffer with guard value to identify where data is written
+    std::fill(buffer.begin(), buffer.end(), ucGuard);
+
+    // Act
+    STATUS eResult = pclMyEncoder->Encode(&pucBuffer, uiBarelyInsufficientBufferLength, stHeader, stMessage, stMessageData, eFormat);
+
+    // Assert
+    // Confirm that encode failed
+    EXPECT_EQ(STATUS::BUFFER_FULL, eResult);
+    // Check that encoder did not write past buffer end
+    EXPECT_TRUE(std::all_of(buffer.begin() + uiBarelyInsufficientBufferLength, buffer.end(), [](unsigned char c) { return c == ucGuard; }));
+}
+
+INSTANTIATE_TEST_SUITE_P(AllFormats, EncodeFormatTest,
+                         ::testing::Values(ENCODE_FORMAT::ASCII, ENCODE_FORMAT::ABBREV_ASCII, ENCODE_FORMAT::BINARY,
+                                           ENCODE_FORMAT::FLATTENED_BINARY, ENCODE_FORMAT::JSON),
+                         [](const ::testing::TestParamInfo<ENCODE_FORMAT>& info_) { return EncodeFormatToString(info_.param); });
+
 // -------------------------------------------------------------------------------------------------------
 // ASCII Response Decode/Encode Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -4220,6 +4299,25 @@ TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
 
     ASSERT_EQ(pclParser->Flush(), 0);
     ASSERT_EQ(numSuccess, 2);
+}
+
+TEST_F(ParserTest, PARSER_NO_BUFFER_OVERREAD_WITH_INCOMPLETE_ABBREV_ASCII_LOG)
+{
+    MessageDataStruct messageData;
+    IntermediateHeader header;
+    CompositeField message;
+    MetaDataStruct metadata;
+    Parser parser(std::getenv("TEST_DATABASE_PATH"));
+    parser.SetReturnUnknownBytes(true);
+    
+    const auto fill = std::vector<uint8_t>(MESSAGE_SIZE_MAX, uint8_t{0xFF});
+    ASSERT_EQ(parser.Write(fill.data(), fill.size()), fill.size());
+    ASSERT_EQ(parser.Read(messageData, metadata), STATUS::UNKNOWN); // Discard fill bytes
+    ASSERT_EQ(parser.Flush(), 0);
+
+    std::string badLog = "<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     1";
+    ASSERT_EQ(parser.Write(reinterpret_cast<const unsigned char*>(badLog.data()), badLog.size()), badLog.size());
+    EXPECT_EQ(parser.ReadIntermediate(messageData, header, message, metadata, true), STATUS::UNKNOWN);
 }
 
 // -------------------------------------------------------------------------------------------------------

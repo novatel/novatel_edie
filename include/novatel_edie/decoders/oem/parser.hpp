@@ -78,8 +78,8 @@ class Parser
     ENCODE_FORMAT eMyEncodeFormat{ENCODE_FORMAT::ASCII};
 
   public:
-    //! \brief uiParserInternalBufferSize: the size of the parser's internal buffer.
-    static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX;
+    //! \brief uiParserInternalBufferSize: the size of the parser's internal buffer. + 1 to accommodate the nul-terminator.
+    static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX + 1;
 
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
