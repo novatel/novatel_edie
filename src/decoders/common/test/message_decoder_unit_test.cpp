@@ -43,9 +43,12 @@ class MessageDecoderTypesTest : public ::testing::Test
       public:
         DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoderBase("OEM", std::move(pclMessageDb_)) {}
 
-        STATUS TestDecodeAscii(const FieldInfo& FieldInfo_, const char** ppcLogBuf_, CompositeField& vIntermediateFormat_)
+        using MessageDecoderBase::DecodeAsciiField;
+
+        STATUS TestDecodeAscii(const FieldInfo& FieldInfo_, std::string_view& input_, CompositeField& vIntermediateFormat_, bool abbreviated_ = false)
         {
-            return DecodeAscii<false>(FieldInfo_, ppcLogBuf_, vIntermediateFormat_);
+            return abbreviated_ ? DecodeAscii<true>(FieldInfo_, input_, vIntermediateFormat_)
+                                : DecodeAscii<false>(FieldInfo_, input_, vIntermediateFormat_);
         }
 
         STATUS TestDecodeBinary(const FieldInfo& FieldInfo_, const unsigned char** ppucLogBuf_, CompositeField& vIntermediateFormat_)
@@ -71,8 +74,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
                 auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), D);
-                const char* tempStr = vstrTestInput[sz].c_str();
-                DecodeAsciiField(*stMessageDataType, &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
+                DecodeAsciiField(*stMessageDataType, vstrTestInput[sz], vIntermediateFormat_);
 
                 const T value = std::get<T>(vIntermediateFormat_.GetFieldValueVariant(*stMessageDataType));
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
@@ -90,9 +92,7 @@ class MessageDecoderTypesTest : public ::testing::Test
             CompositeField vIntermediateFormat(DataTypeSize(D) + 2, 0);
 
             auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 2, D);
-            const char* tempStr = strTestInput.data();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(*stMessageDataType, &tempStr, strTestInput.size(), vIntermediateFormat),
-                         std::runtime_error);
+            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(*stMessageDataType, strTestInput, vIntermediateFormat), std::runtime_error);
         }
 
         template <typename T, DATA_TYPE D> void ValidBinaryHelper(std::vector<std::vector<uint8_t>> vvucTestInput, std::vector<T> vTargets)
@@ -236,11 +236,11 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
     MsgDefFields.emplace_back(std::make_shared<BaseField>("CHAR_1", FIELD_TYPE::SIMPLE, "%c", DATA_TYPE::CHAR));
     CompositeField vIntermediateFormat_(1, 0);
 
-    const auto* testInput = "4";
+    std::string_view testInput = "4";
     FieldInfo fieldInfo;
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
-    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat_));
+    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, testInput, vIntermediateFormat_));
     ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_.GetFieldValueVariant(*MsgDefFields[0])), static_cast<int8_t>('4'));
 }
 
@@ -249,11 +249,11 @@ TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
     MsgDefFields.emplace_back(std::make_shared<BaseField>("B_True", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::BOOL));
     CompositeField vIntermediateFormat_(4, 0);
 
-    const auto* testInput = "TRUE";
+    std::string_view testInput = "TRUE";
     FieldInfo fieldInfo;
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
-    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat_));
+    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, testInput, vIntermediateFormat_));
     ASSERT_TRUE(std::get<bool>(vIntermediateFormat_.GetFieldValueVariant(*MsgDefFields[0])));
 }
 
@@ -291,12 +291,12 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
 
     CompositeField vIntermediateFormat(12, 0);
 
-    const auto* testInput = "UNKNOWN,APPROXIMATE,SATTIME";
+    std::string_view testInput = "UNKNOWN,APPROXIMATE,SATTIME";
 
     FieldInfo fieldInfo;
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
-    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat), STATUS::SUCCESS);
+    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(fieldInfo, testInput, vIntermediateFormat), STATUS::SUCCESS);
     ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.GetFieldValueVariant(*e0)), 20U);
     ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.GetFieldValueVariant(*e1)), 60U);
     ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.GetFieldValueVariant(*e2)), 200U);
@@ -307,7 +307,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
     MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN));
     CompositeField vIntermediateFormat(0, 1);
 
-    std::vector<const char*> testInputs = {"SOL_COMPUTED,WAAS"};
+    std::vector<std::string_view> testInputs = {"SOL_COMPUTED,WAAS"};
     std::vector<const char*> testTargets = {"SOL_COMPUTED","WAAS"};
 
     for (size_t sz = 0; sz < testInputs.size(); ++sz)
@@ -316,7 +316,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
         std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
         fieldInfo.messageOrderedFields = constFields;
         fieldInfo.varFieldCount = 1;
-        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(fieldInfo, testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
         ASSERT_EQ(std::get<std::string>(vIntermediateFormat.GetVarFields()[0]), testTargets[sz]);
     }
 }
@@ -326,12 +326,255 @@ TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
     MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%d", DATA_TYPE::UNKNOWN));
     CompositeField vIntermediateFormat_;
 
-    const auto* testInput = "garbage";
+    std::string_view testInput = "garbage";
 
     FieldInfo fieldInfo;
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
-    ASSERT_THROW(pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat_), std::runtime_error);
+    ASSERT_THROW(pclMyDecoderTester->TestDecodeAscii(fieldInfo, testInput, vIntermediateFormat_), std::runtime_error);
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_BOUNDED_NUMERIC_TOKENS)
+{
+    BaseField field("number", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    CompositeField decoded(sizeof(uint32_t), 0);
+    const char input[] = {' ', '4', '2', '9'};
+    pclMyDecoderTester->DecodeAsciiField(field, std::string_view(input, 3), decoded);
+    EXPECT_EQ(decoded.GetFieldValue<uint32_t>(field), 42U);
+    for (const std::string_view invalid : {"", "   ", "12junk", "4294967296"})
+    {
+        EXPECT_THROW(pclMyDecoderTester->DecodeAsciiField(field, invalid, decoded), std::runtime_error);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_QUOTED_DELIMITERS_AND_EMPTY_STRINGS)
+{
+    auto text = std::make_shared<BaseField>("text", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
+    auto number = std::make_shared<BaseField>("number", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto info = BuildFieldInfo({text, number});
+    for (const std::string_view encoded : {"\"A*,B\",42*crc", "\"\",42*crc", ",42*crc", "plain,42*crc"})
+    {
+        CompositeField decoded(info);
+        auto input = encoded;
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::SUCCESS);
+        const auto expected = encoded.front() == '"' ? encoded.substr(1, encoded.find('"', 1) - 1) : encoded.substr(0, encoded.find(','));
+        EXPECT_EQ(decoded.GetFieldValue<std::string>(*text), expected);
+        EXPECT_EQ(decoded.GetFieldValue<uint32_t>(*number), 42U);
+        EXPECT_EQ(input, "*crc");
+    }
+    for (const std::string_view encoded : {"\"unterminated,42", "\"text\"junk,42"})
+    {
+        CompositeField decoded(info);
+        auto input = encoded;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::MALFORMED_INPUT);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_HEX_ARRAY_ADVANCEMENT)
+{
+    auto bytes = std::make_shared<ArrayField>("bytes", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%Z", DATA_TYPE::UCHAR, 3);
+    auto number = std::make_shared<BaseField>("number", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto info = BuildFieldInfo({bytes, number});
+    CompositeField decoded(info);
+    std::string_view input = "0041ff,42*crc";
+    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::SUCCESS);
+    const auto values = decoded.GetFieldValue<TypedBuffer<uint8_t>>(*bytes);
+    EXPECT_EQ(values[0], 0);
+    EXPECT_EQ(values[1], 65);
+    EXPECT_EQ(values[2], 255);
+    EXPECT_EQ(decoded.GetFieldValue<uint32_t>(*number), 42U);
+    EXPECT_EQ(input, "*crc");
+    for (const std::string_view encoded : {"00", "00410G,42", "0041ffjunk,42"})
+    {
+        input = encoded;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::MALFORMED_INPUT);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_QUOTED_ARRAY_ESCAPES_AND_PADDING)
+{
+    auto text = std::make_shared<ArrayField>("text", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%s", DATA_TYPE::CHAR, 4);
+    const auto info = BuildFieldInfo({text});
+    CompositeField decoded(info);
+    for (const std::string_view encoded : {"\"A\\x42\\\\\"*crc", "\"\"*crc", "\"ABCD\"*crc"})
+    {
+        auto input = encoded;
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::SUCCESS);
+        const auto values = decoded.GetFieldValue<TypedBuffer<int8_t>>(*text);
+        EXPECT_EQ(values[0], encoded[1] == '"' ? 0 : 'A');
+        EXPECT_EQ(values[3], encoded == "\"ABCD\"*crc" ? 'D' : 0);
+        if (encoded[2] == '\\')
+        {
+            EXPECT_EQ(values[1], 'B');
+            EXPECT_EQ(values[2], '\\');
+        }
+        EXPECT_EQ(input, "*crc");
+    }
+    for (const std::string_view encoded : {"\"A", "\"ABCDE\"", "\"\\x0\"", "\"\\x0G\"", "\"\\xGG\"", "\"AB\"junk"})
+    {
+        auto input = encoded;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::MALFORMED_INPUT);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_EMPTY_VARIABLE_ARRAY_PRESERVES_NEXT_FIELD)
+{
+    for (const std::string_view conversion : {"%u", "%Z", "%P"})
+    {
+        auto bytes = std::make_shared<ArrayField>("bytes", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, std::string(conversion), DATA_TYPE::UCHAR, 8);
+        auto number = std::make_shared<BaseField>("number", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+        const auto info = BuildFieldInfo({bytes, number});
+        CompositeField decoded(info);
+        std::string_view input = "0,42*crc";
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::SUCCESS);
+        EXPECT_TRUE(decoded.GetFieldValue<std::vector<uint8_t>>(*bytes).empty());
+        EXPECT_EQ(decoded.GetFieldValue<uint32_t>(*number), 42U);
+        EXPECT_EQ(input, "*crc");
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_MISSING_FIELDS)
+{
+    auto first = std::make_shared<BaseField>("first", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto second = std::make_shared<BaseField>("second", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto info = BuildFieldInfo({first, second});
+    for (const std::string_view encoded : {"1*crc", "1", "1,*crc", "1,", "1,,2*crc"})
+    {
+        CompositeField decoded(info);
+        auto input = encoded;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::MALFORMED_INPUT);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_EMPTY_FINAL_STRING)
+{
+    auto number = std::make_shared<BaseField>("number", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto text = std::make_shared<BaseField>("text", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
+    const auto info = BuildFieldInfo({number, text});
+    for (const std::string_view encoded : {"42,*crc", "42,\"\"*crc", "42,"})
+    {
+        CompositeField decoded(info);
+        auto input = encoded;
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::SUCCESS);
+        EXPECT_EQ(decoded.GetFieldValue<uint32_t>(*number), 42U);
+        EXPECT_TRUE(decoded.GetFieldValue<std::string>(*text).empty());
+        EXPECT_EQ(input, encoded.back() == ',' ? "" : "*crc");
+    }
+    for (const std::string_view encoded : {"42*crc", "42"})
+    {
+        CompositeField decoded(info);
+        auto input = encoded;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::MALFORMED_INPUT);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_ARRAY_DELIMITERS)
+{
+    for (const bool fixed : {false, true})
+    {
+        for (const std::string_view conversion : {"%u", "%Z", "%P"})
+        {
+            auto bytes = std::make_shared<ArrayField>("bytes", fixed ? FIELD_TYPE::FIXED_LENGTH_ARRAY : FIELD_TYPE::VARIABLE_LENGTH_ARRAY,
+                                                      std::string(conversion), DATA_TYPE::UCHAR, 2);
+            auto number = std::make_shared<BaseField>("number", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+            const auto info = BuildFieldInfo({bytes, number});
+            const std::string payload = conversion == "%u" ? "65,66" : conversion == "%Z" ? "4142" : "AB";
+            const std::string encoded = (fixed ? "" : "2,") + payload + ",42*crc";
+            CompositeField decoded(info);
+            std::string_view input = encoded;
+            ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::SUCCESS);
+            if (fixed)
+            {
+                const auto values = decoded.GetFieldValue<TypedBuffer<uint8_t>>(*bytes);
+                EXPECT_EQ(values[0], 65);
+                EXPECT_EQ(values[1], 66);
+            }
+            else
+            {
+                EXPECT_EQ(decoded.GetFieldValue<std::vector<uint8_t>>(*bytes), (std::vector<uint8_t>{65, 66}));
+            }
+            EXPECT_EQ(decoded.GetFieldValue<uint32_t>(*number), 42U);
+            EXPECT_EQ(input, "*crc");
+        }
+    }
+    auto bytes = std::make_shared<ArrayField>("bytes", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%u", DATA_TYPE::UCHAR, 2);
+    const auto info = BuildFieldInfo({bytes});
+    for (const std::string_view encoded : {"2,65*crc", "2,65", "2,,66*crc", "2,65,garbage*crc"})
+    {
+        CompositeField decoded(info);
+        auto input = encoded;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::MALFORMED_INPUT);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_FIELD_ARRAY_DELIMITERS)
+{
+    auto first = std::make_shared<BaseField>("first", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto second = std::make_shared<BaseField>("second", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto records = std::make_shared<FieldArrayField>("records", FIELD_TYPE::FIELD_ARRAY, "", DATA_TYPE::UNKNOWN, 2,
+                                                    BuildFieldInfo({first, second}));
+    auto number = std::make_shared<BaseField>("number", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto info = BuildFieldInfo({records, number});
+    for (const std::string_view encoded : {"2,1,2,3,4,42*crc", "0,42*crc"})
+    {
+        CompositeField decoded(info);
+        auto input = encoded;
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::SUCCESS);
+        const auto values = decoded.GetFieldValue<FieldArray>(*records);
+        ASSERT_EQ(values.size(), encoded.front() == '0' ? 0U : 2U);
+        if (!values.empty())
+        {
+            EXPECT_EQ(values.GetFieldValue<uint32_t>(*first, 0), 1U);
+            EXPECT_EQ(values.GetFieldValue<uint32_t>(*second, 1), 4U);
+        }
+        EXPECT_EQ(decoded.GetFieldValue<uint32_t>(*number), 42U);
+        EXPECT_EQ(input, "*crc");
+    }
+    for (const std::string_view encoded : {"2*crc", "2", "2,1*crc", "2,1,2*crc", "2,1,2,3*crc", "2,1,2,3,4*crc"})
+    {
+        CompositeField decoded(info);
+        auto input = encoded;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::MALFORMED_INPUT);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_BOUNDED_ABBREVIATED_FORMATTING)
+{
+    auto number = std::make_shared<BaseField>("number", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    const auto info = BuildFieldInfo({number});
+    CompositeField decoded(info);
+    std::string_view input = "< \r\n";
+    EXPECT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded, true), STATUS::MALFORMED_INPUT);
+    const char bounded[] = {'<', ' ', '4', '2', '9'};
+    input = std::string_view(bounded, 4);
+    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded, true), STATUS::SUCCESS);
+    EXPECT_EQ(decoded.GetFieldValue<uint32_t>(*number), 42U);
+    EXPECT_TRUE(input.empty());
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_ABBREVIATED_MULTILINE_ARRAY)
+{
+    auto values = std::make_shared<ArrayField>("values", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%u", DATA_TYPE::UINT, 4);
+    const auto info = BuildFieldInfo({values});
+    CompositeField decoded(info);
+    std::string_view input = "2\r\n<     10\r\n<     20\r\n";
+    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded, true), STATUS::SUCCESS);
+    EXPECT_EQ(decoded.GetFieldValue<std::vector<uint32_t>>(*values), (std::vector<uint32_t>{10, 20}));
+}
+
+TEST_F(MessageDecoderTypesTest, ASCII_RESPONSE_DELIMITERS)
+{
+    auto id = std::make_shared<BaseField>("id", FIELD_TYPE::RESPONSE_ID, "%ld", DATA_TYPE::LONG);
+    auto text = std::make_shared<BaseField>("text", FIELD_TYPE::RESPONSE_STR, "%s", DATA_TYPE::UNKNOWN);
+    const auto info = BuildFieldInfo({id, text});
+    CompositeField decoded(info->fixedFieldBytes, info->varFieldCount);
+    for (const std::string_view encoded : {"OK*crc", "Invalid value,expected 42*crc", "OK"})
+    {
+        auto input = encoded;
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(*info, input, decoded), STATUS::SUCCESS);
+        EXPECT_EQ(decoded.GetFieldValue<int32_t>(*id), encoded.substr(0, 2) == "OK" ? 1 : 0);
+        EXPECT_EQ(decoded.GetFieldValue<std::string>(*text), encoded.substr(0, encoded.find('*')));
+    }
 }
 
 TEST_F(MessageDecoderTypesTest, BINARY_VALID)
@@ -405,12 +648,12 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
 
     CompositeField vIntermediateFormat(offset, 0);
 
-    const auto* testInput = "TRUE,63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
+    std::string_view testInput = "TRUE,63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
 
     FieldInfo fieldInfo;
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
-    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat));
+    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, testInput, vIntermediateFormat));
     ASSERT_TRUE(std::get<bool>(vIntermediateFormat.GetFieldValueVariant(*MsgDefFields[0])));
     ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.GetFieldValueVariant(*MsgDefFields[1])), 0x63U);
     ASSERT_EQ(std::get<int16_t>(vIntermediateFormat.GetFieldValueVariant(*MsgDefFields[2])), 227);
@@ -806,6 +1049,23 @@ TEST(MessageDecoderContainerTypesTest, DecodeFromMessageDatabaseAndIterateMessag
 
     ++it;
     EXPECT_EQ(it, decoded.end());
+
+    const std::string frame = "header" + payload + "unexpected trailing storage";
+    meta.uiHeaderLength = 6;
+    meta.uiLength = meta.uiHeaderLength + static_cast<uint32_t>(payload.size());
+    ASSERT_EQ(decoder.Decode(reinterpret_cast<const unsigned char*>(frame.data()) + meta.uiHeaderLength, decoded, meta), STATUS::SUCCESS);
+    EXPECT_EQ(decoded.GetFieldValue<CompositeFieldArray>(*f2).front().GetFieldValue<std::string>(*f1Nested), "nested");
+
+    meta.uiLength = meta.uiHeaderLength - 1;
+    EXPECT_EQ(decoder.Decode(reinterpret_cast<const unsigned char*>(payload.data()), decoded, meta), STATUS::MALFORMED_INPUT);
+
+    const std::string json = R"({"body":{"u32":1234,"str":"ok","fa":[{"u32":5678,"str":"nested"}]}})";
+    const std::string jsonStorage = json + "unexpected trailing storage";
+    meta.eFormat = DECODE_FORMAT::JSON;
+    meta.uiHeaderLength = 0;
+    meta.uiLength = static_cast<uint32_t>(json.size());
+    ASSERT_EQ(decoder.Decode(reinterpret_cast<const unsigned char*>(jsonStorage.data()), decoded, meta), STATUS::SUCCESS);
+    EXPECT_EQ(decoded.GetFieldValue<CompositeFieldArray>(*f2).front().GetFieldValue<std::string>(*f1Nested), "nested");
 }
 
 TEST(MessageDecoderContainerTypesTest, MessageBodyIteratorRequiresFieldInfo)

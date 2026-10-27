@@ -84,6 +84,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
 
     // Prime the metadata with information we already know
     stMetaData.eFormat = DECODE_FORMAT::ABB_ASCII;
+    stMetaData.uiLength = static_cast<uint32_t>(strCmdParams.size());
     stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
     stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fieldInfo.begin()->first);
 
@@ -138,6 +139,7 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
 
     // Prime the metadata with information we already know
     stMetaData.eFormat = DECODE_FORMAT::ABB_ASCII;
+    stMetaData.uiLength = static_cast<uint32_t>(strCmdParams.size());
     stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
     stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fieldInfo.begin()->first);
 

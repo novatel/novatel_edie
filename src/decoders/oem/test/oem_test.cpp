@@ -2254,6 +2254,10 @@ class DecodeEncodeTest : public ::testing::Test
         if (STATUS::SUCCESS != eStatus) { return HEADER_DECODER_ERROR; }
 
         pucTempPtr += stMetaData_.uiHeaderLength;
+        const size_t bodyLength = stMetaData_.eFormat == DECODE_FORMAT::BINARY
+                          ? stMetaData_.uiBinaryMsgLength
+                          : std::strlen(reinterpret_cast<const char*>(pucTempPtr));
+        stMetaData_.uiLength = stMetaData_.uiHeaderLength + static_cast<uint32_t>(bodyLength);
         eStatus = pclMyMessageDecoder->Decode(pucTempPtr, stMessage, stMetaData_);
         if (STATUS::SUCCESS != eStatus) { return MESSAGE_DECODER_ERROR; }
 
@@ -4369,11 +4373,11 @@ class NovatelTypesTest : public ::testing::Test
       public:
         DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoder(pclMessageDb_) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_, CompositeField& vIntermediateFormat_)
+        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, std::string_view& input_, CompositeField& vIntermediateFormat_)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
             vIntermediateFormat_.resize(fieldInfo.fixedFieldBytes, fieldInfo.varFieldCount);
-            return DecodeAscii<false>(fieldInfo, ppcLogBuf_, vIntermediateFormat_);
+            return DecodeAscii<false>(fieldInfo, input_, vIntermediateFormat_);
         }
 
         STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& vIntermediateFormat_)
@@ -4493,9 +4497,9 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec4", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
     CompositeField vIntermediateFormat_;
 
-    const auto* testInput = "-1.000,0.000,604800.000,4294967295.000";
+    std::string_view testInput = "-1.000,0.000,604800.000,4294967295.000";
 
-    STATUS stDecoderStatus = pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
+    STATUS stDecoderStatus = pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInput, vIntermediateFormat_);
 
     ASSERT_EQ(stDecoderStatus, STATUS::SUCCESS);
     // If GPS time exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong

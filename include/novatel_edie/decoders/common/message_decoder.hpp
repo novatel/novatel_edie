@@ -36,6 +36,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -1604,7 +1605,7 @@ class MessageDecoderBase
   protected:
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
-    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)>>
+    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, bool, MessageDatabase&)>>
         asciiFieldMap;
     std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>>
         jsonFieldMap;
@@ -1612,15 +1613,14 @@ class MessageDecoderBase
     [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                       uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
-    [[nodiscard]] STATUS DecodeAscii(const FieldInfo& vMsgDefFields_, const char** ppcLogBuf_, CompositeField& clCompField_,
-                                     const char* pcBufEnd = nullptr) const;
+    [[nodiscard]] STATUS DecodeAscii(const FieldInfo& vMsgDefFields_, std::string_view& sMessage_, CompositeField& clCompField_) const;
     [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, CompositeField& clCompField_) const;
 
     template <bool Fixed = true>
     static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                   size_t n = 1);
-    void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, CompositeField& clCompField_,
-                          size_t elementIndex_ = 0, bool fixed_ = true) const;
+    void DecodeAsciiField(const BaseField& field_, std::string_view token_, CompositeField& clCompField_, size_t elementIndex_ = 0,
+                          bool fixed_ = true) const;
     void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, CompositeField& clCompField_, size_t elementIndex_ = 0,
                          bool fixed_ = true) const;
 
@@ -1638,35 +1638,38 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <bool Fixed = true, typename T = int32_t, int R = 10>
-    static void ParseAndEmplace(CompositeField& clCompField_, const BaseField& field_, const char* token, size_t tokenLength,
-                                size_t elementIndex_ = 0)
+    static void ParseAndEmplace(CompositeField& clCompField_, const BaseField& field_, std::string_view token, size_t elementIndex_ = 0)
     {
         T value;
         std::from_chars_result result;
 
         // As of 6/26/2025 spaces may appear within ascii fields of OUTPUTDATUM and SETALIGNMENTVEL as they use conversion strings with width
         // values. EDIE supports decoding of this data but will never pad fields with spaces during encoding.
-        uint32_t offset = 0;
-        while ((token[offset] == ' ') && (offset < tokenLength - 1)) { ++offset; }
+        const auto offset = token.find_first_not_of(' ');
+        if (offset == std::string_view::npos) { throw std::runtime_error("Empty numeric value"); }
+        token.remove_prefix(offset);
 
-        if constexpr (std::is_integral_v<T>) { result = std::from_chars(token + offset, token + tokenLength, value, R); }
-        else if constexpr (std::is_floating_point_v<T>) { result = std::from_chars(token + offset, token + tokenLength, value); }
+        if constexpr (std::is_integral_v<T>) { result = std::from_chars(token.data(), token.data() + token.size(), value, R); }
+        else if constexpr (std::is_floating_point_v<T>) { result = std::from_chars(token.data(), token.data() + token.size(), value); }
 
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
+        if (result.ec != std::errc() || result.ptr != token.data() + token.size()) { throw std::runtime_error("Failed to parse numeric value"); }
 
         clCompField_.SetArrayElement<Fixed>(field_, elementIndex_, value);
     }
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(CompositeField&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)> SimpleAsciiMapEntry()
+    static std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, bool, MessageDatabase&)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
-        return [](CompositeField& vIntermediate_, const BaseField& pstField_, const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
+        return [](CompositeField& vIntermediate_, const BaseField& pstField_, std::string_view token_, const size_t elementIndex_, const bool fixed_,
+                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+            if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, token_, elementIndex_); }
+            else
+            {
+                ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, token_, elementIndex_);
+            }
         };
     }
 
@@ -1815,26 +1818,45 @@ class MessageDecoderBase
     //----------------------------------------------------------------------------
     //! \brief Decode a message payload from the provided frame.
     //
-    //! \param[in] pucMessage_ A pointer to a message payload.
+    //! \param[in] pucMessage_ A pointer to the message body payload, or to a JSON
+    //! document containing a top-level "body" field for JSON.
     //! \param[out] stInterMessage_ The CompositeField to be populated.
-    //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
-    //! the frame and be fully populated to help describe the decoded log.
+    //! \param[in, out] stMetaData_ Metadata describing this input. The base and OEM implementations
+    //! read it without populating missing values; derived definition lookup may modify it.
     //
-    //! \remark The message buffer must be NUL-terminated for ASCII, abbreviated
-    //! ASCII, and JSON decoding. Binary STRING fields must also be NUL-terminated.
+    //! \details Metadata members (in declaration order, including OEM MetaDataStruct extensions):
+    //! - bResponse: Set true for command responses, false otherwise.
+    //! - eFormat: Required for every input. Set to ASCII, ABB_ASCII, BINARY, or JSON.
+    //! - usWeek: Not used by Decode; may retain its default value.
+    //! - dMilliseconds: Not used by Decode; may retain its default value.
+    //! - uiLength: Set to the exact full input frame length, including any checksum/trailer.
+    //!   For JSON, set to the length of the document containing "body". Ignored for BINARY.
+    //! - uiBinaryMsgLength: Required for BINARY payloads with variable-length fields. Set to the
+    //!   binary payload length, excluding the header and frame CRC. Ignored for ASCII/ABB_ASCII/JSON.
+    //! - uiHeaderLength: Set to the number of frame bytes skipped before pucMessage_; must not
+    //!   exceed uiLength. Must be 0 for payload-only input. Ignored for BINARY/JSON.
+    //! - usMessageId: Required to select the database definition.
+    //! - uiMessageCrc: Set to the definitions CRC. If the given CRC is not in the database, the
+    //!   latest CRC is used as a fallback.
+    //! - messageName: Not used by Decode, except to reject "RXCONFIG".
     //
-    //! \remark Note, that pucMessage_ must not point to the message header,
-    //! rather the message payload. This can be done by advancing the pointer
-    //! of a message frame by stMetaData.uiHeaderLength.
+    //! \remark The caller guarantees at least uiLength - uiHeaderLength readable bytes at pucMessage_.
+    //! ASCII, ABB_ASCII, and JSON are bounded by that extent and need not be NUL-terminated. Binary
+    //! input must be a complete, valid payload matching its definition, including NUL terminators for
+    //! STRING fields.
+    //
+    //! \remark Framers supply uiLength; HeaderDecoders supply eFormat, uiBinaryMsgLength, uiHeaderLength
+    //! usMessageId, uiMessageCrc, and messageName, but does not set uiLength. Direct callers must supply
+    //! uiLength themselves.
     //! \return An error code describing the result of decoding.
     //!   SUCCESS: The operation was successful.
     //!   NULL_PROVIDED: pucMessage_ is a null pointer.
     //!   NO_DATABASE: No database was ever loaded into this component.
     //!   NO_DEFINITION: No definition for the current log was found in the
     //! provided database.
-    //!   FAILURE: Failed to decode a header field.
-    //!   UNSUPPORTED: Attempted to decode an unsupported format.
-    //!   UNKNOWN: The header format provided is not known.
+    //!   MALFORMED_INPUT: uiHeaderLength exceeds uiLength, or the payload is malformed.
+    //!   UNSUPPORTED: RXCONFIG requires RxConfigHandler.
+    //!   UNKNOWN: The payload format provided is not supported.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, CompositeField& stInterMessage_, MetaDataBase& stMetaData_) const;
 };

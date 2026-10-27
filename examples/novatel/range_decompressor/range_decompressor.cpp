@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
                     {
                         stHeader.usMessageId = stMetaData.usMessageId;
                         CompositeField stMessage;
-                        eStatus = clMessageDecoder.Decode((pucReadBuffer + stMetaData.uiHeaderLength), stMessage, stMetaData);
+                        eStatus = clMessageDecoder.Decode(pucReadBuffer + stMetaData.uiHeaderLength, stMessage, stMetaData);
                         if (eStatus == STATUS::SUCCESS)
                         {
                             MessageDataStruct stMessageData;

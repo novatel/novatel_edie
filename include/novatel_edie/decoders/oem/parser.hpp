@@ -68,7 +68,7 @@ class Parser
 
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
     unsigned char* pucMyEncodeBufferPointer{nullptr};
-    std::unique_ptr<unsigned char[]> pcMyFrameBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
+    std::unique_ptr<unsigned char[]> pcMyFrameBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize + 1)};
     unsigned char* pucMyFrameBufferPointer{nullptr};
 
     // Configuration options
@@ -78,8 +78,8 @@ class Parser
     ENCODE_FORMAT eMyEncodeFormat{ENCODE_FORMAT::ASCII};
 
   public:
-    //! \brief uiParserInternalBufferSize: the size of the parser's internal buffer. + 1 to accommodate the nul-terminator.
-    static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX + 1;
+    //! \brief uiParserInternalBufferSize: the size of the parser's internal buffer.
+    static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX;
 
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
