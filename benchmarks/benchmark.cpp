@@ -179,8 +179,8 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
         IntermediateHeader header;
         CompositeField message;
 
+        metaData.uiLength = static_cast<uint32_t>(data[0] == OEM4_BINARY_SYNC1 ? N : N - 1);
         (void)headerDecoder.Decode(dataPtr, header, metaData);
-        metaData.uiLength = static_cast<uint32_t>(metaData.eFormat == DECODE_FORMAT::BINARY ? 0 : N - 1);
         dataPtr += metaData.uiHeaderLength;
         (void)messageDecoder.Decode(dataPtr, message, metaData);
     }
@@ -229,6 +229,7 @@ template <size_t N> static void DecodeHeader(benchmark::State& state, const unsi
         MetaDataStruct metaData;
         IntermediateHeader header;
 
+        metaData.uiLength = static_cast<uint32_t>(data[0] == OEM4_BINARY_SYNC1 ? N : N - 1);
         (void)headerDecoder.Decode(dataPtr, header, metaData);
     }
 
@@ -269,8 +270,8 @@ template <ENCODE_FORMAT Format, size_t N> static void EncodeLog(benchmark::State
 
     const unsigned char* tempPtr = data;
 
+    metaData.uiLength = static_cast<uint32_t>(data[0] == OEM4_BINARY_SYNC1 ? N : N - 1);
     (void)headerDecoder.Decode(tempPtr, header, metaData);
-    metaData.uiLength = static_cast<uint32_t>(metaData.eFormat == DECODE_FORMAT::BINARY ? 0 : N - 1);
     tempPtr += metaData.uiHeaderLength;
     (void)messageDecoder.Decode(tempPtr, message, metaData);
 

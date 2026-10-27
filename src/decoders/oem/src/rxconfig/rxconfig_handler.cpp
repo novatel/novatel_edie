@@ -420,14 +420,12 @@ STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBuf
     if (stMessage_.GetFieldInfo() == nullptr) { return STATUS::MALFORMED_INPUT; }
     const auto& fieldDefinitions = stMessage_.GetFieldInfo()->messageOrderedFields;
     if (fieldDefinitions.empty()) { return STATUS::MALFORMED_INPUT; }
-    auto fieldValue = stMessage_.GetFieldValue<std::vector<uint8_t>>(*fieldDefinitions.at(0));
-    fieldValue.push_back('\0');
+    const auto& fieldValue = stMessage_.GetFieldValue<std::vector<uint8_t>>(*fieldDefinitions.at(0));
     const auto* pucEmbeddedDataBuffer = reinterpret_cast<const unsigned char*>(fieldValue.data());
 
+    stEmbeddedMetaData_.uiLength = static_cast<uint32_t>(fieldValue.size());
     eStatus = clMyHeaderDecoder.Decode(pucEmbeddedDataBuffer, stEmbeddedHeader, stEmbeddedMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
-
-    stEmbeddedMetaData_.uiLength = static_cast<uint32_t>(fieldValue.size() - 1);
 
     eStatus = clMyMessageDecoder.Decode(pucEmbeddedDataBuffer + stEmbeddedMetaData_.uiHeaderLength,
                                         stEmbeddedMessage, stEmbeddedMetaData_);
