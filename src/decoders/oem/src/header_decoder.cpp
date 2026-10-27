@@ -324,7 +324,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     if (sMessage.empty() || (sMessage[0] == OEM4_BINARY_SYNC1 && sMessage.size() < 3)) { return STATUS::FAILURE; }
 
     HEADER_FORMAT eHeaderFormat = [&] {
-        switch (sMessage[0])
+        switch (pucLogBuf_[0])
         {
         case OEM4_ASCII_SYNC: return HEADER_FORMAT::ASCII;
         case OEM4_SHORT_ASCII_SYNC: return HEADER_FORMAT::SHORT_ASCII;
@@ -332,7 +332,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         case NMEA_SYNC: return HEADER_FORMAT::NMEA;
         case '{': return HEADER_FORMAT::JSON;
         case OEM4_BINARY_SYNC1:
-            switch (sMessage[2])
+            switch (pucLogBuf_[2])
             {
             case OEM4_BINARY_SYNC3: return HEADER_FORMAT::BINARY;
             case OEM4_SHORT_BINARY_SYNC3: return HEADER_FORMAT::SHORT_BINARY;
