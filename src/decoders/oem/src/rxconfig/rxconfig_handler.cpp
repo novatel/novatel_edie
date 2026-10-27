@@ -135,9 +135,10 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
     {
     case DECODE_FORMAT::ABB_ASCII: {
         // Fix embedded header indentation
-        const auto* pcTempBuffer = reinterpret_cast<const char*>(pucTempMessagePointer);
-        ConsumeAbbrevFormatting(&pcTempBuffer);
-        pucTempMessagePointer = reinterpret_cast<const unsigned char*>(pcTempBuffer);
+        const std::string_view input(reinterpret_cast<const char*>(pucTempMessagePointer), uiTotalPayloadSize);
+        const auto start = input.find_first_not_of(ABBREV_ASCII_FORMATTING);
+        if (start == std::string_view::npos) { return STATUS::MALFORMED_INPUT; }
+        pucTempMessagePointer += start;
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC));
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - (pucTempMessagePointer - pucMessage_);
         break;
@@ -428,7 +429,8 @@ STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBuf
 
     stEmbeddedMetaData_.uiLength = static_cast<uint32_t>(fieldValue.size() - 1);
 
-    eStatus = clMyMessageDecoder.Decode(pucEmbeddedDataBuffer + stEmbeddedMetaData_.uiHeaderLength, stEmbeddedMessage, stEmbeddedMetaData_);
+    eStatus = clMyMessageDecoder.Decode(pucEmbeddedDataBuffer + stEmbeddedMetaData_.uiHeaderLength,
+                                        stEmbeddedMessage, stEmbeddedMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     // -- Encode --

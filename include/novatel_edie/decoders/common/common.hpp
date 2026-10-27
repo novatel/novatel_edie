@@ -32,6 +32,7 @@
 #include <iosfwd>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -286,9 +287,9 @@ struct MetaDataBase
     DECODE_FORMAT eFormat{DECODE_FORMAT::UNKNOWN};
     uint16_t usWeek{0};
     double dMilliseconds{0.0};
-    uint32_t uiLength{0};
-    uint32_t uiBinaryMsgLength{0}; //!< Message length according to the binary header. If ASCII, this field is not used.
-    uint32_t uiHeaderLength{0};
+    uint32_t uiLength{0};          //!< Full frame bytes, including checksum/trailer, excluding an optional NUL sentinel; not buffer capacity.
+    uint32_t uiBinaryMsgLength{0}; //!< Binary payload bytes from the header, excluding header and frame CRC; unused for ASCII/JSON decoding.
+    uint32_t uiHeaderLength{0};    //!< Bytes before the payload; must not exceed uiLength when decoding. Zero for payload-only input and JSON.
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
     std::string messageName;
@@ -390,15 +391,10 @@ int32_t GetEnumValue(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, 
 int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, std::string_view strResp_);
 int32_t GetResponseId(const novatel::edie::EnumDefinition::ConstPtr& stRespDef_, std::string_view strResp_);
 
+// ----------------------------------------------------------------------
+//! \brief Abbreviated ASCII formatting characters.
 //-----------------------------------------------------------------------
-//! \brief Strip abbreviated ASCII formatting from the front of the
-//! log buffer.
-//
-//! \param[in] ppcMessageBuffer_ A pointer to the buffer containing the
-//! message to have abbreviated ASCII formatting stripped.
-//! Message is assumed to be null terminated.
-//-----------------------------------------------------------------------
-void ConsumeAbbrevFormatting(const char** ppcMessageBuffer_);
+constexpr auto ABBREV_ASCII_FORMATTING = std::string_view("< \r\n");
 
 //-----------------------------------------------------------------------
 //! \struct SatelliteId

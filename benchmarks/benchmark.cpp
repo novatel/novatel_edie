@@ -180,6 +180,7 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
         CompositeField message;
 
         (void)headerDecoder.Decode(dataPtr, header, metaData);
+        metaData.uiLength = static_cast<uint32_t>(metaData.eFormat == DECODE_FORMAT::BINARY ? 0 : N - 1);
         dataPtr += metaData.uiHeaderLength;
         (void)messageDecoder.Decode(dataPtr, message, metaData);
     }
@@ -269,6 +270,7 @@ template <ENCODE_FORMAT Format, size_t N> static void EncodeLog(benchmark::State
     const unsigned char* tempPtr = data;
 
     (void)headerDecoder.Decode(tempPtr, header, metaData);
+    metaData.uiLength = static_cast<uint32_t>(metaData.eFormat == DECODE_FORMAT::BINARY ? 0 : N - 1);
     tempPtr += metaData.uiHeaderLength;
     (void)messageDecoder.Decode(tempPtr, message, metaData);
 

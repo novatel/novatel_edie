@@ -23,7 +23,10 @@ nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::Py
     {
         status = rx_config_handler.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata);
     }
-    else { status = message_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata); }
+    else
+    {
+        status = message_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata);
+    }
 
     switch (status)
     {
@@ -81,10 +84,9 @@ void py_oem::init_novatel_decoder(nb::module_& m)
         .def(
             "decode_payload",
             [](const py_oem::PyDecoder& decoder, const nb::bytes raw_payload, py_oem::PyHeader& header, oem::MetaDataStruct* metadata) {
+                oem::MetaDataStruct default_metadata;
                 if (metadata == nullptr)
                 {
-                    oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
-                    default_metadata.uiHeaderLength = header.usLength;
                     default_metadata.uiBinaryMsgLength = static_cast<uint32_t>(raw_payload.size());
                     default_metadata.uiLength = default_metadata.uiHeaderLength + default_metadata.uiBinaryMsgLength;
                     default_metadata.uiMessageCrc = header.uiMessageDefinitionCrc;
@@ -127,7 +129,10 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 {
                     status = decoder.rx_config_handler.Decode(body_pointer, fields, metadata);
                 }
-                else { status = decoder.message_decoder.Decode(body_pointer, fields, metadata); }
+                else
+                {
+                    status = decoder.message_decoder.Decode(body_pointer, fields, metadata);
+                }
                 switch (status)
                 {
                 case STATUS::SUCCESS: return py_oem::create_message_instance(header, std::move(fields), metadata, decoder.database);

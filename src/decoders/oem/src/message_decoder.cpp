@@ -45,77 +45,75 @@ void MessageDecoder::InitOemFieldMaps()
     // =========================================================
     // ASCII Field Mapping
     // =========================================================
-    asciiFieldMap[CalculateBlockCrc32("c")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
-                                                 [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
-                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        // TODO: check that the character is printable
-        // if (!isprint(**ppcToken_)) { throw ... }
-        const auto value = static_cast<uint32_t>(static_cast<unsigned char>(**ppcToken_));
+    asciiFieldMap[CalculateBlockCrc32("c")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
+                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        if (token_.size() != 1) { throw std::runtime_error("Invalid character value"); }
+        const auto value = static_cast<uint32_t>(static_cast<unsigned char>(token_.front()));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+        else
+        {
+            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
+        }
     };
     asciiFieldMap[CalculateBlockCrc32("k")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("lk")] = SimpleAsciiMapEntry<double>();
 
-    asciiFieldMap[CalculateBlockCrc32("ucb")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
-                                                   [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
-                                                   [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        const uint32_t value = static_cast<uint32_t>(std::bitset<8>(*ppcToken_).to_ulong());
+    asciiFieldMap[CalculateBlockCrc32("ucb")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
+                                                   const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        if (token_.empty() || token_.size() > 8) { throw std::runtime_error("Invalid binary byte"); }
+        uint32_t value;
+        const auto result = std::from_chars(token_.data(), token_.data() + token_.size(), value, 2);
+        if (result.ec != std::errc() || result.ptr != token_.data() + token_.size()) { throw std::runtime_error("Invalid binary byte"); }
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("T")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
-                                                 [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
-                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("T")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
+                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         double value;
-        std::from_chars_result result = std::from_chars(*ppcToken_, *ppcToken_ + tokenLength_, value);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse double value"); }
+        std::from_chars_result result = std::from_chars(token_.data(), token_.data() + token_.size(), value);
+        if (result.ec != std::errc() || result.ptr != token_.data() + token_.size()) { throw std::runtime_error("Failed to parse double value"); }
         const auto converted = static_cast<uint32_t>(std::llround(value * SEC_TO_MILLI_SEC));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, converted); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, converted); }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("m")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
-                                                 [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
-                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        const uint32_t value = pclMsgDb_.MsgNameToMsgId(std::string(*ppcToken_, tokenLength_));
+    asciiFieldMap[CalculateBlockCrc32("m")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
+                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        const uint32_t value = pclMsgDb_.MsgNameToMsgId(std::string(token_));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("id")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
-                                                  [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
-                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        const auto* pcDelimiter = static_cast<const char*>(memchr(*ppcToken_, '+', tokenLength_));
-        if (pcDelimiter == nullptr) { pcDelimiter = static_cast<const char*>(memchr(*ppcToken_, '-', tokenLength_)); }
-
+    asciiFieldMap[CalculateBlockCrc32("id")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
+                                                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        if (token_.empty()) { throw std::runtime_error("Empty satellite ID"); }
+        const auto delimiter = token_.find_last_of("+-");
+        const auto slot = token_.substr(0, delimiter);
         uint16_t usSlot;
-        auto result = std::from_chars(*ppcToken_, *ppcToken_ + tokenLength_, usSlot);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse usSlot"); }
+        auto result = std::from_chars(slot.data(), slot.data() + slot.size(), usSlot);
+        if (result.ec != std::errc() || result.ptr != slot.data() + slot.size()) { throw std::runtime_error("Failed to parse usSlot"); }
 
         int16_t sFreq = 0;
-        if (pcDelimiter != nullptr)
+        if (delimiter != std::string_view::npos)
         {
-            const char* start = pcDelimiter + 1;
-            const char* end = *ppcToken_ + tokenLength_;
-
-            result = std::from_chars(start, end, sFreq);
-            if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse sFreq"); }
-
-            if (*pcDelimiter == '-') { sFreq = -sFreq; }
+            const auto frequency = token_.substr(delimiter + (token_[delimiter] == '+' ? 1 : 0));
+            result = std::from_chars(frequency.data(), frequency.data() + frequency.size(), sFreq);
+            if (result.ec != std::errc() || result.ptr != frequency.data() + frequency.size())
+            {
+                throw std::runtime_error("Failed to parse sFreq");
+            }
         }
 
-        const uint32_t uiSatId = usSlot | (sFreq << 16);
+        const uint32_t uiSatId = usSlot | (static_cast<uint32_t>(static_cast<uint16_t>(sFreq)) << 16);
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, uiSatId); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, uiSatId); }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("R")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, const char** ppcToken_,
-                                                 [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
-                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("R")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
+                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         // RXCONFIG in ASCII is always #COMMANDNAMEA
-        MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(std::string_view(*ppcToken_ + 1, tokenLength_ - 2)); // + 1 to Skip the '#'
+        MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(token_.substr(1, token_.size() - 2));
         const uint32_t value = pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, 0, 1, 0) : 0;
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }

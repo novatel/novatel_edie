@@ -64,6 +64,11 @@ class RangeDecompressor
     }
 
     //! Decompresses a RANGECMP message provided in a buffer and overwrites it with the equivalent RANGE message.
+    //! \param[in, out] pucBuffer_ Complete input frame and writable storage for the output frame.
+    //! \param[in] uiBufferSize_ Writable buffer capacity, not the valid input length.
+    //! \param[in, out] stMetaData_ uiLength must be the full input frame length, excluding any NUL sentinel.
+    //! Other input metadata is decoded from the header; lengths and identity are updated for the output.
+    //! TODO: complete this documentation
     [[nodiscard]] STATUS Decompress(unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct& stMetaData_,
                                     ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
 

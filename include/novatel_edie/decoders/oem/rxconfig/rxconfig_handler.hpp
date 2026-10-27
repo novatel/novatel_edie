@@ -50,8 +50,8 @@ constexpr uint16_t US_RX_CONFIG_USER_MSG_ID = 2474;
 class RxConfigHandler
 {
   private:
-    //! \brief uiInternalBufferSize: the size of the handler's internal buffer. + 1 to accommodate the nul-terminator.
-    static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX + 1;
+    //! \brief uiInternalBufferSize: the size of the handler's internal buffer.
+    static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
     static constexpr std::string_view szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
 
     Framer clMyFramer;
