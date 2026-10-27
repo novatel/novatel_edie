@@ -2250,6 +2250,9 @@ class DecodeEncodeTest : public ::testing::Test
         CompositeField stMessage;
 
         unsigned char* pucTempPtr = pucMessageBuffer_;
+        stMetaData_.uiLength = pucTempPtr[0] == OEM4_BINARY_SYNC1
+                      ? (pucTempPtr[2] == OEM4_SHORT_BINARY_SYNC3 ? sizeof(Oem4BinaryShortHeader) : sizeof(Oem4BinaryHeader))
+                      : static_cast<uint32_t>(std::strlen(reinterpret_cast<const char*>(pucTempPtr)));
         STATUS eStatus = pclMyHeaderDecoder->Decode(pucTempPtr, stHeader, stMetaData_);
         if (STATUS::SUCCESS != eStatus) { return HEADER_DECODER_ERROR; }
 
@@ -2341,6 +2344,68 @@ class DecodeEncodeTest : public ::testing::Test
 
 MessageDatabase::Ptr DecodeEncodeTest::pclMyJsonDb = nullptr;
 std::unique_ptr<HeaderDecoder> DecodeEncodeTest::pclMyHeaderDecoder = nullptr;
+
+TEST_F(DecodeEncodeTest, HEADER_TEXT_BUFFER_BOUNDS)
+{
+    for (const std::string_view input : {
+             "#BESTPOSA,COM1,0,80.0,FINESTEERING,2217,164041.000,02000000,cdba,32768;",
+             "%INSPVASA,2217,164041.000;",
+             "<BESTPOS COM1 0 80.0 FINESTEERING 2217 164041.000 02000000 cdba 32768\r\n",
+             "<INSPVAS 2217 164041.000\r\n"})
+    {
+        SCOPED_TRACE(input);
+        const std::vector<unsigned char> buffer(input.begin(), input.end());
+        MetaDataStruct metadata;
+        IntermediateHeader header;
+        metadata.uiLength = static_cast<uint32_t>(buffer.size());
+        ASSERT_EQ(pclMyHeaderDecoder->Decode(buffer.data(), header, metadata), STATUS::SUCCESS);
+        EXPECT_EQ(metadata.uiHeaderLength, buffer.size());
+        EXPECT_EQ(metadata.uiLength, buffer.size());
+        for (uint32_t length = 0; length < buffer.size(); ++length)
+        {
+            metadata.uiLength = length;
+            EXPECT_EQ(pclMyHeaderDecoder->Decode(buffer.data(), header, metadata), STATUS::FAILURE) << length;
+        }
+    }
+}
+
+TEST_F(DecodeEncodeTest, HEADER_BINARY_BUFFER_BOUNDS)
+{
+    for (const bool shortHeader : {false, true})
+    {
+        std::vector<unsigned char> buffer(shortHeader ? sizeof(Oem4BinaryShortHeader) : sizeof(Oem4BinaryHeader));
+        buffer[0] = OEM4_BINARY_SYNC1;
+        buffer[1] = OEM4_BINARY_SYNC2;
+        buffer[2] = shortHeader ? OEM4_SHORT_BINARY_SYNC3 : OEM4_BINARY_SYNC3;
+        MetaDataStruct metadata;
+        IntermediateHeader header;
+        metadata.uiLength = static_cast<uint32_t>(buffer.size());
+        ASSERT_EQ(pclMyHeaderDecoder->Decode(buffer.data(), header, metadata), STATUS::SUCCESS);
+        EXPECT_EQ(metadata.uiHeaderLength, buffer.size());
+        for (uint32_t length = 0; length < buffer.size(); ++length)
+        {
+            metadata.uiLength = length;
+            EXPECT_EQ(pclMyHeaderDecoder->Decode(buffer.data(), header, metadata), STATUS::FAILURE) << length;
+        }
+    }
+}
+
+TEST_F(DecodeEncodeTest, HEADER_JSON_AND_RESPONSE_BUFFER_BOUNDS)
+{
+    for (const std::string_view input : {R"({"header":{"id":42}})", "<OK", "<ERROR"})
+    {
+        SCOPED_TRACE(input);
+        const std::string buffer = std::string(input) + "unexpected trailing storage";
+        MetaDataStruct metadata;
+        IntermediateHeader header;
+        metadata.uiLength = static_cast<uint32_t>(input.size());
+        ASSERT_EQ(pclMyHeaderDecoder->Decode(reinterpret_cast<const unsigned char*>(buffer.data()), header, metadata), STATUS::SUCCESS);
+        EXPECT_EQ(metadata.uiHeaderLength, input.front() == '{' ? 0U : 1U);
+        if (input.front() == '{') { EXPECT_EQ(header.usMessageId, 42U); }
+        --metadata.uiLength;
+        EXPECT_EQ(pclMyHeaderDecoder->Decode(reinterpret_cast<const unsigned char*>(buffer.data()), header, metadata), STATUS::FAILURE);
+    }
+}
 std::unique_ptr<MessageDecoder> DecodeEncodeTest::pclMyMessageDecoder = nullptr;
 std::unique_ptr<Encoder> DecodeEncodeTest::pclMyEncoder = nullptr;
 
@@ -3209,6 +3274,7 @@ TEST_P(EncodeFormatTest, ENCODE_NO_BUFFER_OVERFLOW_WHEN_BUFFER_TOO_SMALL)
     IntermediateHeader stHeader;
     CompositeField stMessage;
     MetaDataStruct stMetaData;
+    stMetaData.uiLength = sizeof(aucLog) - 1;
     ASSERT_EQ(STATUS::SUCCESS, pclMyHeaderDecoder->Decode(aucLog, stHeader, stMetaData));
     ASSERT_EQ(STATUS::SUCCESS, pclMyMessageDecoder->Decode(aucLog + stMetaData.uiHeaderLength, stMessage, stMetaData));
 
@@ -3656,9 +3722,10 @@ class FilterTest : public ::testing::Test
     void SetUp() override { pclMyFilter->ClearFilters(); }
 
   public:
-    static bool TestFilter(const unsigned char* pucMessage_)
+    static bool TestFilter(const unsigned char* pucMessage_, uint32_t length_)
     {
         MetaDataStruct stMetaData;
+        stMetaData.uiLength = length_;
         IntermediateHeader stHeader;
         const STATUS eStatus = pclMyHeaderDecoder->Decode(pucMessage_, stHeader, stMetaData);
         if (STATUS::SUCCESS != eStatus && STATUS::UNSUPPORTED != eStatus)
@@ -3672,12 +3739,12 @@ class FilterTest : public ::testing::Test
 
     static bool TestFilter(const std::initializer_list<unsigned char>& data)
     {
-        return TestFilter(data.begin());
+        return TestFilter(data.begin(), static_cast<uint32_t>(data.size()));
     }
 
     static bool TestFilter(const char* str)
     {
-        return TestFilter(reinterpret_cast<const unsigned char*>(str));
+        return TestFilter(reinterpret_cast<const unsigned char*>(str), static_cast<uint32_t>(std::strlen(str)));
     }
 };
 

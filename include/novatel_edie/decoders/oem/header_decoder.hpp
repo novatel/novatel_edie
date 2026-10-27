@@ -84,10 +84,10 @@ class HeaderDecoder
 
     // Decode novatel headers
     template <const char pcDelimiter[], ASCII_HEADER eField>
-    [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
+    [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_) const;
     template <const char pcDelimiter[], ASCII_HEADER... eFields>
-    [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
-    void DecodeJsonHeader(std::string_view pcTempBuf_, IntermediateHeader& stInterHeader_) const;
+    [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_) const;
+    bool DecodeJsonHeader(std::string_view pcTempBuf_, IntermediateHeader& stInterHeader_) const;
 
   public:
     //----------------------------------------------------------------------------
@@ -121,11 +121,13 @@ class HeaderDecoder
     //----------------------------------------------------------------------------
     //! \brief Decode an OEM message header from the provided frame.
     //
-    //! \param[in] pucLogBuf_ A pointer to a NUL-terminated string beginning with
-    //! an OEM message header.
+    //! \param[in] pucLogBuf_ A pointer to stMetaData_.uiLength readable bytes beginning
+    //! with an OEM message header.
     //! \param[out] stInterHeader_ The IntermediateHeader to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
+    //! uiLength is the input buffer extent in bytes, excluding any NUL terminator,
+    //! and is not modified.
     //
     //! \return An error code describing the result of decoding.
     //!   SUCCESS: The operation was successful.

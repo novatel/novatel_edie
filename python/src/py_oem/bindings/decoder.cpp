@@ -58,11 +58,9 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             "decode_header",
             [](const py_oem::PyDecoder& decoder, const nb::bytes raw_header, oem::MetaDataStruct* metadata) {
                 py_oem::PyHeader header;
-                if (metadata == nullptr)
-                {
-                    oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
-                    metadata = &default_metadata;
-                }
+                oem::MetaDataStruct default_metadata;
+                if (metadata == nullptr) { metadata = &default_metadata; }
+                metadata->uiLength = static_cast<uint32_t>(raw_header.size());
                 STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_header.c_str()), header, *metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 return header;
