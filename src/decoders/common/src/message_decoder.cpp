@@ -957,37 +957,35 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, CompositeField& stI
         }
         return DecodeBinary(msgFieldInfo, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
     }
-    else
+
+    const auto headerLength = stMetaData_.eFormat == DECODE_FORMAT::JSON ? 0 : stMetaData_.uiHeaderLength;
+    if (headerLength > stMetaData_.uiLength) { return STATUS::MALFORMED_INPUT; }
+    auto sMessage = std::string_view(reinterpret_cast<const char*>(pucMessage_), stMetaData_.uiLength - headerLength);
+    switch (stMetaData_.eFormat)
     {
-        const auto headerLength = stMetaData_.eFormat == DECODE_FORMAT::JSON ? 0 : stMetaData_.uiHeaderLength;
-        if (headerLength > stMetaData_.uiLength) { return STATUS::MALFORMED_INPUT; }
-        auto sMessage = std::string_view(reinterpret_cast<const char*>(pucMessage_), stMetaData_.uiLength - headerLength);
-        switch (stMetaData_.eFormat)
+    case DECODE_FORMAT::ASCII: return DecodeAscii<false>(msgFieldInfo, sMessage, stInterMessage_);
+    case DECODE_FORMAT::ABB_ASCII: return DecodeAscii<true>(msgFieldInfo, sMessage, stInterMessage_);
+    case DECODE_FORMAT::JSON: {
+        simdjson::dom::parser parser;
+        simdjson::dom::element clJsonFields;
+
+        auto error = parser.parse(sMessage).get(clJsonFields);
+        if (error)
         {
-        case DECODE_FORMAT::ASCII: return DecodeAscii<false>(msgFieldInfo, sMessage, stInterMessage_);
-        case DECODE_FORMAT::ABB_ASCII: return DecodeAscii<true>(msgFieldInfo, sMessage, stInterMessage_);
-        case DECODE_FORMAT::JSON: {
-            simdjson::dom::parser parser;
-            simdjson::dom::element clJsonFields;
-
-            auto error = parser.parse(sMessage).get(clJsonFields);
-            if (error)
-            {
-                SPDLOG_LOGGER_ERROR(pclMyLogger, "JSON parsing error:"); // TODO: {}", error.message());
-                return STATUS::MALFORMED_INPUT;
-            }
-
-            simdjson::dom::element body;
-            if (clJsonFields["body"].get(body) != simdjson::SUCCESS)
-            {
-                SPDLOG_LOGGER_WARN(pclMyLogger, "Field 'body' not found in JSON");
-                return STATUS::MALFORMED_INPUT;
-            }
-
-            return DecodeJson(msgFieldInfo, body, stInterMessage_);
+            SPDLOG_LOGGER_ERROR(pclMyLogger, "JSON parsing error:"); // TODO: {}", error.message());
+            return STATUS::MALFORMED_INPUT;
         }
-        default: //
-            return STATUS::UNKNOWN;
+
+        simdjson::dom::element body;
+        if (clJsonFields["body"].get(body) != simdjson::SUCCESS)
+        {
+            SPDLOG_LOGGER_WARN(pclMyLogger, "Field 'body' not found in JSON");
+            return STATUS::MALFORMED_INPUT;
         }
+
+        return DecodeJson(msgFieldInfo, body, stInterMessage_);
+    }
+    default: //
+        return STATUS::UNKNOWN;
     }
 }
