@@ -121,7 +121,8 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
 
     // Check that full delimiter is correct
     if (sDelimiter.size() > 1 &&
-        (sDelimiter.size() > sLogBuf_.size() - ullTokenLength || sLogBuf_.substr(ullTokenLength, sDelimiter.size()) != sDelimiter))
+        (sDelimiter.size() > sLogBuf_.size() - ullTokenLength ||
+        std::char_traits<char>::compare(sLogBuf_.data() + ullTokenLength, sDelimiter.data(), sDelimiter.size()) != 0))
     {
         SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded due to an invalid delimiter.");
         return false;
