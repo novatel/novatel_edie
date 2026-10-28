@@ -471,8 +471,8 @@ static STATUS DecodeStringAsciiArray(std::string& sDecodedValue_, std::string_vi
 template <bool Abbreviated>
 STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::string_view& sMessage_, CompositeField& clCompField_) const
 {
-    constexpr auto endDelim = Abbreviated ? '\r' : '*';
-    constexpr auto tokenDelimiters = Abbreviated ? " \r"sv : ",*"sv;
+    constexpr auto tokenDelimiter = Abbreviated ? ABBREV_ASCII_TOKEN_DELIM : ASCII_TOKEN_DELIM;
+    constexpr auto endDelimiter = Abbreviated ? ABBREV_ASCII_END_DELIM : ASCII_END_DELIM;
 
     const auto prepareToken = [&](bool needsDelimiter) {
         if constexpr (Abbreviated)
@@ -483,10 +483,10 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
         }
         else
         {
-            if (sMessage_.empty() || sMessage_.front() == endDelim) { return false; }
+            if (sMessage_.empty() || sMessage_.front() == ASCII_END_DELIM) { return false; }
             if (needsDelimiter)
             {
-                if (sMessage_.front() != ',') { return false; }
+                if (sMessage_.front() != ASCII_TOKEN_DELIM) { return false; }
                 sMessage_.remove_prefix(1);
             }
         }
@@ -503,9 +503,8 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
         }
         needsDelimiter = true;
 
-        size_t tokenEnd = sMessage_.find_first_of(tokenDelimiters);
-        if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
-        const std::string_view sField(sMessage_.data(), tokenEnd);
+        size_t tokenEnd = FindFirstAsciiTokenDelimiter<Abbreviated>(sMessage_);
+        const auto sField = sMessage_.substr(0, tokenEnd);
 
         switch (field->type)
         {
@@ -538,7 +537,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
             {
                 const auto closingQuote = sMessage_.find('"', 1);
                 if (closingQuote == std::string_view::npos) { return STATUS::MALFORMED_INPUT; }
-                clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.data() + 1, closingQuote - 1));
+                clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.substr(1, closingQuote - 1)));
                 tokenEnd = closingQuote + 1;
             }
             else { clCompField_.SetFieldValue<false>(field->index, std::string(sField)); }
@@ -546,7 +545,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
             break;
         case FIELD_TYPE::RESPONSE_ID: {
             // Ensure we get the whole response (skip over delimiters in responses)
-            tokenEnd = sMessage_.find(endDelim, tokenEnd);
+            tokenEnd = sMessage_.find(endDelimiter, tokenEnd);
             if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
             const auto sResponse = sMessage_.substr(0, tokenEnd);
             if (sResponse == "OK") { clCompField_.SetFieldValue<true>(field->index, static_cast<int32_t>(1)); }
@@ -558,9 +557,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
         }
         case FIELD_TYPE::RESPONSE_STR:
             // Ensure we get the whole response (skip over delimiters in responses)
-            tokenEnd = sMessage_.find(endDelim, tokenEnd);
+            tokenEnd = sMessage_.find(endDelimiter, tokenEnd);
             if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
-            clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.data(), tokenEnd));
+            clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.substr(0, tokenEnd)));
             sMessage_.remove_prefix(tokenEnd);
             break;
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
@@ -635,11 +634,10 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
                 for (uint32_t i = 0; i < uiArraySize; i++)
                 {
                     if (i > 0 && !prepareToken(true)) { return STATUS::MALFORMED_INPUT; }
-                    tokenEnd = sMessage_.find_first_of(tokenDelimiters);
-                    if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
+                    tokenEnd = FindFirstAsciiTokenDelimiter<Abbreviated>(sMessage_);
                     try
                     {
-                        DecodeAsciiField(*field, std::string_view(sMessage_.data(), tokenEnd), clCompField_, i, fixed);
+                        DecodeAsciiField(*field, sMessage_.substr(0, tokenEnd), clCompField_, i, fixed);
                     }
                     catch (const std::runtime_error&)
                     {
@@ -703,7 +701,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
     }
 
     // Make sure no unexpected characters remain in the buffer
-    if (!sMessage_.empty() && tokenDelimiters.find(sMessage_.front()) == std::string_view::npos) { return STATUS::MALFORMED_INPUT; }
+    if (!sMessage_.empty() && sMessage_.front() != endDelimiter && sMessage_.front() != tokenDelimiter) { return STATUS::MALFORMED_INPUT; }
     return STATUS::SUCCESS;
 }
 

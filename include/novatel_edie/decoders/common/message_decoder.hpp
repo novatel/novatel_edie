@@ -1579,6 +1579,24 @@ class FieldArray
 class MessageDecoderBase
 {
   private:
+    static constexpr char ASCII_END_DELIM = '*';
+    static constexpr char ASCII_TOKEN_DELIM = ',';
+    static constexpr char ABBREV_ASCII_END_DELIM = '\r';
+    static constexpr char ABBREV_ASCII_TOKEN_DELIM = ' ';
+
+    template <bool Abbreviated> static inline size_t FindFirstAsciiTokenDelimiter(std::string_view sMessage_)
+    {
+        constexpr char tokenDelimiter = Abbreviated ? ABBREV_ASCII_TOKEN_DELIM : ASCII_TOKEN_DELIM;
+        constexpr char endDelimiter = Abbreviated ? ABBREV_ASCII_END_DELIM : ASCII_END_DELIM;
+
+        size_t i = 0;
+        for (; i < sMessage_.size(); i++)
+        {
+            if (sMessage_[i] == tokenDelimiter || sMessage_[i] == endDelimiter) { return i; }
+        }
+        return i;
+    }
+
     static constexpr std::string_view svErrorPrefix = "ERROR:";
 
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("message_decoder")};
