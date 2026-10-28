@@ -28,6 +28,7 @@
 #define NOVATEL_HEADER_DECODER_HPP
 
 #include <cstddef>
+#include <string_view>
 #include <tuple>
 
 #include "novatel_edie/common/logger.hpp"
@@ -83,10 +84,10 @@ class HeaderDecoder
     mutable MessageCountsTrackerT clMyMessageCounts{};
 
     // Decode novatel headers
-    template <const char pcDelimiter[], ASCII_HEADER eField>
-    [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_) const;
-    template <const char pcDelimiter[], ASCII_HEADER... eFields>
-    [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_) const;
+    template <ASCII_HEADER eField>
+    [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_, std::string_view sDelimiter) const;
+    template <ASCII_HEADER... eFields>
+    [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_, std::string_view sDelimiter) const;
     bool DecodeJsonHeader(std::string_view pcTempBuf_, IntermediateHeader& stInterHeader_) const;
 
   public:
