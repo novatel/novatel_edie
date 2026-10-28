@@ -139,9 +139,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
         stInterHeader_.ucMessageType = PackMsgType(ucSiblingId, uiMsgFormat, uiResponse);
         break;
     }
-    case ASCII_HEADER::PORT:
-        stInterHeader_.uiPortAddress = static_cast<uint32_t>(GetEnumValue(vMyPortAddressDefinitions, sToken));
-        break;
+    case ASCII_HEADER::PORT: stInterHeader_.uiPortAddress = static_cast<uint32_t>(GetEnumValue(vMyPortAddressDefinitions, sToken)); break;
     case ASCII_HEADER::SEQUENCE: {
         uint16_t usSequence = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usSequence);
@@ -164,9 +162,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
         stInterHeader_.ucIdleTime = static_cast<uint8_t>(std::lround(2.0F * fIdleTime));
         break;
     }
-    case ASCII_HEADER::TIME_STATUS:
-        stInterHeader_.uiTimeStatus = GetEnumValue(vMyGpsTimeStatusDefinitions, sToken);
-        break;
+    case ASCII_HEADER::TIME_STATUS: stInterHeader_.uiTimeStatus = GetEnumValue(vMyGpsTimeStatusDefinitions, sToken); break;
     case ASCII_HEADER::WEEK: {
         uint16_t usWeek = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usWeek);

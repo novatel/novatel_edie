@@ -427,8 +427,7 @@ STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBuf
     eStatus = clMyHeaderDecoder.Decode(pucEmbeddedDataBuffer, stEmbeddedHeader, stEmbeddedMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-    eStatus = clMyMessageDecoder.Decode(pucEmbeddedDataBuffer + stEmbeddedMetaData_.uiHeaderLength,
-                                        stEmbeddedMessage, stEmbeddedMetaData_);
+    eStatus = clMyMessageDecoder.Decode(pucEmbeddedDataBuffer + stEmbeddedMetaData_.uiHeaderLength, stEmbeddedMessage, stEmbeddedMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     // -- Encode --

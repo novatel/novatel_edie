@@ -80,17 +80,11 @@ void MessageDecoderBase::InitFieldMaps()
         {
         case 4:
             if (fixed_) { ParseAndEmplace<true, float>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, float>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, float>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         case 8:
             if (fixed_) { ParseAndEmplace<true, double>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, double>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, double>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         default: throw std::runtime_error("invalid float length");
         }
@@ -105,18 +99,12 @@ void MessageDecoderBase::InitFieldMaps()
             if (token_ != "TRUE" && token_ != "FALSE") { throw std::runtime_error("Invalid boolean value"); }
             const bool value = (token_ == "TRUE");
             if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-            else
-            {
-                clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
-            }
+            else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
         }
         else
         {
             if (fixed_) { ParseAndEmplace<true, int32_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, int32_t>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, int32_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
         }
     };
 
@@ -126,31 +114,19 @@ void MessageDecoderBase::InitFieldMaps()
         {
         case 1:
             if (fixed_) { ParseAndEmplace<true, uint8_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, uint8_t>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, uint8_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         case 2:
             if (fixed_) { ParseAndEmplace<true, uint16_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, uint16_t>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, uint16_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         case 4:
             if (fixed_) { ParseAndEmplace<true, uint32_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, uint32_t>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, uint32_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         case 8:
             if (fixed_) { ParseAndEmplace<true, uint64_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, uint64_t>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, uint64_t>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         default: throw std::runtime_error("invalid unsigned length");
         }
@@ -162,31 +138,19 @@ void MessageDecoderBase::InitFieldMaps()
         {
         case 1:
             if (fixed_) { ParseAndEmplace<true, uint8_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, uint8_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, uint8_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         case 2:
             if (fixed_) { ParseAndEmplace<true, uint16_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, uint16_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, uint16_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         case 4:
             if (fixed_) { ParseAndEmplace<true, uint32_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, uint32_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, uint32_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         case 8:
             if (fixed_) { ParseAndEmplace<true, uint64_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, uint64_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, uint64_t, 16>(clCompField_, pstMessageDataType_, token_, elementIndex_); }
             return;
         default: throw std::runtime_error("invalid hex length");
         }
@@ -199,10 +163,7 @@ void MessageDecoderBase::InitFieldMaps()
         if (token_.size() != 1) { throw std::runtime_error("Invalid character value"); }
         const auto value = static_cast<int8_t>(token_.front());
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else
-        {
-            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
-        }
+        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
 
     asciiFieldMap[CalculateBlockCrc32("uc")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
@@ -210,10 +171,7 @@ void MessageDecoderBase::InitFieldMaps()
         if (token_.size() != 1) { throw std::runtime_error("Invalid character value"); }
         const auto value = static_cast<uint8_t>(static_cast<unsigned char>(token_.front()));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else
-        {
-            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
-        }
+        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
 
     // =========================================================
@@ -481,10 +439,7 @@ static STATUS DecodeNonCommaSeparatedAsciiArray(CompositeField& clCompField_, st
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
     }
     if (fixed_) { clCompField_.SetFieldValue<true>(field_.index, std::move(vDecodedValues)); }
-    else
-    {
-        clCompField_.SetFieldValue<false>(field_.index, std::move(vDecodedValues));
-    }
+    else { clCompField_.SetFieldValue<false>(field_.index, std::move(vDecodedValues)); }
     return STATUS::SUCCESS;
 }
 
@@ -518,7 +473,6 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
 {
     constexpr auto endDelim = Abbreviated ? '\r' : '*';
     constexpr auto tokenDelimiters = Abbreviated ? " \r"sv : ",*"sv;
-
 
     const auto prepareToken = [&](bool needsDelimiter) {
         if constexpr (Abbreviated)
@@ -587,10 +541,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
                 clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.substr(1, closingQuote - 1)));
                 tokenEnd = closingQuote + 1;
             }
-            else
-            {
-                clCompField_.SetFieldValue<false>(field->index, std::string(sField));
-            }
+            else { clCompField_.SetFieldValue<false>(field->index, std::string(sField)); }
             sMessage_.remove_prefix(tokenEnd);
             break;
         case FIELD_TYPE::RESPONSE_ID: {
@@ -600,10 +551,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
             const auto sResponse = sMessage_.substr(0, tokenEnd);
             if (sResponse == "OK") { clCompField_.SetFieldValue<true>(field->index, static_cast<int32_t>(1)); }
             // Note: This won't match responses with format specifiers in them (%d, %s, etc.), they will be given id=0
-            else
-            {
-                clCompField_.SetFieldValue<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse));
-            }
+            else { clCompField_.SetFieldValue<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse)); }
             // Do not advance buffer, need to reprocess this field for the following RESPONSE_STR.
             needsDelimiter = false;
             continue;
@@ -636,10 +584,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
                 }
 
                 sMessage_.remove_prefix(tokenEnd);
-                if ((field->isString || uiArraySize != 0) && !prepareToken(true))
-                {
-                    return STATUS::MALFORMED_INPUT;
-                }
+                if ((field->isString || uiArraySize != 0) && !prepareToken(true)) { return STATUS::MALFORMED_INPUT; }
             }
 
             STATUS eStatus = STATUS::SUCCESS;
@@ -757,10 +702,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
     }
 
     // Make sure no unexpected characters remain in the buffer
-    if (!sMessage_.empty() && tokenDelimiters.find(sMessage_.front()) == std::string_view::npos)
-    {
-        return STATUS::MALFORMED_INPUT;
-    }
+    if (!sMessage_.empty() && tokenDelimiters.find(sMessage_.front()) == std::string_view::npos) { return STATUS::MALFORMED_INPUT; }
     return STATUS::SUCCESS;
 }
 
