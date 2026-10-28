@@ -120,13 +120,14 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     }
 
     // Check that full delimiter is correct
-    if (sDelimiter.size() > 1 && sDelimiter != sLogBuf_.substr(ullTokenLength, sDelimiter.size()))
+    if (sDelimiter.size() > 1 &&
+        (sDelimiter.size() > sLogBuf_.size() - ullTokenLength || sLogBuf_.substr(ullTokenLength, sDelimiter.size()) != sDelimiter))
     {
         SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded due to an invalid delimiter.");
         return false;
     };
 
-    const auto sToken = sLogBuf_.substr(0, ullTokenLength);
+    const std::string_view sToken(sLogBuf_.data(), ullTokenLength);
     switch (eField)
     {
     case ASCII_HEADER::MESSAGE_NAME: {
