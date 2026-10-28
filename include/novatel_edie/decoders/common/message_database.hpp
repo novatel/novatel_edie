@@ -33,6 +33,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 
 #include "novatel_edie/common/common.hpp"
 #include "novatel_edie/common/crc.hpp"
@@ -327,6 +328,11 @@ struct BitMaskMap
 };
 
 //-----------------------------------------------------------------------
+//! \brief A value of one of the types a simple or enum field decodes to.
+//-----------------------------------------------------------------------
+using SimpleValueVariant = std::variant<bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double>;
+
+//-----------------------------------------------------------------------
 //! \struct BaseField
 //! \brief Struct containing elements of basic fields in the UI DB.
 //-----------------------------------------------------------------------
@@ -345,8 +351,10 @@ struct BaseField
     bool isCsv{false};                // cached; Ascii encoding of this field is comma-separated,
                                       // true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
-    size_t index{0}; // if fixed, this is the byte offset of the field in CompositeField.fixedFields
-                     // if variable, this is the index of the field in CompositeField.variableFields
+    size_t index{0};                                // if fixed, this is the byte offset of the field in CompositeField.fixedFields
+                                                    // if variable, this is the index of the field in CompositeField.variableFields
+    std::optional<SimpleValueVariant> defaultValue; // the value used when a command leaves this field out, of the type
+                                                    // the field decodes to; for arrays, the value of each element
 
     BaseField() = default;
 
@@ -446,7 +454,7 @@ struct BaseField
     [[nodiscard]] virtual bool equalsImpl(const BaseField& other) const
     {
         return name == other.name && type == other.type && description == other.description && conversion == other.conversion &&
-               bitMaskId == other.bitMaskId && dataType == other.dataType;
+               bitMaskId == other.bitMaskId && dataType == other.dataType && defaultValue == other.defaultValue;
     }
 };
 

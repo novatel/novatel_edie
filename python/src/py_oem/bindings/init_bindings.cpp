@@ -23,6 +23,7 @@ NB_MODULE(oem_bindings, m)
     init_novatel_decoder(m);
     init_novatel_filter(m);
     init_novatel_commander(m);
+    init_novatel_command_decoder(m);
     init_novatel_range_decompressor(m);
     init_novatel_rxconfig_handler(m);
     init_message_db_singleton(m, messages_mod, enums_mod);

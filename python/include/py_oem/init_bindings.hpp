@@ -14,6 +14,7 @@ void init_novatel_framer(nb::module_&);
 void init_novatel_decoder(nb::module_&);
 void init_novatel_filter(nb::module_&);
 void init_novatel_commander(nb::module_&);
+void init_novatel_command_decoder(nb::module_&);
 void init_novatel_range_decompressor(nb::module_&);
 void init_novatel_rxconfig_handler(nb::module_&);
 void init_message_db_singleton(nb::module_&, nb::module_&, nb::module_&);

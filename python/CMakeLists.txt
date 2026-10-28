@@ -95,6 +95,7 @@ add_library(oem_bindings MODULE
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/init_bindings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/commander.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/command_decoder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/file_parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/filter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/framer.cpp
