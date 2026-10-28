@@ -80,7 +80,7 @@ uint32_t MessageDatabase::MsgNameToMsgId(std::string_view sMsgName_) const
     uint32_t uiResponse;
 
     // Ingest the sibling information, i.e. the _1 from LOGNAMEA_1
-    if (sMsgName_.find_last_of('_') != std::string::npos && sMsgName_.find_last_of('_') == sMsgName_.size() - 2)
+    if (sMsgName_.size() >= 2 && sMsgName_[sMsgName_.size() - 2] == '_')
     {
         uiSiblingId = static_cast<uint32_t>(ToDigit(sMsgName_.back()));
         sMsgName_.remove_suffix(2);
