@@ -1728,10 +1728,7 @@ class MessageDecoderBase
         return [](CompositeField& vIntermediate_, const BaseField& pstField_, std::string_view token_, const size_t elementIndex_, const bool fixed_,
                   [[maybe_unused]] MessageDatabase& pclMsgDb_) {
             if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, token_, elementIndex_); }
-            else
-            {
-                ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, token_, elementIndex_);
-            }
+            else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, token_, elementIndex_); }
         };
     }
 

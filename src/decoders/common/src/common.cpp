@@ -102,4 +102,6 @@ int32_t GetEnumValue(const std::shared_ptr<const EnumDefinition>& stEnumDef_, st
 }
 
 int32_t GetResponseId(const std::shared_ptr<const EnumDefinition>& stRespDef_, std::string_view strResp_)
-{ return GetResponseId(stRespDef_.get(), strResp_); }
+{
+    return GetResponseId(stRespDef_.get(), strResp_);
+}

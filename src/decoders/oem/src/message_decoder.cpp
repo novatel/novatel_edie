@@ -50,10 +50,7 @@ void MessageDecoder::InitOemFieldMaps()
         if (token_.size() != 1) { throw std::runtime_error("Invalid character value"); }
         const auto value = static_cast<uint32_t>(static_cast<unsigned char>(token_.front()));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
-        else
-        {
-            clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value);
-        }
+        else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
     asciiFieldMap[CalculateBlockCrc32("k")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("lk")] = SimpleAsciiMapEntry<double>();
@@ -99,10 +96,7 @@ void MessageDecoder::InitOemFieldMaps()
         {
             const auto frequency = token_.substr(delimiter + (token_[delimiter] == '+' ? 1 : 0));
             result = std::from_chars(frequency.data(), frequency.data() + frequency.size(), sFreq);
-            if (result.ec != std::errc() || result.ptr != frequency.data() + frequency.size())
-            {
-                throw std::runtime_error("Failed to parse sFreq");
-            }
+            if (result.ec != std::errc() || result.ptr != frequency.data() + frequency.size()) { throw std::runtime_error("Failed to parse sFreq"); }
         }
 
         const uint32_t uiSatId = usSlot | (static_cast<uint32_t>(static_cast<uint16_t>(sFreq)) << 16);
