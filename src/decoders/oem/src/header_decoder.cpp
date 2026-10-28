@@ -112,12 +112,19 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     }
 
     // Find next delimiter
-    const auto ullTokenLength = sDelimiter.size() == 1 ? sLogBuf_.find(sDelimiter.front()) : sLogBuf_.find(sDelimiter);
+    const auto ullTokenLength = sLogBuf_.find(sDelimiter.front());
     if (ullTokenLength == std::string_view::npos)
     {
         SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded as the expected field delimiter could not be found.");
         return false;
     }
+
+    // Check that full delimiter is correct
+    if (sDelimiter.size() > 1 && sDelimiter != sLogBuf_.substr(ullTokenLength, sDelimiter.size()))
+    {
+        SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded due to an invalid delimiter.");
+        return false;
+    };
 
     const auto sToken = sLogBuf_.substr(0, ullTokenLength);
     switch (eField)
