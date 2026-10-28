@@ -317,7 +317,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     auto sMessage = std::string_view(reinterpret_cast<const char*>(pucLogBuf_), stMetaData_.uiLength);
-    if (sMessage.empty() || (sMessage[0] == OEM4_BINARY_SYNC1 && sMessage.size() < 3)) { return STATUS::FAILURE; }
+    if (sMessage.empty() || (pucLogBuf_[0] == OEM4_BINARY_SYNC1 && sMessage.size() < 3)) { return STATUS::FAILURE; }
 
     HEADER_FORMAT eHeaderFormat = [&] {
         switch (pucLogBuf_[0])
