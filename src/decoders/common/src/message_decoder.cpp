@@ -546,7 +546,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
             break;
         case FIELD_TYPE::RESPONSE_ID: {
             // Ensure we get the whole response (skip over delimiters in responses)
-            tokenEnd = sMessage_.find_first_of(endDelim);
+            tokenEnd = sMessage_.find(endDelim, tokenEnd);
             if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
             const auto sResponse = sMessage_.substr(0, tokenEnd);
             if (sResponse == "OK") { clCompField_.SetFieldValue<true>(field->index, static_cast<int32_t>(1)); }
@@ -558,7 +558,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
         }
         case FIELD_TYPE::RESPONSE_STR:
             // Ensure we get the whole response (skip over delimiters in responses)
-            tokenEnd = sMessage_.find_first_of(endDelim);
+            tokenEnd = sMessage_.find(endDelim, tokenEnd);
             if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
             clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.substr(0, tokenEnd)));
             sMessage_.remove_prefix(tokenEnd);
