@@ -120,9 +120,8 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     }
 
     // Check that full delimiter is correct
-    if (sDelimiter.size() > 1 &&
-        (sDelimiter.size() + ullTokenLength > sLogBuf_.size() ||
-        strncmp(sLogBuf_.data() + ullTokenLength, sDelimiter.data(), sDelimiter.size()) != 0))
+    if (sDelimiter.size() > 1 && (sDelimiter.size() + ullTokenLength > sLogBuf_.size() ||
+                                  strncmp(sLogBuf_.data() + ullTokenLength, sDelimiter.data(), sDelimiter.size()) != 0))
     {
         SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded due to an invalid delimiter.");
         return false;
@@ -145,7 +144,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::SEQUENCE: {
         uint16_t usSequence = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usSequence);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse SEQUENCE.");
             return false;
@@ -156,7 +155,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::IDLE_TIME: {
         float fIdleTime = 0.0F;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), fIdleTime);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse IDLE_TIME.");
             return false;
@@ -168,7 +167,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::WEEK: {
         uint16_t usWeek = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usWeek);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse WEEK.");
             return false;
@@ -179,7 +178,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::SECONDS: {
         double dSeconds = 0.0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), dSeconds);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse SECONDS.");
             return false;
@@ -190,7 +189,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::RECEIVER_STATUS: {
         uint32_t uiReceiverStatus = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), uiReceiverStatus, 16);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse RECEIVER_STATUS.");
             return false;
@@ -201,7 +200,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::MSG_DEF_CRC: {
         uint32_t uiMessageDefinitionCrc = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), uiMessageDefinitionCrc, 16);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse MSG_DEF_CRC.");
             return false;
@@ -359,8 +358,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         sMessage.remove_prefix(1); // Move the input buffer past the sync char '<'
 
         // Abbreviated ascii responses have no headers
-        if ((sMessage.size() >= 2 && strncmp(sMessage.data(), "OK", 2) == 0) ||
-            (sMessage.size() >= 5 && strncmp(sMessage.data(), "ERROR", 5) == 0))
+        if ((sMessage.size() >= 2 && strncmp(sMessage.data(), "OK", 2) == 0) || (sMessage.size() >= 5 && strncmp(sMessage.data(), "ERROR", 5) == 0))
         {
             stMetaData_.bResponse = true;
             stMetaData_.messageName = "UNKNOWN";
