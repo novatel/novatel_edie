@@ -203,7 +203,8 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::RECEIVER_SW_VERSION: {
         uint16_t usReceiverSwVersion = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usReceiverSwVersion);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        // Might be trailing whitespace after this field for embedded log in abb ASCII RXCONFIG
+        if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse RECEIVER_SW_VERSION.");
             return false;
