@@ -121,8 +121,8 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
 
     // Check that full delimiter is correct
     if (sDelimiter.size() > 1 &&
-        (sDelimiter.size() > sLogBuf_.size() - ullTokenLength ||
-        std::char_traits<char>::compare(sLogBuf_.data() + ullTokenLength, sDelimiter.data(), sDelimiter.size()) != 0))
+        (sDelimiter.size() + ullTokenLength > sLogBuf_.size() ||
+        strncmp(sLogBuf_.data() + ullTokenLength, sDelimiter.data(), sDelimiter.size()) != 0))
     {
         SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded due to an invalid delimiter.");
         return false;
@@ -359,7 +359,8 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         sMessage.remove_prefix(1); // Move the input buffer past the sync char '<'
 
         // Abbreviated ascii responses have no headers
-        if (sMessage.substr(0, 2) == "OK" || sMessage.substr(0, 5) == "ERROR")
+        if ((sMessage.size() >= 2 && strncmp(sMessage.data(), "OK", 2) == 0) ||
+            (sMessage.size() >= 5 && strncmp(sMessage.data(), "ERROR", 5) == 0))
         {
             stMetaData_.bResponse = true;
             stMetaData_.messageName = "UNKNOWN";
