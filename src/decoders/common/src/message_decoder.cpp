@@ -505,7 +505,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
 
         size_t tokenEnd = sMessage_.find_first_of(tokenDelimiters);
         if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
-        const auto sField = sMessage_.substr(0, tokenEnd);
+        const std::string_view sField(sMessage_.data(), tokenEnd);
 
         switch (field->type)
         {
@@ -538,7 +538,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
             {
                 const auto closingQuote = sMessage_.find('"', 1);
                 if (closingQuote == std::string_view::npos) { return STATUS::MALFORMED_INPUT; }
-                clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.substr(1, closingQuote - 1)));
+                clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.data() + 1, closingQuote - 1));
                 tokenEnd = closingQuote + 1;
             }
             else { clCompField_.SetFieldValue<false>(field->index, std::string(sField)); }
@@ -560,7 +560,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
             // Ensure we get the whole response (skip over delimiters in responses)
             tokenEnd = sMessage_.find(endDelim, tokenEnd);
             if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
-            clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.substr(0, tokenEnd)));
+            clCompField_.SetFieldValue<false>(field->index, std::string(sMessage_.data(), tokenEnd));
             sMessage_.remove_prefix(tokenEnd);
             break;
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
@@ -639,7 +639,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
                     if (tokenEnd == std::string_view::npos) { tokenEnd = sMessage_.size(); }
                     try
                     {
-                        DecodeAsciiField(*field, sMessage_.substr(0, tokenEnd), clCompField_, i, fixed);
+                        DecodeAsciiField(*field, std::string_view(sMessage_.data(), tokenEnd), clCompField_, i, fixed);
                     }
                     catch (const std::runtime_error&)
                     {
