@@ -681,15 +681,16 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
                 return STATUS::MALFORMED_INPUT;
             }
 
-            std::vector<CompositeField> pvFieldArrayContainer(uiArraySize);
+            std::vector<CompositeField> pvFieldArrayContainer;
+            pvFieldArrayContainer.reserve(uiArraySize);
 
             for (uint32_t i = 0; i < uiArraySize; ++i)
             {
                 if (!prepareToken(true)) { return STATUS::MALFORMED_INPUT; }
-                pvFieldArrayContainer[i] =
-                    CompositeField(subFieldDefinitions->fieldInfo->fixedFieldBytes, subFieldDefinitions->fieldInfo->varFieldCount);
-                pvFieldArrayContainer[i].SetFieldInfo(subFieldDefinitions->fieldInfo);
-                STATUS eStatus = DecodeAscii<Abbreviated>(*subFieldDefinitions->fieldInfo, sMessage_, pvFieldArrayContainer[i]);
+                auto& newField = pvFieldArrayContainer.emplace_back(subFieldDefinitions->fieldInfo->fixedFieldBytes,
+                                                                    subFieldDefinitions->fieldInfo->varFieldCount);
+                newField.SetFieldInfo(subFieldDefinitions->fieldInfo);
+                STATUS eStatus = DecodeAscii<Abbreviated>(*subFieldDefinitions->fieldInfo, sMessage_, newField);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
             clCompField_.SetFieldValue(*field, std::move(pvFieldArrayContainer));

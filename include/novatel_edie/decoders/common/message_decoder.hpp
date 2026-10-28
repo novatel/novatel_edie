@@ -822,12 +822,6 @@ class CompositeField
     }
 
     // ---------------------------------------------------------------------------
-    //! Copy constructor and assignment operator
-    // ---------------------------------------------------------------------------
-    CompositeField(const CompositeField& other) : fixedFields(other.fixedFields), varFields(other.varFields), fieldInfo(other.fieldInfo) {}
-    CompositeField& operator=(const CompositeField& other) = default;
-
-    // ---------------------------------------------------------------------------
     //! \brief Resize the memory regions of the CompositeField.
     //!
     //! \param[in] fixedFieldSize_ The new size in bytes for the fixed fields
