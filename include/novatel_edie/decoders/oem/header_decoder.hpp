@@ -84,10 +84,10 @@ class HeaderDecoder
     mutable MessageCountsTrackerT clMyMessageCounts{};
 
     // Decode novatel headers
-    template <ASCII_HEADER eField>
-    [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_, std::string_view sDelimiter) const;
-    template <ASCII_HEADER... eFields>
-    [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_, std::string_view sDelimiter) const;
+    template <const std::string_view& sDelimiter, ASCII_HEADER eField>
+    [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_) const;
+    template <const std::string_view& sDelimiter, ASCII_HEADER... eFields>
+    [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_) const;
     bool DecodeJsonHeader(std::string_view pcTempBuf_, IntermediateHeader& stInterHeader_) const;
 
   public:
