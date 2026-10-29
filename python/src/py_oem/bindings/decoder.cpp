@@ -19,6 +19,12 @@ nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::Py
     CompositeField fields;
     STATUS status;
 
+    // The metadata may describe a longer frame than raw_body (e.g. from decode_header on the full frame),
+    // so limit the decoded extent to the bytes actually provided.
+    const uint32_t uiOriginalLength = metadata.uiLength;
+    const uint64_t ullAvailableLength = static_cast<uint64_t>(metadata.uiHeaderLength) + raw_body.size();
+    if (metadata.uiLength > ullAvailableLength) { metadata.uiLength = static_cast<uint32_t>(ullAvailableLength); }
+
     if (rx_config_handler.IsRxConfigTypeMsg(header.usMessageId))
     {
         status = rx_config_handler.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata);
@@ -27,6 +33,7 @@ nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::Py
     {
         status = message_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata);
     }
+    metadata.uiLength = uiOriginalLength;
 
     switch (status)
     {

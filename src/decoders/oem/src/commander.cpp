@@ -67,11 +67,6 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     const std::string strCmdName = strAbbrevAsciiCommand.substr(0, ullPos);
     const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1);
 
-    char acCmdParams[MAX_ASCII_MESSAGE_LENGTH];
-    char* pcCmdParams = acCmdParams;
-    std::copy(strCmdParams.begin(), strCmdParams.end(), acCmdParams);
-    acCmdParams[strCmdParams.size()] = '\0';
-
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(strCmdName);
@@ -88,7 +83,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
     stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fieldInfo.begin()->first);
 
-    STATUS eStatus = clMyMessageDecoder.Decode(reinterpret_cast<unsigned char*>(pcCmdParams), stIntermediateMessage, stMetaData);
+    STATUS eStatus = clMyMessageDecoder.Decode(reinterpret_cast<const unsigned char*>(strCmdParams.data()), stIntermediateMessage, stMetaData);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     // Prime the intermediate header with information we already know
@@ -124,11 +119,6 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
     const std::string strCmdName = strAbbrevAsciiCommand.substr(0, ullPos);
     const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1);
 
-    unsigned char acCmdParams[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucCmdParams = acCmdParams;
-    std::copy(strCmdParams.begin(), strCmdParams.end(), acCmdParams);
-    acCmdParams[strCmdParams.size()] = '\0';
-
     MessageDefinition::ConstPtr pclMessageDef = clJsonDb_.GetMsgDef(strCmdName);
     if (!pclMessageDef) { return STATUS::NO_DEFINITION; }
 
@@ -143,7 +133,8 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
     stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
     stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fieldInfo.begin()->first);
 
-    const STATUS eDecoderStatus = clMessageDecoder_.Decode(pucCmdParams, stIntermediateMessage, stMetaData);
+    const STATUS eDecoderStatus =
+        clMessageDecoder_.Decode(reinterpret_cast<const unsigned char*>(strCmdParams.data()), stIntermediateMessage, stMetaData);
     if (eDecoderStatus != STATUS::SUCCESS) { return eDecoderStatus; }
 
     // Prime the intermediate header with information we already know

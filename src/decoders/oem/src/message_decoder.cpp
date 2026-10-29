@@ -77,7 +77,7 @@ void MessageDecoder::InitOemFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
                                                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        const uint32_t value = pclMsgDb_.MsgNameToMsgId(std::string(token_));
+        const uint32_t value = pclMsgDb_.MsgNameToMsgId(token_);
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
@@ -107,6 +107,7 @@ void MessageDecoder::InitOemFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("R")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
                                                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         // RXCONFIG in ASCII is always #COMMANDNAMEA
+        if (token_.size() < 2) { throw std::runtime_error("Invalid RXCONFIG command name"); }
         MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(token_.substr(1, token_.size() - 2));
         const uint32_t value = pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, 0, 1, 0) : 0;
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
