@@ -3335,6 +3335,28 @@ TEST_F(DecodeEncodeTest, ASCII_RESPONSE_ERROR_FORMAT_SPEC_S)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
+TEST_F(DecodeEncodeTest, RESPONSE_ID)
+{
+    const std::vector<std::pair<std::string_view, int32_t>> vCases = {
+        {"#SATEL4CONFIGR,COM1,0,0.0,UNKNOWN,0,0.000,00000000,0000,0;ERROR:Radio must be detected before configuration*3aa62ce2\r\n", 237},
+        {"<ERROR:Message is invalid for this model\r\n", 36},
+        {"#FRESETR,COM1,0,73.0,UNKNOWN,0,0.000,00000000,06e5,0;OK*55c70910\r\n", 1}};
+
+    for (const auto& [sLog, iExpectedResponseId] : vCases)
+    {
+        MetaDataStruct stMetaData;
+        IntermediateHeader stHeader;
+        CompositeField stMessage;
+        const auto* pucLog = reinterpret_cast<const unsigned char*>(sLog.data());
+        stMetaData.uiLength = static_cast<uint32_t>(sLog.size());
+        ASSERT_EQ(STATUS::SUCCESS, pclMyHeaderDecoder->Decode(pucLog, stHeader, stMetaData)) << sLog;
+        ASSERT_EQ(STATUS::SUCCESS, pclMyMessageDecoder->Decode(pucLog + stMetaData.uiHeaderLength, stMessage, stMetaData)) << sLog;
+        const auto& vFields = stMessage.GetFieldInfo()->messageOrderedFields;
+        ASSERT_FALSE(vFields.empty());
+        EXPECT_EQ(stMessage.GetFieldValue<int32_t>(*vFields.front()), iExpectedResponseId) << sLog;
+    }
+}
+
 // -------------------------------------------------------------------------------------------------------
 // BINARY Response Decode/Encode Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -3680,6 +3702,14 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_LOG_PARTIAL)
 {
     char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     ASSERT_EQ(STATUS::MALFORMED_INPUT, TestCommandConversion("LOG THISPORT BESTPOSA ONCE\r\n", acEncodeBuffer, sizeof(acEncodeBuffer), ENCODE_FORMAT::BINARY));
+}
+
+TEST_F(CommandEncodeTest, COMMAND_ENCODE_OVERSIZED_PARAMETERS)
+{
+    // Parameters longer than any internal command buffer must be rejected rather than overflow
+    std::vector<char> vEncodeBuffer(MAX_ASCII_MESSAGE_LENGTH);
+    const std::string sCommand = "INSTHRESHOLDS " + std::string(2 * MAX_ASCII_MESSAGE_LENGTH, 'A');
+    ASSERT_NE(STATUS::SUCCESS, TestCommandConversion(sCommand, vEncodeBuffer.data(), static_cast<uint32_t>(vEncodeBuffer.size()), ENCODE_FORMAT::ASCII));
 }
 
 TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_UALCONTROL)

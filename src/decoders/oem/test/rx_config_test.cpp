@@ -101,6 +101,48 @@ TEST_F(RxConfigTest, LOGGER)
 }
 
 // -------------------------------------------------------------------------------------------------------
+// Decode unit tests.
+// -------------------------------------------------------------------------------------------------------
+TEST_F(RxConfigTest, RXCONFIG_DECODE_TRUNCATED_PAYLOAD)
+{
+    constexpr unsigned char aucPayload[] = "COM1*ca0f5c51";
+    for (const DECODE_FORMAT eFormat : {DECODE_FORMAT::ASCII, DECODE_FORMAT::BINARY, DECODE_FORMAT::ABB_ASCII})
+    {
+        MetaDataStruct stMetaData;
+        stMetaData.usMessageId = US_RX_CONFIG_MSG_ID;
+        stMetaData.eFormat = eFormat;
+        CompositeField stMessage;
+
+        // Payload shorter than the trailing CRCs (or empty, for abbreviated ASCII)
+        stMetaData.uiHeaderLength = 0;
+        stMetaData.uiLength = eFormat == DECODE_FORMAT::ABB_ASCII ? 0 : 4;
+        EXPECT_EQ(STATUS::MALFORMED_INPUT, pclMyRxConfigHandler->Decode(aucPayload, stMessage, stMetaData));
+
+        // Header length larger than the frame length
+        stMetaData.uiHeaderLength = 8;
+        stMetaData.uiLength = 4;
+        EXPECT_EQ(STATUS::MALFORMED_INPUT, pclMyRxConfigHandler->Decode(aucPayload, stMessage, stMetaData));
+    }
+}
+
+TEST_F(RxConfigTest, RXCONFIG_DECODE_ASCII_ZERO_PADDED_CRC)
+{
+    // The embedded CRC 0xf1234567 inverts to 0x0edcba98, which must keep its leading zero
+    constexpr std::string_view sPayload = "#INTERFACEMODEA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*"
+                                          "f1234567*71be1427\r\n";
+    MetaDataStruct stMetaData;
+    stMetaData.usMessageId = US_RX_CONFIG_MSG_ID;
+    stMetaData.eFormat = DECODE_FORMAT::ASCII;
+    stMetaData.uiLength = static_cast<uint32_t>(sPayload.size());
+    CompositeField stMessage;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyRxConfigHandler->Decode(reinterpret_cast<const unsigned char*>(sPayload.data()), stMessage, stMetaData));
+
+    const auto& vEmbedded = stMessage.GetFieldValue<std::vector<uint8_t>>(*stMessage.GetFieldInfo()->messageOrderedFields.at(0));
+    const std::string sEmbedded(vEmbedded.begin(), vEmbedded.end());
+    EXPECT_EQ(sEmbedded, std::string(sPayload.substr(0, sPayload.find("f1234567"))) + "0edcba98\r\n");
+}
+
+// -------------------------------------------------------------------------------------------------------
 // Round-trip unit tests.
 // -------------------------------------------------------------------------------------------------------
 TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ASCII)

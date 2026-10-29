@@ -45,6 +45,7 @@ class MessageDatabaseTest : public testing::Test
     {
         MessageDatabase::RegisterAlignmentFunction("OEM", [](const size_t size, const uintptr_t start, const uintptr_t ptr) {
             size_t alignment = std::min(size_t{4}, size);
+            if (alignment == 0) { return size_t{0}; } // This function stays registered for later tests, which may use zero-sized fields
             size_t offset = (ptr - start) % alignment;
             return offset == 0 ? 0 : alignment - offset;
         });
