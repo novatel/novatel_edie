@@ -148,7 +148,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::SEQUENCE: {
         uint16_t usSequence = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usSequence);
-        if (result.ec != std::errc())
+        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
         {
             pclMyLogger->debug("Failed to parse SEQUENCE.");
             return false;
@@ -159,7 +159,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::IDLE_TIME: {
         float fIdleTime = 0.0F;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), fIdleTime);
-        if (result.ec != std::errc())
+        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
         {
             pclMyLogger->debug("Failed to parse IDLE_TIME.");
             return false;
@@ -171,7 +171,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::WEEK: {
         uint16_t usWeek = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usWeek);
-        if (result.ec != std::errc())
+        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
         {
             pclMyLogger->debug("Failed to parse WEEK.");
             return false;
@@ -182,7 +182,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::SECONDS: {
         double dSeconds = 0.0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), dSeconds);
-        if (result.ec != std::errc())
+        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
         {
             pclMyLogger->debug("Failed to parse SECONDS.");
             return false;
@@ -193,7 +193,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::RECEIVER_STATUS: {
         uint32_t uiReceiverStatus = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), uiReceiverStatus, 16);
-        if (result.ec != std::errc())
+        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
         {
             pclMyLogger->debug("Failed to parse RECEIVER_STATUS.");
             return false;
@@ -204,7 +204,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
     case ASCII_HEADER::MSG_DEF_CRC: {
         uint32_t uiMessageDefinitionCrc = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), uiMessageDefinitionCrc, 16);
-        if (result.ec != std::errc())
+        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
         {
             pclMyLogger->debug("Failed to parse MSG_DEF_CRC.");
             return false;
