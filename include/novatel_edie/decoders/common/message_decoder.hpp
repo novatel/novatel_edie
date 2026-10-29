@@ -1845,7 +1845,7 @@ class MessageDecoderBase
     //! - uiHeaderLength: Set to the number of frame bytes skipped before pucMessage_; must not
     //!   exceed uiLength. Must be 0 for payload-only input. Ignored for BINARY/JSON.
     //! - usMessageId: Required to select the database definition.
-    //! - uiMessageCrc: Set to the definitions CRC. If the given CRC is not in the database, the
+    //! - uiMessageCrc: Set to the definition's CRC. If the given CRC is not in the database, the
     //!   latest CRC is used as a fallback.
     //! - messageName: Not used by Decode, except to reject "RXCONFIG".
     //
@@ -1854,8 +1854,8 @@ class MessageDecoderBase
     //! input must be a complete, valid payload matching its definition, including NUL terminators for
     //! STRING fields.
     //
-    //! \remark Framers supply uiLength; HeaderDecoders supply eFormat, uiBinaryMsgLength, uiHeaderLength
-    //! usMessageId, uiMessageCrc, and messageName, but does not set uiLength. Direct callers must supply
+    //! \remark Framers supply uiLength; HeaderDecoders supply eFormat, uiBinaryMsgLength, uiHeaderLength,
+    //! usMessageId, uiMessageCrc, and messageName, but do not set uiLength. Direct callers must supply
     //! uiLength themselves.
     //! \return An error code describing the result of decoding.
     //!   SUCCESS: The operation was successful.

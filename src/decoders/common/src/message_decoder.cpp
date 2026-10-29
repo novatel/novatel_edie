@@ -550,7 +550,13 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
             const auto sResponse = sMessage_.substr(0, tokenEnd);
             if (sResponse == "OK") { clCompField_.SetFieldValue<true>(field->index, static_cast<int32_t>(1)); }
             // Note: This won't match responses with format specifiers in them (%d, %s, etc.), they will be given id=0
-            else { clCompField_.SetFieldValue<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse)); }
+            else
+            {
+                // Response descriptions in the database do not include the "ERROR:" prefix
+                auto sDescription = sResponse;
+                if (sDescription.substr(0, svErrorPrefix.size()) == svErrorPrefix) { sDescription.remove_prefix(svErrorPrefix.size()); }
+                clCompField_.SetFieldValue<true>(field->index, GetResponseId(vMyResponseDefinitions, sDescription));
+            }
             // Do not advance buffer, need to reprocess this field for the following RESPONSE_STR.
             needsDelimiter = false;
             continue;
@@ -766,7 +772,8 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                 if (sResponse == "OK") { clCompField_.SetFieldValue<true>(field->index, 1); }
                 else
                 {
-                    clCompField_.SetFieldValue<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length())));
+                    if (sResponse.substr(0, svErrorPrefix.size()) == svErrorPrefix) { sResponse.remove_prefix(svErrorPrefix.size()); }
+                    clCompField_.SetFieldValue<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse));
                 }
             }
             break;

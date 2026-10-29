@@ -121,9 +121,11 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
     }
     else { return STATUS::UNSUPPORTED; }
 
+    if (stRxConfigMetaData_.uiHeaderLength > stRxConfigMetaData_.uiLength) { return STATUS::MALFORMED_INPUT; }
+
     const unsigned char* pucTempMessagePointer = pucMessage_;
     std::vector<uint8_t> stEmbeddedMessageData;
-    uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
+    const uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
     stInterMessage_ = CompositeField(0, 1);
     stInterMessage_.SetFieldInfo(pclMyMsgDb != nullptr ? pclMyMsgDb->GetMsgDef(stRxConfigMetaData_.usMessageId) : nullptr,
                                  stRxConfigMetaData_.uiMessageCrc);
@@ -145,11 +147,14 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
     }
     case DECODE_FORMAT::ASCII: {
         // Ignore {CRC}*{CRC}\r\n at end of buffer
-        uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - OEM4_ASCII_CRC_LENGTH - 1 - OEM4_ASCII_CRC_LENGTH - 2;
+        constexpr uint32_t uiAsciiTrailerLength = OEM4_ASCII_CRC_LENGTH + 1 + OEM4_ASCII_CRC_LENGTH + 2;
+        if (uiTotalPayloadSize < uiAsciiTrailerLength) { return STATUS::MALFORMED_INPUT; }
+        uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - uiAsciiTrailerLength;
         break;
     }
     case DECODE_FORMAT::BINARY: {
         // Ignore CRCs at end of buffer
+        if (uiTotalPayloadSize < 2 * OEM4_BINARY_CRC_LENGTH) { return STATUS::MALFORMED_INPUT; }
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - 2 * OEM4_BINARY_CRC_LENGTH;
         break;
     }
@@ -172,10 +177,16 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
     {
     case DECODE_FORMAT::ASCII: {
         // invert ascii crc
-        const uint32_t uiCRC = strtoul(reinterpret_cast<const char*>(pucTempMessagePointer), nullptr, 16) ^ 0xFFFFFFFF;
-        char pucCRC[OEM4_ASCII_CRC_LENGTH];
-        std::to_chars(pucCRC, pucCRC + OEM4_ASCII_CRC_LENGTH, uiCRC, 16);
-        for (auto c : pucCRC) { stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(c)); }
+        const auto* pcCRC = reinterpret_cast<const char*>(pucTempMessagePointer);
+        uint32_t uiCRC = 0;
+        const auto result = std::from_chars(pcCRC, pcCRC + OEM4_ASCII_CRC_LENGTH, uiCRC, 16);
+        if (result.ec != std::errc() || result.ptr != pcCRC + OEM4_ASCII_CRC_LENGTH) { return STATUS::MALFORMED_INPUT; }
+        uiCRC ^= 0xFFFFFFFF;
+        // Write the CRC as exactly OEM4_ASCII_CRC_LENGTH zero-padded hex digits
+        for (int32_t iShift = 4 * (OEM4_ASCII_CRC_LENGTH - 1); iShift >= 0; iShift -= 4)
+        {
+            stEmbeddedMessageData.emplace_back(static_cast<uint8_t>("0123456789abcdef"[(uiCRC >> iShift) & 0xF]));
+        }
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'));
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'));
         break;
@@ -465,9 +476,6 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     STATUS eStatus = clMyFramer.GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
-
-    // Null-terminate the frame buffer to accommodate string operations.
-    pcMyFrameBuffer[stRxConfigMetaData_.uiLength] = '\0';
 
     // Decode the RXCONFIG log.
     eStatus = clMyHeaderDecoder.Decode(pcMyFrameBuffer.get(), stRxConfigHeader, stRxConfigMetaData_);

@@ -106,9 +106,9 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
 
     if (sLogBuf_.empty()) { return false; }
 
-    // We check if the first character in the field is in the valid format
-    if ((bIsLeadingNumberField && !isdigit(sLogBuf_.front())) || (bIsLeadingAlphaField && !isalpha(sLogBuf_.front())) ||
-        (bIsLeadingHexField && !isxdigit(sLogBuf_.front())))
+    // We check if the first character in the field is in the valid format. The <cctype> functions require unsigned char values.
+    const auto ucFirst = static_cast<unsigned char>(sLogBuf_.front());
+    if ((bIsLeadingNumberField && !isdigit(ucFirst)) || (bIsLeadingAlphaField && !isalpha(ucFirst)) || (bIsLeadingHexField && !isxdigit(ucFirst)))
     {
         return false;
     }
