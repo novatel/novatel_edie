@@ -86,9 +86,9 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                     metadata = &default_metadata;
                     metadata->uiLength = static_cast<uint32_t>(raw_header.size());
                 }
-                else if (metadata->uiLength > static_cast<uint32_t>(raw_header.size()))
+                else if (metadata->uiLength > raw_header.size() || metadata->uiLength == 0)
                 {
-                    throw std::runtime_error("Provided metadata length exceeds raw header size.");
+                    metadata->uiLength = raw_header.size();
                 }
                 STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_header.c_str()), header, *metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
