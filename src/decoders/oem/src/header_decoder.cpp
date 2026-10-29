@@ -113,14 +113,12 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
         return false;
     }
 
-    // Find next delimiter. memchr is used directly because GCC does not always inline string_view::find.
-    const auto* pcNextDelimiter = static_cast<const char*>(memchr(sLogBuf_.data(), sDelimiter.front(), sLogBuf_.size()));
-    if (pcNextDelimiter == nullptr)
+    const auto ullTokenLength = sLogBuf_.find(sDelimiter.front());
+    if (ullTokenLength == std::string_view::npos)
     {
         SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded as the expected field delimiter could not be found.");
         return false;
     }
-    const auto ullTokenLength = static_cast<size_t>(pcNextDelimiter - sLogBuf_.data());
 
     // Check that full delimiter is correct
     if constexpr (sDelimiter.size() > 1)
