@@ -51,7 +51,6 @@ def TestFilter(filter, decoder, message):
    if isinstance(message, str):
        message = message.encode()
    try:
-      meta_data.length = len(message)
       header = decoder.decode_header(message, meta_data)
    except ne.UnsupportedException:
       pass
