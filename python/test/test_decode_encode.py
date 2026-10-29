@@ -69,6 +69,7 @@ class Helper:
         if meta_data is None:
             meta_data = oem.MetaData()
         try:
+            meta_data.length = len(message_input)
             header = self.decoder.decode_header(message_input, meta_data)
         except Exception:
             return (Result.HEADER_DECODER_ERROR, None) if not return_message else (Result.HEADER_DECODER_ERROR, None, None)

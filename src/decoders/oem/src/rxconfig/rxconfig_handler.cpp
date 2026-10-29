@@ -153,9 +153,11 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
         break;
     }
     case DECODE_FORMAT::BINARY: {
-        // Ignore CRCs at end of buffer
-        if (uiTotalPayloadSize < 2 * OEM4_BINARY_CRC_LENGTH) { return STATUS::MALFORMED_INPUT; }
-        uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - 2 * OEM4_BINARY_CRC_LENGTH;
+        if (stRxConfigMetaData_.uiBinaryMsgLength < OEM4_BINARY_CRC_LENGTH || stRxConfigMetaData_.uiBinaryMsgLength > uiTotalPayloadSize)
+        {
+            return STATUS::MALFORMED_INPUT;
+        }
+        uiCopyableEmbeddedMsgBytes = stRxConfigMetaData_.uiBinaryMsgLength - OEM4_BINARY_CRC_LENGTH;
         break;
     }
     default: {

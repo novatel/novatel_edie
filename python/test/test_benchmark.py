@@ -45,6 +45,7 @@ class Benchmarker:
 
     def run(self, log, encode_format):
         meta_data = oem.MetaData()
+        meta_data.length = len(log)
         failed_once = False
         count = 0
         start = timeit.default_timer()
