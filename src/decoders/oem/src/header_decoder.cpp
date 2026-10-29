@@ -90,9 +90,11 @@ void HeaderDecoder::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <ASCII_HEADER eField>
-bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_, std::string_view sDelimiter) const
+template <const std::string_view& sDelimiter, ASCII_HEADER eField>
+bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_) const
 {
+    static_assert(!sDelimiter.empty());
+
     constexpr bool bIsLeadingNumberField = eField == ASCII_HEADER::SEQUENCE || eField == ASCII_HEADER::IDLE_TIME || eField == ASCII_HEADER::WEEK ||
                                            eField == ASCII_HEADER::SECONDS || eField == ASCII_HEADER::RECEIVER_SW_VERSION;
 
@@ -111,21 +113,25 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
         return false;
     }
 
-    // Find next delimiter
-    const auto ullTokenLength = sLogBuf_.find(sDelimiter.front());
-    if (ullTokenLength == std::string_view::npos)
+    // Find next delimiter. memchr is used directly because GCC does not always inline string_view::find.
+    const auto* pcNextDelimiter = static_cast<const char*>(memchr(sLogBuf_.data(), sDelimiter.front(), sLogBuf_.size()));
+    if (pcNextDelimiter == nullptr)
     {
         SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded as the expected field delimiter could not be found.");
         return false;
     }
+    const auto ullTokenLength = static_cast<size_t>(pcNextDelimiter - sLogBuf_.data());
 
     // Check that full delimiter is correct
-    if (sDelimiter.size() > 1 && (sDelimiter.size() + ullTokenLength > sLogBuf_.size() ||
-                                  strncmp(sLogBuf_.data() + ullTokenLength, sDelimiter.data(), sDelimiter.size()) != 0))
+    if constexpr (sDelimiter.size() > 1)
     {
-        SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded due to an invalid delimiter.");
-        return false;
-    };
+        if (sDelimiter.size() + ullTokenLength > sLogBuf_.size() ||
+            strncmp(sLogBuf_.data() + ullTokenLength, sDelimiter.data(), sDelimiter.size()) != 0)
+        {
+            SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded due to an invalid delimiter.");
+            return false;
+        }
+    }
 
     const std::string_view sToken(sLogBuf_.data(), ullTokenLength);
     switch (eField)
@@ -227,10 +233,10 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <ASCII_HEADER... eFields>
-bool HeaderDecoder::DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_, std::string_view sDelimiter) const
+template <const std::string_view& sDelimiter, ASCII_HEADER... eFields>
+bool HeaderDecoder::DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, std::string_view& sLogBuf_) const
 {
-    return (DecodeAsciiHeaderField<eFields>(stInterHeader_, sLogBuf_, sDelimiter) && ...);
+    return (DecodeAsciiHeaderField<sDelimiter, eFields>(stInterHeader_, sLogBuf_) && ...);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -345,10 +351,10 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     {
     case HEADER_FORMAT::ASCII:
         sMessage.remove_prefix(1); // Move the input buffer past the sync char '#'
-        if (!DecodeAsciiHeaderFields<ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::PORT, ASCII_HEADER::SEQUENCE, ASCII_HEADER::IDLE_TIME,
-                                     ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS, ASCII_HEADER::RECEIVER_STATUS,
-                                     ASCII_HEADER::MSG_DEF_CRC>(stInterHeader_, sMessage, sAsciiRegDelimiter) ||
-            !DecodeAsciiHeaderField<ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, sMessage, sAsciiFinalDelimiter))
+        if (!DecodeAsciiHeaderFields<sAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::PORT, ASCII_HEADER::SEQUENCE,
+                                     ASCII_HEADER::IDLE_TIME, ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS,
+                                     ASCII_HEADER::RECEIVER_STATUS, ASCII_HEADER::MSG_DEF_CRC>(stInterHeader_, sMessage) ||
+            !DecodeAsciiHeaderField<sAsciiFinalDelimiter, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, sMessage))
         {
             return STATUS::FAILURE;
         }
@@ -370,14 +376,14 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
 
         // At this point, we do not know if the format is short or not, but both have a message
         // field
-        if (!DecodeAsciiHeaderField<ASCII_HEADER::MESSAGE_NAME>(stInterHeader_, sMessage, sAbbrevAsciiRegDelimiter)) { return STATUS::FAILURE; }
-        if (DecodeAsciiHeaderField<ASCII_HEADER::PORT>(stInterHeader_, sMessage, sAbbrevAsciiRegDelimiter))
+        if (!DecodeAsciiHeaderField<sAbbrevAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME>(stInterHeader_, sMessage)) { return STATUS::FAILURE; }
+        if (DecodeAsciiHeaderField<sAbbrevAsciiRegDelimiter, ASCII_HEADER::PORT>(stInterHeader_, sMessage))
         {
             // Port field succeeded, so this is not short format
-            if (!DecodeAsciiHeaderFields<ASCII_HEADER::SEQUENCE, ASCII_HEADER::IDLE_TIME, ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK,
-                                         ASCII_HEADER::SECONDS, ASCII_HEADER::RECEIVER_STATUS, ASCII_HEADER::MSG_DEF_CRC>(stInterHeader_, sMessage,
-                                                                                                                          sAbbrevAsciiRegDelimiter) ||
-                !DecodeAsciiHeaderField<ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, sMessage, sAbbrevAsciiFinalDelimiter))
+            if (!DecodeAsciiHeaderFields<sAbbrevAsciiRegDelimiter, ASCII_HEADER::SEQUENCE, ASCII_HEADER::IDLE_TIME, ASCII_HEADER::TIME_STATUS,
+                                         ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS, ASCII_HEADER::RECEIVER_STATUS, ASCII_HEADER::MSG_DEF_CRC>(
+                    stInterHeader_, sMessage) ||
+                !DecodeAsciiHeaderField<sAbbrevAsciiFinalDelimiter, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, sMessage))
             {
                 return STATUS::FAILURE;
             }
@@ -385,8 +391,8 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         else
         {
             // Port field failed, so we (unsafely) assume this is short
-            if (!DecodeAsciiHeaderField<ASCII_HEADER::WEEK>(stInterHeader_, sMessage, sAbbrevAsciiRegDelimiter) ||
-                !DecodeAsciiHeaderField<ASCII_HEADER::SECONDS>(stInterHeader_, sMessage, sAbbrevAsciiFinalDelimiter))
+            if (!DecodeAsciiHeaderField<sAbbrevAsciiRegDelimiter, ASCII_HEADER::WEEK>(stInterHeader_, sMessage) ||
+                !DecodeAsciiHeaderField<sAbbrevAsciiFinalDelimiter, ASCII_HEADER::SECONDS>(stInterHeader_, sMessage))
             {
                 return STATUS::FAILURE;
             }
@@ -395,8 +401,8 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
 
     case HEADER_FORMAT::SHORT_ASCII:
         sMessage.remove_prefix(1); // Move the input buffer past the sync char '%'
-        if (!DecodeAsciiHeaderFields<ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::WEEK>(stInterHeader_, sMessage, sAsciiRegDelimiter) ||
-            !DecodeAsciiHeaderField<ASCII_HEADER::SECONDS>(stInterHeader_, sMessage, sAsciiFinalDelimiter))
+        if (!DecodeAsciiHeaderFields<sAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::WEEK>(stInterHeader_, sMessage) ||
+            !DecodeAsciiHeaderField<sAsciiFinalDelimiter, ASCII_HEADER::SECONDS>(stInterHeader_, sMessage))
         {
             return STATUS::FAILURE;
         }
