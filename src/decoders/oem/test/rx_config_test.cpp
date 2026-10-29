@@ -125,6 +125,32 @@ TEST_F(RxConfigTest, RXCONFIG_DECODE_TRUNCATED_PAYLOAD)
     }
 }
 
+TEST_F(RxConfigTest, RXCONFIG_DECODE_BINARY_PAYLOAD_LENGTH)
+{
+    constexpr unsigned char payload[] = {0xAA, 0xBB, 0xFF, 0xFF, 0xFF, 0xFF};
+    const std::vector<uint8_t> expected = {0xAA, 0xBB, 0, 0, 0, 0};
+    MetaDataStruct metadata;
+    metadata.usMessageId = US_RX_CONFIG_MSG_ID;
+    metadata.eFormat = DECODE_FORMAT::BINARY;
+    metadata.uiHeaderLength = 28;
+    metadata.uiBinaryMsgLength = sizeof(payload);
+
+    for (const uint32_t available : {6U, 10U, 1000U})
+    {
+        metadata.uiLength = metadata.uiHeaderLength + available;
+        CompositeField message;
+        ASSERT_EQ(STATUS::SUCCESS, pclMyRxConfigHandler->Decode(payload, message, metadata));
+        EXPECT_EQ(message.GetFieldValue<std::vector<uint8_t>>(*message.GetFieldInfo()->messageOrderedFields.at(0)), expected);
+    }
+
+    CompositeField message;
+    metadata.uiLength = metadata.uiHeaderLength + sizeof(payload);
+    metadata.uiBinaryMsgLength = OEM4_BINARY_CRC_LENGTH - 1;
+    EXPECT_EQ(STATUS::MALFORMED_INPUT, pclMyRxConfigHandler->Decode(payload, message, metadata));
+    metadata.uiBinaryMsgLength = sizeof(payload) + 1;
+    EXPECT_EQ(STATUS::MALFORMED_INPUT, pclMyRxConfigHandler->Decode(payload, message, metadata));
+}
+
 TEST_F(RxConfigTest, RXCONFIG_DECODE_ASCII_ZERO_PADDED_CRC)
 {
     // The embedded CRC 0xf1234567 inverts to 0x0edcba98, which must keep its leading zero

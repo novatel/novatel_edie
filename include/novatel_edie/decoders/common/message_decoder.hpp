@@ -1643,10 +1643,15 @@ class MessageDecoderBase
     //! calculate the current offset relative to the beginning of the payload.
     //! \param[in, out] ptr_ A pointer to the buffer pointer to be advanced
     //! if padding is needed.
+    //! \param[in] bytesLeft Remaining bytes available for padding.
     //
-    //! \return None. The buffer pointer is updated in place.
+    //! \return True if the padding fits and the buffer pointer was updated.
     //----------------------------------------------------------------------------
-    virtual void AddStringFieldPadding([[maybe_unused]] const unsigned char* start, [[maybe_unused]] const unsigned char** ptr) const { return; }
+    virtual bool AddStringFieldPadding([[maybe_unused]] const unsigned char* start, [[maybe_unused]] const unsigned char** ptr,
+                                       [[maybe_unused]] size_t bytesLeft) const
+    {
+        return true;
+    }
 
     // -------------------------------------------------------------------------------------------------------
     template <bool Fixed = true, typename T = int32_t, int R = 10>
@@ -1718,8 +1723,8 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    uint32_t GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
-                            const CompositeField& clCompField_) const
+    std::pair<std::size_t, uint32_t> GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
+                                                    const CompositeField& clCompField_) const
     {
         if (arrayDef.arrayLengthRef.empty())
         {
@@ -1733,32 +1738,24 @@ class MessageDecoderBase
             for (std::size_t i = 0; i < lenBytes; ++i) { uiArrayLength |= static_cast<uint32_t>((*ppucLogBuf_)[i]) << (8 * i); }
 
             *ppucLogBuf_ += lenBytes;
-            return uiArrayLength;
+            return {lenBytes, uiArrayLength};
         }
 
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
         if (auto arrLengthRefDef = clCompField_.GetFieldInfo()->GetFieldDefByName(arrayDef.arrayLengthRef))
         {
-            const auto arraySize = std::visit(
-                [](const auto& value) -> std::optional<uint32_t> {
-                    using T = std::decay_t<decltype(value)>;
-                    if constexpr (std::is_integral_v<T>)
-                    {
-                        if constexpr (std::is_signed_v<T>)
-                        {
-                            if (value < 0) { return std::nullopt; }
-                        }
-                        if constexpr (sizeof(T) > sizeof(uint32_t))
-                        {
-                            if (value > static_cast<T>(std::numeric_limits<uint32_t>::max())) { return std::nullopt; }
-                        }
-                        return static_cast<uint32_t>(value);
-                    }
-                    return std::nullopt;
-                },
-                clCompField_.GetFieldValueVariant(*arrLengthRefDef));
+            size_t arrayLengthFieldSize;
+            std::optional<uint32_t> arraySize = std::nullopt;
+            SimpleTypeVisitor(*arrLengthRefDef, [&](auto value) {
+                using T = std::decay_t<decltype(value)>;
+                if constexpr (std::is_integral_v<T>)
+                {
+                    arrayLengthFieldSize = sizeof(T);
+                    arraySize = static_cast<uint32_t>(clCompField_.GetFieldValue<T>(*arrLengthRefDef));
+                }
+            });
 
-            if (arraySize) { return *arraySize; }
+            if (arraySize) { return {arrayLengthFieldSize, *arraySize}; }
         }
 
         throw std::runtime_error("GetArrayLength(): No matching field found for arrayLengthRef");

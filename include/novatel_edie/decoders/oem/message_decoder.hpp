@@ -50,13 +50,17 @@ class MessageDecoder : public MessageDecoderBase
     //! \param[in] start_ The starting pointer of the binary buffer.
     //! \param[in, out] ptr_ A pointer to the buffer pointer to be advanced
     //! if padding is needed.
+    //! \param[in] bytesLeft Remaining bytes available for padding.
     //
-    //! \return None. The buffer pointer is updated in place.
+    //! \return True if the padding fits and the buffer pointer was updated.
     //----------------------------------------------------------------------------
-    void AddStringFieldPadding(const unsigned char* start, const unsigned char** ptr) const override
+    bool AddStringFieldPadding(const unsigned char* start, const unsigned char** ptr, size_t bytesLeft) const override
     {
         auto offset = static_cast<uintptr_t>(*ptr - start) % 4;
-        if (offset != 0) { *ptr += 4 - offset; }
+        const auto padding = offset == 0 ? 0 : 4 - offset;
+        if (padding > bytesLeft) { return false; }
+        *ptr += padding;
+        return true;
     }
 
     //----------------------------------------------------------------------------

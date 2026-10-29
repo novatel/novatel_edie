@@ -4499,6 +4499,13 @@ class NovatelTypesTest : public ::testing::Test
 
             return DecodeBinary(fieldInfo, ppucLogBuf_, vIntermediateFormat_, msgDefFieldsSize);
         }
+
+        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& fields, const unsigned char** buffer, CompositeField& decoded, uint32_t length)
+        {
+            const FieldInfo info = BuildFieldInfo(fields);
+            decoded.resize(info.fixedFieldBytes, info.varFieldCount);
+            return DecodeBinary(info, buffer, decoded, length);
+        }
     };
 
     class EncoderTester : public Encoder
@@ -4585,6 +4592,24 @@ class NovatelTypesTest : public ::testing::Test
         MsgDefFields.emplace_back(stField);
     }
 };
+
+TEST_F(NovatelTypesTest, BINARY_STRING_PADDING_BOUNDS)
+{
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("text", FIELD_TYPE::STRING, "%s", DATA_TYPE::CHAR));
+    const unsigned char data[] = {'h', 0, 0, 0};
+    for (uint32_t length = 0; length < sizeof(data); ++length)
+    {
+        CompositeField decoded;
+        const auto* input = data;
+        EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &input, decoded, length), std::runtime_error);
+        EXPECT_LE(input, data + length);
+    }
+    CompositeField decoded;
+    const auto* input = data;
+    EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &input, decoded, sizeof(data)), STATUS::SUCCESS);
+    EXPECT_EQ(decoded.GetFieldValue<std::string>(*MsgDefFields[0]), "h");
+    EXPECT_EQ(input, data + sizeof(data));
+}
 
 TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
 {

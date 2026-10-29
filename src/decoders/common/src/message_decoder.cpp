@@ -27,6 +27,8 @@
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
 #include <cassert>
+#include <cstring>
+#include <tuple>
 
 #include <simdjson.h>
 
@@ -271,16 +273,43 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 {
     const unsigned char* pucTempStart = *ppucLogBuf_;
 
+    const auto bytesRemaining = [&]() {
+        if (*ppucLogBuf_ - pucTempStart > uiMessageLength_)
+        {
+            throw std::runtime_error("DecodeBinary(): Buffer overrun detected while calculating bytes remaining.");
+        }
+        return static_cast<size_t>(uiMessageLength_ - (*ppucLogBuf_ - pucTempStart));
+    };
+
+    const auto calcFieldPadding = [&](size_t length) {
+        const auto alignBytes = fMyAlignmentFunc(length, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
+        if (bytesRemaining() < alignBytes + length) { throw std::runtime_error("DecodeBinary(): Buffer overrun while aligning buffer."); }
+        return alignBytes;
+    };
+
     for (const auto& field : vMsgDefFields_.messageOrderedFields)
     {
-        auto fieldTypeLength = static_cast<uint8_t>(field->dataType.length);
-        *ppucLogBuf_ += fMyAlignmentFunc(fieldTypeLength, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
+        uint32_t uiArraySize = 0;
+        size_t fieldTypeLength = 0;
+        if (field->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY || field->type == FIELD_TYPE::FIELD_ARRAY)
+        {
+            // Make sure the buffer is large enough to read the array length field
+            const auto& arrayDef = dynamic_cast<const ArrayField&>(*field);
+            if (arrayDef.arrayLengthRef.empty() && arrayDef.arrayLengthFieldSize != 0) { calcFieldPadding(arrayDef.arrayLengthFieldSize); }
+            std::tie(fieldTypeLength, uiArraySize) = GetArrayLength(pucTempStart, ppucLogBuf_, arrayDef, clCompField_);
+        }
+        else if (field->type != FIELD_TYPE::FIXED_LENGTH_ARRAY && field->type != FIELD_TYPE::STRING && field->type != FIELD_TYPE::RESPONSE_STR)
+        {
+            // Make sure the buffer is large enough to read the fixed-length field
+            fieldTypeLength = field->type == FIELD_TYPE::RESPONSE_ID ? sizeof(int32_t) : static_cast<size_t>(field->dataType.length);
+            *ppucLogBuf_ += calcFieldPadding(fieldTypeLength);
+        }
 
         switch (field->type)
         {
         case FIELD_TYPE::SIMPLE: DecodeBinaryField<true>(*field, ppucLogBuf_, clCompField_, 1); break;
         case FIELD_TYPE::ENUM:
-            switch (field->dataType.length)
+            switch (fieldTypeLength)
             {
             case 1: clCompField_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint8_t>(*ppucLogBuf_)); break;
             case 2: clCompField_.SetFieldValue<true>(field->index, LoadValueFromBuffer<uint16_t>(*ppucLogBuf_)); break;
@@ -289,35 +318,45 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeBinary(): Invalid field length\n");
                 throw std::runtime_error("DecodeBinary(): Invalid field length\n");
             }
-            *ppucLogBuf_ += field->dataType.length;
+            *ppucLogBuf_ += fieldTypeLength;
             break;
         case FIELD_TYPE::RESPONSE_ID:
             clCompField_.SetFieldValue<true>(field->index, LoadValueFromBuffer<int32_t>(*ppucLogBuf_));
             *ppucLogBuf_ += sizeof(int32_t);
             break;
         case FIELD_TYPE::RESPONSE_STR: {
-            std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), uiMessageLength_ - sizeof(int32_t)); // Remove CRC
+            std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), bytesRemaining());
             clCompField_.SetFieldValue<false>(field->index, std::string(sTemp));
-            // Binary response string is not null terminated or 4 byte aligned
+            // Binary response string is not null terminated nor is it necessarily 4 byte aligned
             *ppucLogBuf_ += sTemp.size();
             break;
         }
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            const uint32_t uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength;
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY:
+            uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength;
+            if (uiArraySize != 0) { *ppucLogBuf_ += calcFieldPadding(field->dataType.length); }
+            if (bytesRemaining() < uiArraySize * field->dataType.length)
+            {
+                throw std::runtime_error("DecodeBinary(): Not enough space for fixed length array.");
+            }
             DecodeBinaryField<true>(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
-        }
-        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), clCompField_);
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            if (bytesRemaining() < uiArraySize * field->dataType.length)
+            {
+                throw std::runtime_error("DecodeBinary(): Not enough space for variable length array.");
+            }
             DecodeBinaryField<false>(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
-        }
         case FIELD_TYPE::STRING: {
-            // This version of a string is different. It is hopefully null terminated.
-            std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_));
+            const auto* end = static_cast<const unsigned char*>(std::memchr(*ppucLogBuf_, 0, bytesRemaining()));
+            if (end == nullptr) { throw std::runtime_error("DecodeBinary(): Unterminated binary STRING field."); }
+            std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), static_cast<size_t>(end - *ppucLogBuf_));
             clCompField_.SetFieldValue<false>(field->index, std::string(sTemp));
-            *ppucLogBuf_ += sTemp.size() + 1; // + 1 to consume the NULL at the end of the string.
-            AddStringFieldPadding(pucTempStart, ppucLogBuf_);
+            *ppucLogBuf_ = end + 1;
+            if (!AddStringFieldPadding(pucTempStart, ppucLogBuf_, bytesRemaining()))
+            {
+                throw std::runtime_error("DecodeBinary(): Buffer overrun in binary string padding.");
+            }
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
@@ -328,11 +367,11 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 return STATUS::MALFORMED_INPUT;
             }
             const auto* subFieldDefinitions = fieldArrayDef.get();
-            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, clCompField_);
 
             if (subFieldDefinitions->fieldInfo->varFieldCount == 0)
             {
                 const size_t totalBytes = uiArraySize * subFieldDefinitions->fieldInfo->fixedFieldBytes;
+                if (bytesRemaining() < totalBytes) { throw std::runtime_error("DecodeBinary(): Not enough space for flat field array."); }
                 // Store flat FIELD_ARRAY directly as std::vector<std::byte>
                 std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
                                                      reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
@@ -341,15 +380,15 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             }
             else
             {
-                std::vector<CompositeField> vFieldArrayContainer(uiArraySize);
+                std::vector<CompositeField> vFieldArrayContainer;
+                vFieldArrayContainer.reserve(uiArraySize);
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
-                    *ppucLogBuf_ +=
-                        fMyAlignmentFunc(fieldTypeLength, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
-                    vFieldArrayContainer[i] =
-                        CompositeField(subFieldDefinitions->fieldInfo->fixedFieldBytes, subFieldDefinitions->fieldInfo->varFieldCount);
-                    vFieldArrayContainer[i].SetFieldInfo(subFieldDefinitions->fieldInfo);
-                    STATUS eStatus = DecodeBinary(*subFieldDefinitions->fieldInfo, ppucLogBuf_, vFieldArrayContainer[i],
+                    *ppucLogBuf_ += calcFieldPadding(fieldTypeLength);
+                    auto& newField = vFieldArrayContainer.emplace_back(subFieldDefinitions->fieldInfo->fixedFieldBytes,
+                                                                       subFieldDefinitions->fieldInfo->varFieldCount);
+                    newField.SetFieldInfo(subFieldDefinitions->fieldInfo);
+                    STATUS eStatus = DecodeBinary(*subFieldDefinitions->fieldInfo, ppucLogBuf_, newField,
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 }
@@ -361,8 +400,6 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeBinary(): Unknown field type\n");
             throw std::runtime_error("DecodeBinary(): Unknown field type\n");
         }
-
-        if (*ppucLogBuf_ - pucTempStart >= static_cast<int32_t>(uiMessageLength_)) { return STATUS::SUCCESS; }
     }
     return STATUS::SUCCESS;
 }
@@ -957,6 +994,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, CompositeField& stI
     {
         if (msgFieldInfo.varFieldCount == 0)
         {
+            if (stMetaData_.uiBinaryMsgLength < msgFieldInfo.fixedFieldBytes) { return STATUS::MALFORMED_INPUT; }
             // Fast path: if there are no variable-length fields, copy the entire message to the fixed region
             stInterMessage_.SetFieldValue<true>(0, reinterpret_cast<const std::byte*>(pucTempInData), msgFieldInfo.fixedFieldBytes);
             return STATUS::SUCCESS;

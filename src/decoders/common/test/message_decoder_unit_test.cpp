@@ -41,7 +41,10 @@ class MessageDecoderTypesTest : public ::testing::Test
     class DecoderTester : public MessageDecoderBase
     {
       public:
-        DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoderBase("OEM", std::move(pclMessageDb_)) {}
+        DecoderTester(MessageDatabase::Ptr pclMessageDb_, std::string family_ = "OEM")
+            : MessageDecoderBase(std::move(family_), std::move(pclMessageDb_))
+        {
+        }
 
         using MessageDecoderBase::DecodeAsciiField;
 
@@ -51,9 +54,10 @@ class MessageDecoderTypesTest : public ::testing::Test
                                 : DecodeAscii<false>(FieldInfo_, input_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const FieldInfo& FieldInfo_, const unsigned char** ppucLogBuf_, CompositeField& vIntermediateFormat_)
+        STATUS TestDecodeBinary(const FieldInfo& FieldInfo_, const unsigned char** ppucLogBuf_, CompositeField& vIntermediateFormat_,
+                                uint32_t length_ = 0)
         {
-            return DecodeBinary(FieldInfo_, ppucLogBuf_, vIntermediateFormat_, 0); // 0 for message length since it's not used in these tests
+            return DecodeBinary(FieldInfo_, ppucLogBuf_, vIntermediateFormat_, length_);
         }
 
         template <typename T, DATA_TYPE D> void ValidSimpleASCIIHelper(std::vector<std::string> vstrTestInput, std::vector<T> vTargets)
@@ -484,6 +488,141 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
     pclMyDecoderTester->ValidBinaryHelper<int64_t, DATA_TYPE::LONGLONG>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F}}, {});
     pclMyDecoderTester->ValidBinaryHelper<float, DATA_TYPE::FLOAT>({{0x00, 0x00, 0x80, 0x00}, {0xFF, 0xFF, 0x7F, 0x7F}, {0x9A, 0x99, 0x99, 0x3F}, {0xCD, 0xCC, 0xBC, 0xC0}}, {1.2F, -5.9F});
     pclMyDecoderTester->ValidBinaryHelper<double, DATA_TYPE::DOUBLE>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xEF, 0x7F}, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}}, {0.0});
+}
+
+TEST_F(MessageDecoderTypesTest, BINARY_ARRAY_LENGTH_BOUNDS)
+{
+    auto prefix = std::make_shared<BaseField>("prefix", FIELD_TYPE::SIMPLE, "%uc", DATA_TYPE::UCHAR);
+    auto bytes = std::make_shared<ArrayField>("bytes", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%uc", DATA_TYPE::UCHAR, 4);
+    bytes->arrayLengthFieldSize = 4;
+    const auto info = BuildFieldInfo({prefix, bytes});
+    MessageDatabase::RegisterAlignmentFunction("ARRAY_BOUNDS_TEST", [](size_t size, uintptr_t start, uintptr_t current) {
+        return (size - (current - start) % size) % size;
+    });
+    DecoderTester decoder(nullptr, "ARRAY_BOUNDS_TEST");
+    const unsigned char data[8] = {};
+
+    for (uint32_t length = 2; length < sizeof(data); ++length)
+    {
+        CompositeField decoded(info);
+        const auto* input = data;
+        EXPECT_THROW(decoder.TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+        EXPECT_EQ(input, data + 1);
+    }
+
+    CompositeField decoded(info);
+    const auto* input = data;
+    EXPECT_EQ(decoder.TestDecodeBinary(*info, &input, decoded, sizeof(data)), STATUS::SUCCESS);
+    EXPECT_EQ(input, data + sizeof(data));
+
+    bytes->arrayLengthFieldSize = 0;
+    input = data;
+    EXPECT_THROW(decoder.TestDecodeBinary(*info, &input, decoded, sizeof(data)), std::runtime_error);
+    EXPECT_EQ(input, data + 1);
+}
+
+TEST_F(MessageDecoderTypesTest, BINARY_REFERENCED_ARRAY_LENGTH)
+{
+    auto count = std::make_shared<BaseField>("count", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    auto bytes = std::make_shared<ArrayField>("bytes", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%uc", DATA_TYPE::UCHAR, 4);
+    bytes->arrayLengthRef = "count";
+    const auto info = BuildFieldInfo({count, bytes});
+    CompositeField decoded(info);
+    decoded.SetFieldValue<true>(count->index, uint32_t{0});
+    FieldInfo arrayOnly;
+    arrayOnly.messageOrderedFields = {bytes};
+    const unsigned char data[] = {0};
+    const auto* input = data;
+
+    EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(arrayOnly, &input, decoded, 0), STATUS::SUCCESS);
+    EXPECT_EQ(input, data);
+}
+
+TEST_F(MessageDecoderTypesTest, BINARY_ARRAY_PAYLOAD_BOUNDS)
+{
+    for (const auto type : {FIELD_TYPE::FIXED_LENGTH_ARRAY, FIELD_TYPE::VARIABLE_LENGTH_ARRAY})
+    {
+        auto values = std::make_shared<ArrayField>("values", type, "%hu", DATA_TYPE::USHORT, 2);
+        values->arrayLengthFieldSize = 1;
+        const auto info = BuildFieldInfo({values});
+        const unsigned char data[] = {2, 1, 0, 2, 0};
+        const auto* start = data + (type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? 1 : 0);
+        const uint32_t fullLength = type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? 4 : 5;
+        for (uint32_t length = type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? 0 : 1; length < fullLength; ++length)
+        {
+            CompositeField decoded(info);
+            const auto* input = start;
+            EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+        }
+        CompositeField decoded(info);
+        const auto* input = start;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, fullLength), STATUS::SUCCESS);
+        EXPECT_EQ(input, start + fullLength);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, BINARY_STRING_BOUNDS)
+{
+    auto text = std::make_shared<BaseField>("text", FIELD_TYPE::STRING, "%s", DATA_TYPE::CHAR);
+    const auto info = BuildFieldInfo({text});
+    const unsigned char data[] = {'h', 'i', 0};
+    for (uint32_t length = 0; length < sizeof(data); ++length)
+    {
+        CompositeField decoded(info);
+        const auto* input = data;
+        EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+        EXPECT_EQ(input, data);
+    }
+    CompositeField decoded(info);
+    const auto* input = data;
+    EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, sizeof(data)), STATUS::SUCCESS);
+    EXPECT_EQ(decoded.GetFieldValue<std::string>(*text), "hi");
+}
+
+TEST_F(MessageDecoderTypesTest, BINARY_RESPONSE_BOUNDS)
+{
+    auto id = std::make_shared<BaseField>("id", FIELD_TYPE::RESPONSE_ID, "%d", DATA_TYPE::INT);
+    auto text = std::make_shared<BaseField>("text", FIELD_TYPE::RESPONSE_STR, "%s", DATA_TYPE::CHAR);
+    const auto info = BuildFieldInfo({id, text});
+    const unsigned char data[] = {1, 0, 0, 0, 'O', 'K', 0xAA};
+    for (uint32_t length = 0; length < sizeof(int32_t); ++length)
+    {
+        CompositeField decoded(info);
+        const auto* input = data;
+        EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+    }
+    for (uint32_t length : {4U, 6U})
+    {
+        CompositeField decoded(info);
+        const auto* input = data;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), STATUS::SUCCESS);
+        EXPECT_EQ(decoded.GetFieldValue<std::string>(*text), length == 4 ? "" : "OK");
+        EXPECT_EQ(input, data + length);
+    }
+}
+
+TEST_F(MessageDecoderTypesTest, BINARY_FIELD_ARRAY_BOUNDS)
+{
+    for (const bool nested : {false, true})
+    {
+        auto member = nested ? std::make_shared<BaseField>("text", FIELD_TYPE::STRING, "%s", DATA_TYPE::CHAR)
+                             : std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+        auto array = std::make_shared<FieldArrayField>("records", FIELD_TYPE::FIELD_ARRAY, "%u", DATA_TYPE::UINT, 1, BuildFieldInfo({member}));
+        array->arrayLengthFieldSize = 1;
+        const auto info = BuildFieldInfo({array});
+        const unsigned char data[] = {1, 'x', 0, 0, 0};
+        const uint32_t fullLength = nested ? 3 : 5;
+        for (uint32_t length = 1; length < fullLength; ++length)
+        {
+            CompositeField decoded(info);
+            const auto* input = data;
+            EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+        }
+        CompositeField decoded(info);
+        const auto* input = data;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, fullLength), STATUS::SUCCESS);
+        EXPECT_EQ(input, data + fullLength);
+    }
 }
 
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
