@@ -56,7 +56,7 @@ constexpr VersionId MIN_SUPPORTED_DB_VERSION{1, 0, 0};
 constexpr VersionId MIN_FULLY_SUPPORTED_DB_VERSION{1, 1, 0};
 
 //! First database schema version this reader cannot read; a major version bump is a breaking change.
-constexpr VersionId FIRST_UNSUPPORTED_DB_VERSION{3, 0, 0};
+constexpr VersionId FIRST_UNSUPPORTED_DB_VERSION{4, 0, 0};
 
 //! Logger for this translation unit. Registered on first use rather than at namespace scope so that an
 //! embedding API (e.g. the Python bindings) has already installed its own LoggerManager by the time we ask.

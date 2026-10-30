@@ -3700,6 +3700,7 @@ TEST_F(CommandDecoderTest, DECODE_INVALID)
     ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("LOG COM1", stHeader, stMessage));
     ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SEND COM1", stHeader, stMessage));
     ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SENDHEX COM1", stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("ECHO COM1", stHeader, stMessage));
 
     // Arrays with the wrong number of values
     ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SETTIMEBASE GPS 5 GLONASS 30", stHeader, stMessage));
