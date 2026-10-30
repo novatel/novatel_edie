@@ -9,10 +9,18 @@ jobs:
     continue-on-error: true
 
     steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+          fetch-depth: 0
+
+      # Each benchmark reads the database from its own source tree, so main gets a tree of its own
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
           ref: main
+          path: main
           fetch-depth: 0
 
       - name: Set up Python
@@ -37,15 +45,8 @@ jobs:
 
       - name: Build main branch
         run: |
-          cmake -S . -B build-main -DCMAKE_BUILD_TYPE=Release -G Ninja -DBUILD_BENCHMARKS=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
-          cmake --build build-main --parallel --config Release
-
-      - name: Checkout current branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref || github.ref }}
-          fetch-depth: 0
-          clean: false
+          cmake -S main -B main/build-main -DCMAKE_BUILD_TYPE=Release -G Ninja -DBUILD_BENCHMARKS=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
+          cmake --build main/build-main --parallel --config Release
 
       - name: Build current branch
         run: |
@@ -55,4 +56,4 @@ jobs:
       - name: Compare benchmarks
         run: |
           . .venv/bin/activate
-          python3 scripts/compare_benchmarks.py ./build-main/bin/linux-x86_64-gnu-Release/benchmark ./build-current/bin/linux-x86_64-gnu-Release/benchmark
+          python3 scripts/compare_benchmarks.py ./main/build-main/bin/linux-x86_64-gnu-Release/benchmark ./build-current/bin/linux-x86_64-gnu-Release/benchmark
