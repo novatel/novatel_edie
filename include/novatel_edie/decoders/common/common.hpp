@@ -61,11 +61,11 @@ template <typename T, typename BufferType> inline T LoadValueFromBuffer(const Bu
 //! \brief Parse all of sToken_ as a number with std::from_chars.
 //! \return True only if parsing succeeded and consumed every character.
 //-----------------------------------------------------------------------
-template <typename T> [[nodiscard]] inline bool FromCharsExact(std::string_view sToken_, T& value_, [[maybe_unused]] int iBase_ = 10)
+template <int Base = 10, typename T> [[nodiscard]] inline bool FromCharsExact(std::string_view sToken_, T& value_)
 {
     const char* pcEnd = sToken_.data() + sToken_.size();
     std::from_chars_result result;
-    if constexpr (std::is_integral_v<T>) { result = std::from_chars(sToken_.data(), pcEnd, value_, iBase_); }
+    if constexpr (std::is_integral_v<T>) { result = std::from_chars(sToken_.data(), pcEnd, value_, Base); }
     else { result = std::from_chars(sToken_.data(), pcEnd, value_); }
     return result.ec == std::errc() && result.ptr == pcEnd;
 }

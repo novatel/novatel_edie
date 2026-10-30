@@ -59,7 +59,7 @@ void MessageDecoder::InitOemFieldMaps()
                                                    const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         if (token_.empty() || token_.size() > 8) { throw std::runtime_error("Invalid binary byte"); }
         uint32_t value;
-        if (!FromCharsExact(token_, value, 2)) { throw std::runtime_error("Invalid binary byte"); }
+        if (!FromCharsExact<2>(token_, value)) { throw std::runtime_error("Invalid binary byte"); }
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
