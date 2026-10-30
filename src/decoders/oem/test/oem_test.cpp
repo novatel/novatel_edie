@@ -3669,9 +3669,8 @@ TEST_F(CommandDecoderTest, DECODE_ARRAYS)
     ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SETTIMEBASE GPS", sBody));
     ASSERT_EQ(sBody, "GPS,0");
 
-    // The fields of a field array element are filled in like any other
-    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SETTIMEBASE GPS 1 GLONASS", sBody));
-    ASSERT_EQ(sBody, "GPS,1,GLONASS,0");
+    ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SETTIMEBASE GPS 1 GLONASS 30", sBody));
+    ASSERT_EQ(sBody, "GPS,1,GLONASS,30");
 
     ASSERT_EQ(STATUS::SUCCESS, DecodeToAsciiBody("SETTIMEBASE GPS 2 GLONASS 30 GALILEO 60", sBody));
     ASSERT_EQ(sBody, "GPS,2,GLONASS,30,GALILEO,60");
@@ -3701,6 +3700,7 @@ TEST_F(CommandDecoderTest, DECODE_INVALID)
     ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SEND COM1", stHeader, stMessage));
     ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SENDHEX COM1", stHeader, stMessage));
     ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("ECHO COM1", stHeader, stMessage));
+    ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SETTIMEBASE GPS 1 GLONASS", stHeader, stMessage));
 
     // Arrays with the wrong number of values
     ASSERT_EQ(STATUS::MALFORMED_INPUT, Decode("SETTIMEBASE GPS 5 GLONASS 30", stHeader, stMessage));
