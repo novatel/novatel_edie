@@ -27,6 +27,7 @@
 #ifndef DECODERS_COMMON_HPP
 #define DECODERS_COMMON_HPP
 
+#include <charconv>
 #include <cstdint>
 #include <cstring>
 #include <iosfwd>
@@ -54,6 +55,19 @@ template <typename T, typename BufferType> inline T LoadValueFromBuffer(const Bu
     T value;
     std::memcpy(&value, logBuf_, sizeof(T));
     return value;
+}
+
+//-----------------------------------------------------------------------
+//! \brief Parse all of sToken_ as a number with std::from_chars.
+//! \return True only if parsing succeeded and consumed every character.
+//-----------------------------------------------------------------------
+template <typename T> [[nodiscard]] inline bool FromCharsExact(std::string_view sToken_, T& value_, [[maybe_unused]] int iBase_ = 10)
+{
+    const char* pcEnd = sToken_.data() + sToken_.size();
+    std::from_chars_result result;
+    if constexpr (std::is_integral_v<T>) { result = std::from_chars(sToken_.data(), pcEnd, value_, iBase_); }
+    else { result = std::from_chars(sToken_.data(), pcEnd, value_); }
+    return result.ec == std::errc() && result.ptr == pcEnd;
 }
 
 inline void ValidateMessageDatabaseFamily(MessageDatabase::ConstPtr pclMessageDb_, std::string_view expectedFamily,

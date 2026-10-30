@@ -1657,19 +1657,14 @@ class MessageDecoderBase
     template <bool Fixed = true, typename T = int32_t, int R = 10>
     static void ParseAndEmplace(CompositeField& clCompField_, const BaseField& field_, std::string_view token, size_t elementIndex_ = 0)
     {
-        T value;
-        std::from_chars_result result;
-
         // As of 6/26/2025 spaces may appear within ascii fields of OUTPUTDATUM and SETALIGNMENTVEL as they use conversion strings with width
         // values. EDIE supports decoding of this data but will never pad fields with spaces during encoding.
         const auto offset = token.find_first_not_of(' ');
         if (offset == std::string_view::npos) { throw std::runtime_error("Empty numeric value"); }
         token.remove_prefix(offset);
 
-        if constexpr (std::is_integral_v<T>) { result = std::from_chars(token.data(), token.data() + token.size(), value, R); }
-        else if constexpr (std::is_floating_point_v<T>) { result = std::from_chars(token.data(), token.data() + token.size(), value); }
-
-        if (result.ec != std::errc() || result.ptr != token.data() + token.size()) { throw std::runtime_error("Failed to parse numeric value"); }
+        T value;
+        if (!FromCharsExact(token, value, R)) { throw std::runtime_error("Failed to parse numeric value"); }
 
         clCompField_.SetArrayElement<Fixed>(field_, elementIndex_, value);
     }
@@ -1723,8 +1718,9 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    std::pair<std::size_t, uint32_t> GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
-                                                    const CompositeField& clCompField_) const
+    // Returns {length field size, array length}, or std::nullopt if a referenced length field holds a negative or out-of-range value.
+    std::optional<std::pair<std::size_t, uint32_t>> GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_,
+                                                                   const ArrayField& arrayDef, const CompositeField& clCompField_) const
     {
         if (arrayDef.arrayLengthRef.empty())
         {
@@ -1738,24 +1734,31 @@ class MessageDecoderBase
             for (std::size_t i = 0; i < lenBytes; ++i) { uiArrayLength |= static_cast<uint32_t>((*ppucLogBuf_)[i]) << (8 * i); }
 
             *ppucLogBuf_ += lenBytes;
-            return {lenBytes, uiArrayLength};
+            return std::pair{lenBytes, uiArrayLength};
         }
 
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
         if (auto arrLengthRefDef = clCompField_.GetFieldInfo()->GetFieldDefByName(arrayDef.arrayLengthRef))
         {
-            size_t arrayLengthFieldSize;
+            size_t arrayLengthFieldSize = 0;
             std::optional<uint32_t> arraySize = std::nullopt;
             SimpleTypeVisitor(*arrLengthRefDef, [&](auto value) {
                 using T = std::decay_t<decltype(value)>;
                 if constexpr (std::is_integral_v<T>)
                 {
                     arrayLengthFieldSize = sizeof(T);
-                    arraySize = static_cast<uint32_t>(clCompField_.GetFieldValue<T>(*arrLengthRefDef));
+                    // Reject negative or out-of-range lengths rather than letting them wrap to huge array sizes
+                    const T length = clCompField_.GetFieldValue<T>(*arrLengthRefDef);
+                    if constexpr (std::is_signed_v<T>)
+                    {
+                        if (length < 0) { return; }
+                    }
+                    if (static_cast<uint64_t>(length) <= std::numeric_limits<uint32_t>::max()) { arraySize = static_cast<uint32_t>(length); }
                 }
             });
 
-            if (arraySize) { return {arrayLengthFieldSize, *arraySize}; }
+            // A non-integral reference is a definition error, but an out-of-range value is malformed input
+            if (arrayLengthFieldSize != 0) { return arraySize ? std::make_optional(std::pair{arrayLengthFieldSize, *arraySize}) : std::nullopt; }
         }
 
         throw std::runtime_error("GetArrayLength(): No matching field found for arrayLengthRef");

@@ -109,11 +109,10 @@ template <unsigned char SyncByte, size_t MaxMessageLength> class FramerAsciiBase
         const auto& clFrameBuffer = *pclMyBuffer;
         const auto* pCrcStart = reinterpret_cast<const char*>(clFrameBuffer.data() + frameEnd - OEM4_ASCII_CRC_LENGTH - 2);
         uint32_t uiMessageCrc = 0;
-
-        auto result = std::from_chars(pCrcStart, pCrcStart + OEM4_ASCII_CRC_LENGTH, uiMessageCrc, 16);
         auto uiCalcCrc = CalculateBlockCrc32(clFrameBuffer.data() + OEM4_ASCII_SYNC_LENGTH,
                                              static_cast<uint32_t>(frameEnd - OEM4_ASCII_SYNC_LENGTH - OEM4_ASCII_CRC_LENGTH - 3));
-        return result.ec == std::errc() && uiCalcCrc == uiMessageCrc ? 0 : OEM4_ASCII_SYNC_LENGTH;
+        const bool bCrcValid = FromCharsExact(std::string_view(pCrcStart, OEM4_ASCII_CRC_LENGTH), uiMessageCrc, 16) && uiCalcCrc == uiMessageCrc;
+        return bCrcValid ? 0 : OEM4_ASCII_SYNC_LENGTH;
     }
 
     //----------------------------------------------------------------------------

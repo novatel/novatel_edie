@@ -59,8 +59,7 @@ void MessageDecoder::InitOemFieldMaps()
                                                    const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         if (token_.empty() || token_.size() > 8) { throw std::runtime_error("Invalid binary byte"); }
         uint32_t value;
-        const auto result = std::from_chars(token_.data(), token_.data() + token_.size(), value, 2);
-        if (result.ec != std::errc() || result.ptr != token_.data() + token_.size()) { throw std::runtime_error("Invalid binary byte"); }
+        if (!FromCharsExact(token_, value, 2)) { throw std::runtime_error("Invalid binary byte"); }
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
@@ -68,8 +67,7 @@ void MessageDecoder::InitOemFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("T")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_, std::string_view token_,
                                                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         double value;
-        std::from_chars_result result = std::from_chars(token_.data(), token_.data() + token_.size(), value);
-        if (result.ec != std::errc() || result.ptr != token_.data() + token_.size()) { throw std::runtime_error("Failed to parse double value"); }
+        if (!FromCharsExact(token_, value)) { throw std::runtime_error("Failed to parse double value"); }
         const auto converted = static_cast<uint32_t>(std::llround(value * SEC_TO_MILLI_SEC));
         if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, converted); }
         else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, converted); }
@@ -88,15 +86,13 @@ void MessageDecoder::InitOemFieldMaps()
         const auto delimiter = token_.find_last_of("+-");
         const auto slot = token_.substr(0, delimiter);
         uint16_t usSlot;
-        auto result = std::from_chars(slot.data(), slot.data() + slot.size(), usSlot);
-        if (result.ec != std::errc() || result.ptr != slot.data() + slot.size()) { throw std::runtime_error("Failed to parse usSlot"); }
+        if (!FromCharsExact(slot, usSlot)) { throw std::runtime_error("Failed to parse usSlot"); }
 
         int16_t sFreq = 0;
         if (delimiter != std::string_view::npos)
         {
             const auto frequency = token_.substr(delimiter + (token_[delimiter] == '+' ? 1 : 0));
-            result = std::from_chars(frequency.data(), frequency.data() + frequency.size(), sFreq);
-            if (result.ec != std::errc() || result.ptr != frequency.data() + frequency.size()) { throw std::runtime_error("Failed to parse sFreq"); }
+            if (!FromCharsExact(frequency, sFreq)) { throw std::runtime_error("Failed to parse sFreq"); }
         }
 
         const uint32_t uiSatId = usSlot | (static_cast<uint32_t>(static_cast<uint16_t>(sFreq)) << 16);
@@ -178,30 +174,18 @@ void MessageDecoder::InitOemFieldMaps()
         {
             // Parse the slot part
             std::string_view slotView = sTemp.substr(0, sDelimiter);
-            auto result = std::from_chars(slotView.data(), slotView.data() + slotView.size(), usSlot);
-            if (result.ec != std::errc() || result.ptr != slotView.data() + slotView.size())
-            {
-                throw std::invalid_argument("Invalid slot value in id field");
-            }
+            if (!FromCharsExact(slotView, usSlot)) { throw std::invalid_argument("Invalid slot value in id field"); }
 
             // Parse the frequency part
             std::string_view freqView = sTemp.substr(sDelimiter + 1);
-            result = std::from_chars(freqView.data(), freqView.data() + freqView.size(), sFreq);
-            if (result.ec != std::errc() || result.ptr != freqView.data() + freqView.size())
-            {
-                throw std::invalid_argument("Invalid frequency value in id field");
-            }
+            if (!FromCharsExact(freqView, sFreq)) { throw std::invalid_argument("Invalid frequency value in id field"); }
 
             if (sTemp[sDelimiter] == '-') { sFreq = -sFreq; }
         }
         else
         {
             // Parse the entire string as the slot
-            auto result = std::from_chars(sTemp.data(), sTemp.data() + sTemp.size(), usSlot);
-            if (result.ec != std::errc() || result.ptr != sTemp.data() + sTemp.size())
-            {
-                throw std::invalid_argument("Invalid slot value in id field");
-            }
+            if (!FromCharsExact(sTemp, usSlot)) { throw std::invalid_argument("Invalid slot value in id field"); }
             sFreq = 0;
         }
 

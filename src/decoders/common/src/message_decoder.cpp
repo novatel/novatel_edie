@@ -273,18 +273,23 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 {
     const unsigned char* pucTempStart = *ppucLogBuf_;
 
+    // Every advance of *ppucLogBuf_ below is bounds checked first, so it never passes the end of the message
     const auto bytesRemaining = [&]() {
-        if (*ppucLogBuf_ - pucTempStart > uiMessageLength_)
-        {
-            throw std::runtime_error("DecodeBinary(): Buffer overrun detected while calculating bytes remaining.");
-        }
+        assert(*ppucLogBuf_ - pucTempStart <= uiMessageLength_);
         return static_cast<size_t>(uiMessageLength_ - (*ppucLogBuf_ - pucTempStart));
     };
 
-    const auto calcFieldPadding = [&](size_t length) {
+    // Skip the alignment padding before a field of the given size; false if the padded field would not fit
+    const auto alignField = [&](size_t length) {
         const auto alignBytes = fMyAlignmentFunc(length, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
-        if (bytesRemaining() < alignBytes + length) { throw std::runtime_error("DecodeBinary(): Buffer overrun while aligning buffer."); }
-        return alignBytes;
+        if (bytesRemaining() < alignBytes + length) { return false; }
+        *ppucLogBuf_ += alignBytes;
+        return true;
+    };
+
+    const auto malformed = [&](const char* sReason) {
+        SPDLOG_LOGGER_DEBUG(pclMyLogger, "DecodeBinary(): {}. Malformed Input", sReason);
+        return STATUS::MALFORMED_INPUT;
     };
 
     for (const auto& field : vMsgDefFields_.messageOrderedFields)
@@ -295,14 +300,19 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         {
             // Make sure the buffer is large enough to read the array length field
             const auto& arrayDef = dynamic_cast<const ArrayField&>(*field);
-            if (arrayDef.arrayLengthRef.empty() && arrayDef.arrayLengthFieldSize != 0) { calcFieldPadding(arrayDef.arrayLengthFieldSize); }
-            std::tie(fieldTypeLength, uiArraySize) = GetArrayLength(pucTempStart, ppucLogBuf_, arrayDef, clCompField_);
+            if (arrayDef.arrayLengthRef.empty() && arrayDef.arrayLengthFieldSize != 0 && !alignField(arrayDef.arrayLengthFieldSize))
+            {
+                return malformed("Not enough space for array length");
+            }
+            const auto arrayLength = GetArrayLength(pucTempStart, ppucLogBuf_, arrayDef, clCompField_);
+            if (!arrayLength) { return malformed("Referenced array length out of range"); }
+            std::tie(fieldTypeLength, uiArraySize) = *arrayLength;
         }
         else if (field->type != FIELD_TYPE::FIXED_LENGTH_ARRAY && field->type != FIELD_TYPE::STRING && field->type != FIELD_TYPE::RESPONSE_STR)
         {
             // Make sure the buffer is large enough to read the fixed-length field
             fieldTypeLength = field->type == FIELD_TYPE::RESPONSE_ID ? sizeof(int32_t) : static_cast<size_t>(field->dataType.length);
-            *ppucLogBuf_ += calcFieldPadding(fieldTypeLength);
+            if (!alignField(fieldTypeLength)) { return malformed("Not enough space for field"); }
         }
 
         switch (field->type)
@@ -333,30 +343,23 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         }
         case FIELD_TYPE::FIXED_LENGTH_ARRAY:
             uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength;
-            if (uiArraySize != 0) { *ppucLogBuf_ += calcFieldPadding(field->dataType.length); }
-            if (bytesRemaining() < uiArraySize * field->dataType.length)
+            if ((uiArraySize != 0 && !alignField(field->dataType.length)) || bytesRemaining() < size_t{uiArraySize} * field->dataType.length)
             {
-                throw std::runtime_error("DecodeBinary(): Not enough space for fixed length array.");
+                return malformed("Not enough space for fixed length array");
             }
             DecodeBinaryField<true>(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
-            if (bytesRemaining() < uiArraySize * field->dataType.length)
-            {
-                throw std::runtime_error("DecodeBinary(): Not enough space for variable length array.");
-            }
+            if (bytesRemaining() < size_t{uiArraySize} * field->dataType.length) { return malformed("Not enough space for variable length array"); }
             DecodeBinaryField<false>(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
         case FIELD_TYPE::STRING: {
             const auto* end = static_cast<const unsigned char*>(std::memchr(*ppucLogBuf_, 0, bytesRemaining()));
-            if (end == nullptr) { throw std::runtime_error("DecodeBinary(): Unterminated binary STRING field."); }
+            if (end == nullptr) { return malformed("Unterminated binary STRING field"); }
             std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), static_cast<size_t>(end - *ppucLogBuf_));
             clCompField_.SetFieldValue<false>(field->index, std::string(sTemp));
             *ppucLogBuf_ = end + 1;
-            if (!AddStringFieldPadding(pucTempStart, ppucLogBuf_, bytesRemaining()))
-            {
-                throw std::runtime_error("DecodeBinary(): Buffer overrun in binary string padding.");
-            }
+            if (!AddStringFieldPadding(pucTempStart, ppucLogBuf_, bytesRemaining())) { return malformed("Not enough space for string padding"); }
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
@@ -370,8 +373,8 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 
             if (subFieldDefinitions->fieldInfo->varFieldCount == 0)
             {
-                const size_t totalBytes = uiArraySize * subFieldDefinitions->fieldInfo->fixedFieldBytes;
-                if (bytesRemaining() < totalBytes) { throw std::runtime_error("DecodeBinary(): Not enough space for flat field array."); }
+                const size_t totalBytes = size_t{uiArraySize} * subFieldDefinitions->fieldInfo->fixedFieldBytes;
+                if (bytesRemaining() < totalBytes) { return malformed("Not enough space for flat field array"); }
                 // Store flat FIELD_ARRAY directly as std::vector<std::byte>
                 std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
                                                      reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
@@ -381,10 +384,12 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             else
             {
                 std::vector<CompositeField> vFieldArrayContainer;
+                // Every element occupies at least one byte, so a count larger than the remaining bytes is malformed
+                if (bytesRemaining() < uiArraySize) { return malformed("Not enough space for field array"); }
                 vFieldArrayContainer.reserve(uiArraySize);
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
-                    *ppucLogBuf_ += calcFieldPadding(fieldTypeLength);
+                    if (!alignField(fieldTypeLength)) { return malformed("Not enough space for field array element"); }
                     auto& newField = vFieldArrayContainer.emplace_back(subFieldDefinitions->fieldInfo->fixedFieldBytes,
                                                                        subFieldDefinitions->fieldInfo->varFieldCount);
                     newField.SetFieldInfo(subFieldDefinitions->fieldInfo);
@@ -422,13 +427,8 @@ static STATUS DecodeZConversionStringAsciiArray(std::vector<uint8_t>& vDecodedVa
     vDecodedValues_.resize(uiArraySize_);
     for (uint32_t i = 0; i < uiArraySize_; ++i)
     {
-        const auto hexPair = sLogBuf_.substr(0, 2);
-        uint8_t value = 0;
-        const auto [end, error] = std::from_chars(hexPair.data(), hexPair.data() + hexPair.size(), value, 16);
-
-        if (error != std::errc{} || end != hexPair.data() + hexPair.size()) { return STATUS::MALFORMED_INPUT; }
+        if (!FromCharsExact(sLogBuf_.substr(0, 2), vDecodedValues_[i], 16)) { return STATUS::MALFORMED_INPUT; }
         sLogBuf_.remove_prefix(2);
-        vDecodedValues_[i] = value;
     }
 
     return STATUS::SUCCESS;
@@ -447,10 +447,8 @@ template <typename CharType> static STATUS DecodeNonCommaSeparatedAsciiArrayFiel
     else if (sLogBuf_.substr(0, 2) == "\\x")
     {
         if (sLogBuf_.size() < 4) { return STATUS::MALFORMED_INPUT; }
-        const auto hexPair = sLogBuf_.substr(2, 2);
         uint8_t value = 0;
-        const auto [end, error] = std::from_chars(hexPair.data(), hexPair.data() + hexPair.size(), value, 16);
-        if (error != std::errc{} || end != hexPair.data() + hexPair.size()) { return STATUS::MALFORMED_INPUT; }
+        if (!FromCharsExact(sLogBuf_.substr(2, 2), value, 16)) { return STATUS::MALFORMED_INPUT; }
 
         cValue_ = static_cast<CharType>(value);
         sLogBuf_.remove_prefix(4);
@@ -612,8 +610,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
             if (fixed) { uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength; }
             else
             {
-                auto result = std::from_chars(sField.data(), sField.data() + sField.size(), uiArraySize);
-                if (result.ec != std::errc() || result.ptr != sField.data() + sField.size())
+                if (!FromCharsExact(sField, uiArraySize))
                 {
                     SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::VARIABLE_LENGTH_ARRAY: Array length not valid number. Malformed Input\n");
                     return STATUS::MALFORMED_INPUT;
@@ -699,8 +696,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, std::str
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             uint32_t uiArraySize;
-            auto result = std::from_chars(sField.data(), sField.data() + sField.size(), uiArraySize);
-            if (result.ec != std::errc() || result.ptr != sField.data() + sField.size())
+            if (!FromCharsExact(sField, uiArraySize))
             {
                 SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::FIELD_ARRAY: Field Array length not valid number. Malformed Input\n");
                 return STATUS::MALFORMED_INPUT;

@@ -4601,7 +4601,7 @@ TEST_F(NovatelTypesTest, BINARY_STRING_PADDING_BOUNDS)
     {
         CompositeField decoded;
         const auto* input = data;
-        EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &input, decoded, length), std::runtime_error);
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &input, decoded, length), STATUS::MALFORMED_INPUT);
         EXPECT_LE(input, data + length);
     }
     CompositeField decoded;
