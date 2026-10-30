@@ -41,13 +41,17 @@ int main(int argc, char** argv)
     std::filesystem::path pathRepoDir = GetRepoBasePath(argc, argv);
 
     std::filesystem::path pathDatabaseFile = pathRepoDir / "database" / "database.json";
+    std::filesystem::path pathResourceFile = pathRepoDir / "src" / "decoders" / "common" / "test" / "resources";
 
     std::string strDatabaseVar = pathDatabaseFile.string();
+    std::string strResourceVar = pathResourceFile.string();
 
 #ifdef _WIN32
     if (_putenv_s("TEST_DATABASE_PATH", strDatabaseVar.c_str()) != 0) { throw std::runtime_error("Failed to set db path."); }
+    if (_putenv_s("TEST_RESOURCE_PATH", strResourceVar.c_str()) != 0) { throw std::runtime_error("Failed to set resource path."); }
 #else
     if (setenv("TEST_DATABASE_PATH", strDatabaseVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set db path."); }
+    if (setenv("TEST_RESOURCE_PATH", strResourceVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set resource path."); }
 #endif
 
     return RUN_ALL_TESTS();
