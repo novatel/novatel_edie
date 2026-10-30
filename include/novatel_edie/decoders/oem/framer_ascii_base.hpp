@@ -111,7 +111,7 @@ template <unsigned char SyncByte, size_t MaxMessageLength> class FramerAsciiBase
         uint32_t uiMessageCrc = 0;
         auto uiCalcCrc = CalculateBlockCrc32(clFrameBuffer.data() + OEM4_ASCII_SYNC_LENGTH,
                                              static_cast<uint32_t>(frameEnd - OEM4_ASCII_SYNC_LENGTH - OEM4_ASCII_CRC_LENGTH - 3));
-        const bool bCrcValid = FromCharsExact(std::string_view(pCrcStart, OEM4_ASCII_CRC_LENGTH), uiMessageCrc, 16) && uiCalcCrc == uiMessageCrc;
+        const bool bCrcValid = FromCharsExact<16>(std::string_view(pCrcStart, OEM4_ASCII_CRC_LENGTH), uiMessageCrc) && uiCalcCrc == uiMessageCrc;
         return bCrcValid ? 0 : OEM4_ASCII_SYNC_LENGTH;
     }
 

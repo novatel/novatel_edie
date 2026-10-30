@@ -427,7 +427,7 @@ static STATUS DecodeZConversionStringAsciiArray(std::vector<uint8_t>& vDecodedVa
     vDecodedValues_.resize(uiArraySize_);
     for (uint32_t i = 0; i < uiArraySize_; ++i)
     {
-        if (!FromCharsExact(sLogBuf_.substr(0, 2), vDecodedValues_[i], 16)) { return STATUS::MALFORMED_INPUT; }
+        if (!FromCharsExact<16>(sLogBuf_.substr(0, 2), vDecodedValues_[i])) { return STATUS::MALFORMED_INPUT; }
         sLogBuf_.remove_prefix(2);
     }
 
@@ -448,7 +448,7 @@ template <typename CharType> static STATUS DecodeNonCommaSeparatedAsciiArrayFiel
     {
         if (sLogBuf_.size() < 4) { return STATUS::MALFORMED_INPUT; }
         uint8_t value = 0;
-        if (!FromCharsExact(sLogBuf_.substr(2, 2), value, 16)) { return STATUS::MALFORMED_INPUT; }
+        if (!FromCharsExact<16>(sLogBuf_.substr(2, 2), value)) { return STATUS::MALFORMED_INPUT; }
 
         cValue_ = static_cast<CharType>(value);
         sLogBuf_.remove_prefix(4);

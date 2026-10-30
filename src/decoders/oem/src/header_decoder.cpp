@@ -181,14 +181,14 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
         break;
     }
     case ASCII_HEADER::RECEIVER_STATUS:
-        if (!FromCharsExact(sToken, stInterHeader_.uiReceiverStatus, 16))
+        if (!FromCharsExact<16>(sToken, stInterHeader_.uiReceiverStatus))
         {
             pclMyLogger->debug("Failed to parse RECEIVER_STATUS.");
             return false;
         }
         break;
     case ASCII_HEADER::MSG_DEF_CRC:
-        if (!FromCharsExact(sToken, stInterHeader_.uiMessageDefinitionCrc, 16))
+        if (!FromCharsExact<16>(sToken, stInterHeader_.uiMessageDefinitionCrc))
         {
             pclMyLogger->debug("Failed to parse MSG_DEF_CRC.");
             return false;

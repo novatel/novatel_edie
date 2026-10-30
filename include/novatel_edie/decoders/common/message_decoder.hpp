@@ -1664,7 +1664,7 @@ class MessageDecoderBase
         token.remove_prefix(offset);
 
         T value;
-        if (!FromCharsExact(token, value, R)) { throw std::runtime_error("Failed to parse numeric value"); }
+        if (!FromCharsExact<R>(token, value)) { throw std::runtime_error("Failed to parse numeric value"); }
 
         clCompField_.SetArrayElement<Fixed>(field_, elementIndex_, value);
     }

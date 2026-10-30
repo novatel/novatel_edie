@@ -461,7 +461,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                 uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;
-                if (FromCharsExact(std::string_view(acCrc, OEM4_ASCII_CRC_LENGTH), uiMessageCrc, 16) && uiMyCalculatedCrc32 == uiMessageCrc)
+                if (FromCharsExact<16>(std::string_view(acCrc, OEM4_ASCII_CRC_LENGTH), uiMessageCrc) && uiMyCalculatedCrc32 == uiMessageCrc)
                 {
                     uiMyByteCount = 0;
 
@@ -519,7 +519,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                 uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;
-                if (FromCharsExact(std::string_view(acCrc, NMEA_CRC_LENGTH), uiMessageCrc, 16) && uiMyCalculatedCrc32 == uiMessageCrc)
+                if (FromCharsExact<16>(std::string_view(acCrc, NMEA_CRC_LENGTH), uiMessageCrc) && uiMyCalculatedCrc32 == uiMessageCrc)
                 {
                     uiMyByteCount = 0;
 
