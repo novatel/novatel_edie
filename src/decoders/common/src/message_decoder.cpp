@@ -305,7 +305,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 return malformed("Not enough space for array length");
             }
             const auto arrayLength = GetArrayLength(pucTempStart, ppucLogBuf_, arrayDef, clCompField_);
-            if (!arrayLength) { return malformed("Referenced array length out of range"); }
+            if (!arrayLength) { return malformed("Array length out of range"); }
             std::tie(fieldTypeLength, uiArraySize) = *arrayLength;
         }
         else if (field->type != FIELD_TYPE::FIXED_LENGTH_ARRAY && field->type != FIELD_TYPE::STRING && field->type != FIELD_TYPE::RESPONSE_STR)

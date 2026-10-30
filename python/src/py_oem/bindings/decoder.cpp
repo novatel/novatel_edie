@@ -14,7 +14,7 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::PyHeader& header, oem::MetaDataStruct& metadata) const
+nb::object py_oem::PyDecoder::DecodeMessage(std::string_view raw_body, py_oem::PyHeader& header, oem::MetaDataStruct& metadata) const
 {
     CompositeField fields;
     STATUS status;
@@ -43,17 +43,17 @@ nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::Py
 
     if (rx_config_handler.IsRxConfigTypeMsg(header.usMessageId))
     {
-        status = rx_config_handler.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata);
+        status = rx_config_handler.Decode(reinterpret_cast<const unsigned char*>(raw_body.data()), fields, metadata);
     }
     else
     {
-        status = message_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_body.c_str()), fields, metadata);
+        status = message_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_body.data()), fields, metadata);
     }
 
     switch (status)
     {
     case STATUS::SUCCESS: return py_oem::create_message_instance(header, std::move(fields), metadata, database);
-    case STATUS::NO_DEFINITION: return py_oem::create_unknown_message_instance(raw_body, header);
+    case STATUS::NO_DEFINITION: return py_oem::create_unknown_message_instance(nb::bytes(raw_body.data(), raw_body.size()), header);
     default: throw_exception_from_failing_status(status);
     }
 }
@@ -86,10 +86,12 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                     metadata = &default_metadata;
                     metadata->uiLength = static_cast<uint32_t>(raw_header.size());
                 }
-                else if (metadata->uiLength > raw_header.size() || metadata->uiLength == 0)
-                {
-                    metadata->uiLength = raw_header.size();
-                }
+
+                // At this point, metadata->uiLength could either be a full frame length (e.g. as set by the framer),
+                // or just the header length. Also, raw_header could contain the full message frame or just a header.
+                // Since HeaderDecoder bounds the buffer by the provided metadata length, the safest thing to do is
+                // to set metadata->uiLength to the size of raw_header.
+                metadata->uiLength = raw_header.size();
                 STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const unsigned char*>(raw_header.c_str()), header, *metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 return header;
@@ -104,6 +106,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 metadata: A storehouse for additional information determined as part of the decoding process.
                     Supplying metadata is optional, but without it there will be no way of later accessing
                     information such as the number of bytes that make up the original header representation.
+                    If supplied, its length is set to len(raw_header).
 
             Returns:
                 A decoded `Header`.
@@ -123,7 +126,8 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                     default_metadata.bResponse = ((header.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0);
                     metadata = &default_metadata;
                 }
-                return decoder.DecodeMessage(raw_payload, header, *metadata);
+                metadata->uiLength = metadata->uiHeaderLength + raw_payload.size();
+                return decoder.DecodeMessage(std::string_view(raw_payload.c_str(), raw_payload.size()), header, *metadata);
             },
             "raw_body"_a, "decoded_header"_a, nb::arg("metadata") = nb::none(),
             nb::sig("def decode_payload(self, raw_body: bytes, decoded_header: Header, metadata: MetaData | None = None) -> Message | "
@@ -134,8 +138,8 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             Args:
                 raw_body: A frame of raw bytes containing the payload information to decode.
                 decoded_header: The already-decoded header describing the payload.
-                metadata: An optional way of supplying data to aid in decoding. If not provided
-                    decoding will attempt to use only information from the header.
+                metadata: Metadata from decode_header, with format matching the input. Its length is set
+                    to header_length + len(raw_body).
 
             Returns:
                 A decoded `Message`, or an `UnknownMessage` if no definition was available
@@ -146,27 +150,13 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             [](const py_oem::PyDecoder& decoder, const nb::bytes raw_message) {
                 oem::MetaDataStruct metadata;
                 metadata.uiLength = static_cast<uint32_t>(raw_message.size());
-                CompositeField fields;
                 py_oem::PyHeader header;
                 const unsigned char* message_pointer = reinterpret_cast<const unsigned char*>(raw_message.c_str());
                 STATUS status = decoder.header_decoder.Decode(message_pointer, header, metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
-                const unsigned char* body_pointer = message_pointer + metadata.uiHeaderLength;
-                if (decoder.rx_config_handler.IsRxConfigTypeMsg(header.usMessageId))
-                {
-                    status = decoder.rx_config_handler.Decode(body_pointer, fields, metadata);
-                }
-                else
-                {
-                    status = decoder.message_decoder.Decode(body_pointer, fields, metadata);
-                }
-                switch (status)
-                {
-                case STATUS::SUCCESS: return py_oem::create_message_instance(header, std::move(fields), metadata, decoder.database);
-                case STATUS::NO_DEFINITION:
-                    return py_oem::create_unknown_message_instance(nb::bytes(body_pointer, metadata.uiLength - metadata.uiHeaderLength), header);
-                default: throw_exception_from_failing_status(status);
-                }
+                return decoder.DecodeMessage(std::string_view(raw_message.c_str() + metadata.uiHeaderLength,
+                                                              metadata.uiLength - metadata.uiHeaderLength),
+                                             header, metadata);
             },
             "message"_a, nb::sig("def decode(self, message: bytes) -> Message | Response | UnknownMessage"),
             R"doc(
