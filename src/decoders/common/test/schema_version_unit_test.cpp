@@ -36,7 +36,10 @@ using namespace novatel::edie;
 class SchemaVersionTest : public testing::Test
 {
   protected:
-    static std::filesystem::path ResourcePath(const char* pcFileName_) { return std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / pcFileName_; }
+    static std::filesystem::path ResourcePath(const char* pcFileName_)
+    {
+        return std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / pcFileName_;
+    }
 
     static void AssertLoads(const char* pcFileName_)
     {
