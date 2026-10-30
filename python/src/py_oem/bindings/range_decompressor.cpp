@@ -38,7 +38,18 @@ void py_oem::init_novatel_range_decompressor(nb::module_& m)
                 throw_exception_from_status(status);
                 return nb::bytes(buffer, metadata.uiLength);
             },
-            "data"_a, "metadata"_a, "encode_format"_a = ENCODE_FORMAT::UNSPECIFIED)
+            "data"_a, "metadata"_a, "encode_format"_a = ENCODE_FORMAT::UNSPECIFIED,
+            R"doc(
+            Decompress a RANGECMP message into the equivalent RANGE message.
+
+            Args:
+                data: A single complete RANGECMP frame. A binary payload must be complete and valid.
+                metadata: Updated to describe the output. Its length is first set to len(data).
+                encode_format: The output format. UNSPECIFIED keeps the input format.
+
+            Returns:
+                The encoded RANGE frame, or (STATUS.BUFFER_FULL, None) if data exceeds MAX_MESSAGE_LENGTH.
+            )doc")
         // For unit tests
         .def_static("_reencode_ChannelTrackingStatusWord", [](uint32_t uiCTS) { return oem::ChannelTrackingStatus(uiCTS).GetAsWord(); });
 }

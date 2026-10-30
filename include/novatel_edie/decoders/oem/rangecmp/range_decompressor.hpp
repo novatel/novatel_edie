@@ -68,7 +68,11 @@ class RangeDecompressor
     //! \param[in] uiBufferSize_ Writable buffer capacity, not the valid input length.
     //! \param[in, out] stMetaData_ uiLength must be the full input frame length, excluding any NUL sentinel.
     //! Other input metadata is decoded from the header; lengths and identity are updated for the output.
-    //! TODO: complete this documentation
+    //! \param[in] eFormat_ The output format. UNSPECIFIED keeps the input format.
+    //! \remark ASCII, ABB_ASCII, and JSON input is bounded by uiLength. A compressed BINARY payload is not,
+    //! so it must be complete and valid.
+    //! \return An error code describing the result. SUCCESS: pucBuffer_ holds stMetaData_.uiLength output
+    //! bytes. BUFFER_FULL: the output did not fit in uiBufferSize_. Decoder and encoder failures are returned as is.
     [[nodiscard]] STATUS Decompress(unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct& stMetaData_,
                                     ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
 

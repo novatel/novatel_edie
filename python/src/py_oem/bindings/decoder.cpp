@@ -136,14 +136,19 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             Decode the payload of a message given the associated header.
 
             Args:
-                raw_body: A frame of raw bytes containing the payload information to decode.
+                raw_body: The bytes following the header, including any CRC or trailer. For JSON, the
+                    whole document containing "body".
                 decoded_header: The already-decoded header describing the payload.
                 metadata: Metadata from decode_header, with format matching the input. Its length is set
-                    to header_length + len(raw_body).
+                    to header_length + len(raw_body). If omitted, the format is unknown, so a known message
+                    cannot be decoded.
 
             Returns:
                 A decoded `Message`, or an `UnknownMessage` if no definition was available
                 for the message.
+
+            Raises:
+                RuntimeError: If metadata.binary_msg_length exceeds len(raw_body) for binary input.
             )doc")
         .def(
             "decode",
@@ -163,7 +168,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             Decode the message from its raw byte representation.
 
             Args:
-                message: A frame of raw bytes containing the message information to decode.
+                message: A single complete message frame, starting at its first sync byte.
 
             Returns:
                 A decoded `Message`, a `Response`, or an `UnknownMessage` whose header was identified

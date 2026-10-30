@@ -1617,6 +1617,7 @@ class MessageDecoderBase
   protected:
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
+    // The token passed to each entry is a view into the message and is not NUL-terminated.
     std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, bool, MessageDatabase&)>>
         asciiFieldMap;
     std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>>
@@ -1839,8 +1840,8 @@ class MessageDecoderBase
     //! - dMilliseconds: Not used by Decode; may retain its default value.
     //! - uiLength: Set to the exact full input frame length, including any checksum/trailer.
     //!   For JSON, set to the length of the document containing "body". Ignored for BINARY.
-    //! - uiBinaryMsgLength: Required for BINARY payloads with variable-length fields. Set to the
-    //!   binary payload length, excluding the header and frame CRC. Ignored for ASCII/ABB_ASCII/JSON.
+    //! - uiBinaryMsgLength: Required for BINARY. Set to the binary payload length, excluding the
+    //!   header and frame CRC. Ignored for ASCII/ABB_ASCII/JSON.
     //! - uiHeaderLength: Set to the number of frame bytes skipped before pucMessage_; must not
     //!   exceed uiLength. Must be 0 for payload-only input. Ignored for BINARY/JSON.
     //! - usMessageId: Required to select the database definition.
@@ -1848,10 +1849,10 @@ class MessageDecoderBase
     //!   latest CRC is used as a fallback.
     //! - messageName: Not used by Decode, except to reject "RXCONFIG".
     //
-    //! \remark The caller guarantees at least uiLength - uiHeaderLength readable bytes at pucMessage_.
-    //! ASCII, ABB_ASCII, and JSON are bounded by that extent and need not be NUL-terminated. Binary
-    //! input must be a complete, valid payload matching its definition, including NUL terminators for
-    //! STRING fields.
+    //! \remark The caller guarantees these readable bytes at pucMessage_: uiBinaryMsgLength for BINARY,
+    //! uiLength for JSON, and uiLength - uiHeaderLength for ASCII/ABB_ASCII. Decoding stays within that
+    //! extent, so input need not be NUL-terminated. BINARY STRING fields must still contain their own
+    //! NUL terminators; input too short for its definition returns MALFORMED_INPUT.
     //
     //! \remark Framers supply uiLength; HeaderDecoders supply eFormat, uiBinaryMsgLength, uiHeaderLength,
     //! usMessageId, uiMessageCrc, and messageName, but do not set uiLength. Direct callers must supply

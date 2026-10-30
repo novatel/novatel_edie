@@ -181,7 +181,8 @@ template <typename BufferType>
 }
 
 // -------------------------------------------------------------------------------------------------------
-// String-like arguments (literals, std::string, std::string_view) go to the std::string_view overload instead
+// String-like arguments (literals, std::string, std::string_view) go to the std::string_view overload instead.
+// A char pointer or array converts by strlen, so it must be NUL-terminated.
 template <typename BufferType, typename T, std::enable_if_t<!std::is_convertible_v<const T&, std::string_view>, int> = 0>
 [[nodiscard]] bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const T& item)
 {

@@ -288,15 +288,21 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     //! \brief Decode the payload of an RXCONFIG message.
     //
-    //! \param[in] pucMessage_ A pointer to a message payload.
+    //! \param[in] pucMessage_ A pointer to at least uiLength - uiHeaderLength readable bytes
+    //! of message payload, which need not be NUL-terminated.
     //! \param[out] stInterMessage_ The intermediate data structure to be populated.
-    //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
-    //! the frame and be fully populated to help describe the decoded log.
+    //! \param[in, out] stRxConfigMetaData_ MetaDataStruct to provide information about
+    //! the frame and be fully populated to help describe the decoded log. uiLength and
+    //! uiHeaderLength are required for every format, including BINARY. BINARY also requires
+    //! uiBinaryMsgLength, which includes the embedded message CRC but not the frame CRC.
+    //
+    //! \remark ASCII input must include the trailing {CRC}*{CRC}\r\n.
     //
     //! \return A STATUS code describing the result of decoding.
     //!    SUCCESS: The operation was successful.
     //!    NO_DEFINITION: The message ID was not found in the database.
     //!    UNSUPPORTED: The message ID is not for an RXCONFIG type message.
+    //!    MALFORMED_INPUT: The lengths are inconsistent or the payload is too short or invalid.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, CompositeField& stInterMessage_, MetaDataStruct& stRxConfigMetaData_) const;
 
