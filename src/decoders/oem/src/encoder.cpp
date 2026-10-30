@@ -106,7 +106,7 @@ void Encoder::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  const MessageDatabase& pclMsgDb_, size_t offset) {
-        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, pclMsgDb_.MsgIdToMsgName(cf_.GetFieldValue<uint32_t>(fd_, offset)).c_str());
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, pclMsgDb_.MsgIdToMsgName(cf_.GetFieldValue<uint32_t>(fd_, offset)));
     };
 
     asciiFieldMap[CalculateBlockCrc32("T")] = [](const BaseField& fd_, const CompositeField& cf_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -448,7 +448,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
 
         if (fieldDefinitions.size() <= 1) { return STATUS::MALFORMED_INPUT; }
         auto sResponse = stMessage_.GetFieldValue<std::string>(*fieldDefinitions.at(1));
-        if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, sResponse)) { return STATUS::BUFFER_FULL; }
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         stMessageData_.pucMessage = *ppucBuffer_;
         stMessageData_.uiMessageLength = pucTempEncodeBuffer - *ppucBuffer_;
@@ -460,6 +460,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
     STATUS eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, eHeaderType, eFormat_);
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    uiBufferSize_ -= stMessageData_.uiMessageHeaderLength;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
@@ -470,6 +471,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageBodyLength;
+    uiBufferSize_ -= stMessageData_.uiMessageBodyLength;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {

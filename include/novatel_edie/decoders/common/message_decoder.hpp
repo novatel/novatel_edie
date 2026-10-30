@@ -36,6 +36,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -821,12 +822,6 @@ class CompositeField
     }
 
     // ---------------------------------------------------------------------------
-    //! Copy constructor and assignment operator
-    // ---------------------------------------------------------------------------
-    CompositeField(const CompositeField& other) : fixedFields(other.fixedFields), varFields(other.varFields), fieldInfo(other.fieldInfo) {}
-    CompositeField& operator=(const CompositeField& other) = default;
-
-    // ---------------------------------------------------------------------------
     //! \brief Resize the memory regions of the CompositeField.
     //!
     //! \param[in] fixedFieldSize_ The new size in bytes for the fixed fields
@@ -1584,6 +1579,24 @@ class FieldArray
 class MessageDecoderBase
 {
   private:
+    static constexpr char ASCII_END_DELIM = '*';
+    static constexpr char ASCII_TOKEN_DELIM = ',';
+    static constexpr char ABBREV_ASCII_END_DELIM = '\r';
+    static constexpr char ABBREV_ASCII_TOKEN_DELIM = ' ';
+
+    template <bool Abbreviated> static inline size_t FindFirstAsciiTokenDelimiter(std::string_view sMessage_)
+    {
+        constexpr char tokenDelimiter = Abbreviated ? ABBREV_ASCII_TOKEN_DELIM : ASCII_TOKEN_DELIM;
+        constexpr char endDelimiter = Abbreviated ? ABBREV_ASCII_END_DELIM : ASCII_END_DELIM;
+
+        size_t i = 0;
+        for (; i < sMessage_.size(); i++)
+        {
+            if (sMessage_[i] == tokenDelimiter || sMessage_[i] == endDelimiter) { return i; }
+        }
+        return i;
+    }
+
     static constexpr std::string_view svErrorPrefix = "ERROR:";
 
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("message_decoder")};
@@ -1604,7 +1617,8 @@ class MessageDecoderBase
   protected:
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
-    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)>>
+    // The token passed to each entry is a view into the message and is not NUL-terminated.
+    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, bool, MessageDatabase&)>>
         asciiFieldMap;
     std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>>
         jsonFieldMap;
@@ -1612,15 +1626,14 @@ class MessageDecoderBase
     [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                       uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
-    [[nodiscard]] STATUS DecodeAscii(const FieldInfo& vMsgDefFields_, const char** ppcLogBuf_, CompositeField& clCompField_,
-                                     const char* pcBufEnd = nullptr) const;
+    [[nodiscard]] STATUS DecodeAscii(const FieldInfo& vMsgDefFields_, std::string_view& sMessage_, CompositeField& clCompField_) const;
     [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, CompositeField& clCompField_) const;
 
     template <bool Fixed = true>
     static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                   size_t n = 1);
-    void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, CompositeField& clCompField_,
-                          size_t elementIndex_ = 0, bool fixed_ = true) const;
+    void DecodeAsciiField(const BaseField& field_, std::string_view token_, CompositeField& clCompField_, size_t elementIndex_ = 0,
+                          bool fixed_ = true) const;
     void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, CompositeField& clCompField_, size_t elementIndex_ = 0,
                          bool fixed_ = true) const;
 
@@ -1631,42 +1644,42 @@ class MessageDecoderBase
     //! calculate the current offset relative to the beginning of the payload.
     //! \param[in, out] ptr_ A pointer to the buffer pointer to be advanced
     //! if padding is needed.
+    //! \param[in] bytesLeft Remaining bytes available for padding.
     //
-    //! \return None. The buffer pointer is updated in place.
+    //! \return True if the padding fits and the buffer pointer was updated.
     //----------------------------------------------------------------------------
-    virtual void AddStringFieldPadding([[maybe_unused]] const unsigned char* start, [[maybe_unused]] const unsigned char** ptr) const { return; }
+    virtual bool AddStringFieldPadding([[maybe_unused]] const unsigned char* start, [[maybe_unused]] const unsigned char** ptr,
+                                       [[maybe_unused]] size_t bytesLeft) const
+    {
+        return true;
+    }
 
     // -------------------------------------------------------------------------------------------------------
     template <bool Fixed = true, typename T = int32_t, int R = 10>
-    static void ParseAndEmplace(CompositeField& clCompField_, const BaseField& field_, const char* token, size_t tokenLength,
-                                size_t elementIndex_ = 0)
+    static void ParseAndEmplace(CompositeField& clCompField_, const BaseField& field_, std::string_view token, size_t elementIndex_ = 0)
     {
-        T value;
-        std::from_chars_result result;
-
         // As of 6/26/2025 spaces may appear within ascii fields of OUTPUTDATUM and SETALIGNMENTVEL as they use conversion strings with width
         // values. EDIE supports decoding of this data but will never pad fields with spaces during encoding.
-        uint32_t offset = 0;
-        while ((token[offset] == ' ') && (offset < tokenLength - 1)) { ++offset; }
+        const auto offset = token.find_first_not_of(' ');
+        if (offset == std::string_view::npos) { throw std::runtime_error("Empty numeric value"); }
+        token.remove_prefix(offset);
 
-        if constexpr (std::is_integral_v<T>) { result = std::from_chars(token + offset, token + tokenLength, value, R); }
-        else if constexpr (std::is_floating_point_v<T>) { result = std::from_chars(token + offset, token + tokenLength, value); }
-
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
+        T value;
+        if (!FromCharsExact<R>(token, value)) { throw std::runtime_error("Failed to parse numeric value"); }
 
         clCompField_.SetArrayElement<Fixed>(field_, elementIndex_, value);
     }
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(CompositeField&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)> SimpleAsciiMapEntry()
+    static std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, bool, MessageDatabase&)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
-        return [](CompositeField& vIntermediate_, const BaseField& pstField_, const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
+        return [](CompositeField& vIntermediate_, const BaseField& pstField_, std::string_view token_, const size_t elementIndex_, const bool fixed_,
+                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+            if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, token_, elementIndex_); }
+            else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, token_, elementIndex_); }
         };
     }
 
@@ -1706,8 +1719,9 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    uint32_t GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
-                            const CompositeField& clCompField_) const
+    // Returns {length field size, array length}, or std::nullopt if a referenced length field holds a negative or out-of-range value.
+    std::optional<std::pair<std::size_t, uint32_t>> GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_,
+                                                                   const ArrayField& arrayDef, const CompositeField& clCompField_) const
     {
         if (arrayDef.arrayLengthRef.empty())
         {
@@ -1721,32 +1735,30 @@ class MessageDecoderBase
             for (std::size_t i = 0; i < lenBytes; ++i) { uiArrayLength |= static_cast<uint32_t>((*ppucLogBuf_)[i]) << (8 * i); }
 
             *ppucLogBuf_ += lenBytes;
-            return uiArrayLength;
+            return std::pair{lenBytes, uiArrayLength};
         }
 
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
         if (auto arrLengthRefDef = clCompField_.GetFieldInfo()->GetFieldDefByName(arrayDef.arrayLengthRef))
         {
-            const auto arraySize = std::visit(
-                [](const auto& value) -> std::optional<uint32_t> {
-                    using T = std::decay_t<decltype(value)>;
-                    if constexpr (std::is_integral_v<T>)
+            size_t arrayLengthFieldSize = 0;
+            std::optional<uint32_t> arraySize = std::nullopt;
+            SimpleTypeVisitor(*arrLengthRefDef, [&](auto value) {
+                using T = std::decay_t<decltype(value)>;
+                if constexpr (std::is_integral_v<T>)
+                {
+                    arrayLengthFieldSize = sizeof(T);
+                    // Reject negative or out-of-range lengths rather than letting them wrap to huge array sizes
+                    const T length = clCompField_.GetFieldValue<T>(*arrLengthRefDef);
+                    if constexpr (std::is_signed_v<T>)
                     {
-                        if constexpr (std::is_signed_v<T>)
-                        {
-                            if (value < 0) { return std::nullopt; }
-                        }
-                        if constexpr (sizeof(T) > sizeof(uint32_t))
-                        {
-                            if (value > static_cast<T>(std::numeric_limits<uint32_t>::max())) { return std::nullopt; }
-                        }
-                        return static_cast<uint32_t>(value);
+                        if (length < 0) { return; }
                     }
-                    return std::nullopt;
-                },
-                clCompField_.GetFieldValueVariant(*arrLengthRefDef));
+                    if (static_cast<uint64_t>(length) <= std::numeric_limits<uint32_t>::max()) { arraySize = static_cast<uint32_t>(length); }
+                }
+            });
 
-            if (arraySize) { return *arraySize; }
+            if (arrayLengthFieldSize != 0) { return arraySize ? std::make_optional(std::pair{arrayLengthFieldSize, *arraySize}) : std::nullopt; }
         }
 
         throw std::runtime_error("GetArrayLength(): No matching field found for arrayLengthRef");
@@ -1815,23 +1827,45 @@ class MessageDecoderBase
     //----------------------------------------------------------------------------
     //! \brief Decode a message payload from the provided frame.
     //
-    //! \param[in] pucMessage_ A pointer to a message payload.
+    //! \param[in] pucMessage_ A pointer to the message body payload, or to a JSON
+    //! document containing a top-level "body" field for JSON.
     //! \param[out] stInterMessage_ The CompositeField to be populated.
-    //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
-    //! the frame and be fully populated to help describe the decoded log.
+    //! \param[in, out] stMetaData_ Metadata describing this input. The base and OEM implementations
+    //! read it without populating missing values; derived definition lookup may modify it.
     //
-    //! \remark Note, that pucMessage_ must not point to the message header,
-    //! rather the message payload. This can be done by advancing the pointer
-    //! of a message frame by stMetaData.uiHeaderLength.
+    //! \details Metadata members (in declaration order, including OEM MetaDataStruct extensions):
+    //! - bResponse: Set true for command responses, false otherwise.
+    //! - eFormat: Required for every input. Set to ASCII, ABB_ASCII, BINARY, or JSON.
+    //! - usWeek: Not used by Decode; may retain its default value.
+    //! - dMilliseconds: Not used by Decode; may retain its default value.
+    //! - uiLength: Set to the exact full input frame length, including any checksum/trailer.
+    //!   For JSON, set to the length of the document containing "body". Ignored for BINARY.
+    //! - uiBinaryMsgLength: Required for BINARY. Set to the binary payload length, excluding the
+    //!   header and frame CRC. Ignored for ASCII/ABB_ASCII/JSON.
+    //! - uiHeaderLength: Set to the number of frame bytes skipped before pucMessage_; must not
+    //!   exceed uiLength. Must be 0 for payload-only input. Ignored for BINARY/JSON.
+    //! - usMessageId: Required to select the database definition.
+    //! - uiMessageCrc: Set to the definition's CRC. If the given CRC is not in the database, the
+    //!   latest CRC is used as a fallback.
+    //! - messageName: Not used by Decode, except to reject "RXCONFIG".
+    //
+    //! \remark The caller guarantees these readable bytes at pucMessage_: uiBinaryMsgLength for BINARY,
+    //! uiLength for JSON, and uiLength - uiHeaderLength for ASCII/ABB_ASCII. Decoding stays within that
+    //! extent, so input need not be NUL-terminated. BINARY STRING fields must still contain their own
+    //! NUL terminators; input too short for its definition returns MALFORMED_INPUT.
+    //
+    //! \remark Framers supply uiLength; HeaderDecoders supply eFormat, uiBinaryMsgLength, uiHeaderLength,
+    //! usMessageId, uiMessageCrc, and messageName, but do not set uiLength. Direct callers must supply
+    //! uiLength themselves.
     //! \return An error code describing the result of decoding.
     //!   SUCCESS: The operation was successful.
     //!   NULL_PROVIDED: pucMessage_ is a null pointer.
     //!   NO_DATABASE: No database was ever loaded into this component.
     //!   NO_DEFINITION: No definition for the current log was found in the
     //! provided database.
-    //!   FAILURE: Failed to decode a header field.
-    //!   UNSUPPORTED: Attempted to decode an unsupported format.
-    //!   UNKNOWN: The header format provided is not known.
+    //!   MALFORMED_INPUT: uiHeaderLength exceeds uiLength, or the payload is malformed.
+    //!   UNSUPPORTED: RXCONFIG requires RxConfigHandler.
+    //!   UNKNOWN: The payload format provided is not supported.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, CompositeField& stInterMessage_, MetaDataBase& stMetaData_) const;
 };

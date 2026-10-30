@@ -149,6 +149,7 @@ class HeaderDecoderCountsTest : public ::testing::Test
     {
         IntermediateHeader stHeader;
         MetaDataStruct stMetaData;
+        stMetaData.uiLength = static_cast<uint32_t>(std::strlen(reinterpret_cast<const char*>(pucLog_)));
         return pclMyHeaderDecoder->Decode(pucLog_, stHeader, stMetaData);
     }
 };
