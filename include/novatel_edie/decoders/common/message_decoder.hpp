@@ -1819,7 +1819,6 @@ class MessageDecoderBase
                 }
             });
 
-            // A non-integral reference is a definition error, but an out-of-range value is malformed input
             if (arrayLengthFieldSize != 0) { return arraySize ? std::make_optional(std::pair{arrayLengthFieldSize, *arraySize}) : std::nullopt; }
         }
 
