@@ -45,6 +45,8 @@ class SchemaVersionTest : public testing::Test
         ASSERT_NE(pclDb->GetMsgDef("SAMPLE"), nullptr);
         ASSERT_NE(pclDb->GetEnumDefName("SampleEnum"), nullptr);
     }
+
+    static void AssertThrows(const char* pcFileName_) { ASSERT_THROW(LoadJsonDbFile(ResourcePath(pcFileName_)), JsonDbReaderFailure); }
 };
 
 // -------------------------------------------------------------------------------------------------------
@@ -58,4 +60,4 @@ TEST_F(SchemaVersionTest, LoadsSchema_2_0_0) { AssertLoads("schema_2_0_0.json");
 
 TEST_F(SchemaVersionTest, LoadsSchema_3_0_0) { AssertLoads("schema_3_0_0.json"); }
 
-TEST_F(SchemaVersionTest, RejectsSchema_4_0_0) { ASSERT_THROW(LoadJsonDbFile(ResourcePath("schema_4_0_0.json")), JsonDbReaderFailure); }
+TEST_F(SchemaVersionTest, RejectsSchema_4_0_0) { AssertThrows("schema_4_0_0.json"); }
