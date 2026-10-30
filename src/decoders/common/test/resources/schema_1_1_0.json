@@ -1,0 +1,74 @@
+{
+    "enums": [
+        {
+            "_id": "e1",
+            "name": "SampleEnum",
+            "enumerators": [
+                { "name": "OFF", "value": 0, "description": null },
+                { "name": "ON", "value": 1, "description": null }
+            ]
+        }
+    ],
+    "messages": [
+        {
+            "_id": "m1",
+            "name": "SAMPLE",
+            "description": "Sample message",
+            "messageID": 1,
+            "latestMsgDefCrc": "1234",
+            "saveconfigable": false,
+            "headerType": "STANDARD",
+            "fields": {
+                "1234": [
+                    {
+                        "type": "SIMPLE",
+                        "name": "number",
+                        "description": "A number",
+                        "arrayLength": null,
+                        "conversionString": "%u",
+                        "dataType": { "name": "ULONG", "length": 4, "description": "" },
+                        "defaultValue": 0,
+                        "minValue": 0,
+                        "maxValue": 10,
+                        "bitMasks": []
+                    },
+                    {
+                        "type": "ENUM",
+                        "name": "switch",
+                        "description": "An enum",
+                        "arrayLength": null,
+                        "conversionString": null,
+                        "enumID": "e1",
+                        "dataType": { "name": "ENUM", "length": 4, "description": "" },
+                        "defaultValue": 0,
+                        "minValue": 0,
+                        "maxValue": 1
+                    },
+                    {
+                        "type": "STRING",
+                        "name": "label",
+                        "description": "A string",
+                        "arrayLength": 32,
+                        "conversionString": "%s",
+                        "dataType": { "name": "STRING", "length": 1, "description": "" },
+                        "defaultValue": null,
+                        "minValue": null,
+                        "maxValue": null
+                    },
+                    {
+                        "type": "FIXED_LENGTH_ARRAY",
+                        "name": "values",
+                        "description": "A fixed-length array",
+                        "arrayLength": 2,
+                        "conversionString": "%u",
+                        "dataType": { "name": "ULONG", "length": 4, "description": "" },
+                        "defaultValue": 0,
+                        "minValue": 0,
+                        "maxValue": 10
+                    }
+                ]
+            }
+        }
+    ],
+    "meta": { "subset": "all", "version": "1.1.0", "messageFamily": "OEM" }
+}
