@@ -12,6 +12,7 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
+//
 void py_oem::init_novatel_range_decompressor(nb::module_& m)
 {
     nb::class_<oem::RangeDecompressor>(m, "RangeDecompressor")
