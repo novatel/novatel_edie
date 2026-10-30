@@ -83,9 +83,9 @@ void py_oem::init_novatel_common(nb::module_& m)
         .def_rw("week", &oem::MetaDataStruct::usWeek)
         .def_rw("milliseconds", &oem::MetaDataStruct::dMilliseconds)
         .def_rw("binary_msg_length", &oem::MetaDataStruct::uiBinaryMsgLength,
-                "Message length according to the binary header. If ASCII, this field is not used.")
+                "Payload length according to the binary header, excluding the header and CRC. Not used for ASCII or JSON.")
         .def_rw("length", &oem::MetaDataStruct::uiLength, "Length of the entire log, including the header and CRC.")
-        .def_rw("header_length", &oem::MetaDataStruct::uiHeaderLength, "The length of the message header. Used for NovAtel logs.")
+        .def_rw("header_length", &oem::MetaDataStruct::uiHeaderLength, "Bytes before the payload. Zero for JSON. Used for NovAtel logs.")
         .def_rw("message_id", &oem::MetaDataStruct::usMessageId)
         .def_rw("message_crc", &oem::MetaDataStruct::uiMessageCrc)
         .def_prop_rw(

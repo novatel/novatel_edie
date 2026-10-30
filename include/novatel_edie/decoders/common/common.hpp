@@ -59,6 +59,8 @@ template <typename T, typename BufferType> inline T LoadValueFromBuffer(const Bu
 
 //-----------------------------------------------------------------------
 //! \brief Parse all of sToken_ as a number with std::from_chars.
+//! \tparam Base The numeric base for integers; ignored for floating-point types.
+//! \param[in] sToken_ The token. It is not trimmed, so surrounding whitespace or a leading '+' fails.
 //! \return True only if parsing succeeded and consumed every character.
 //-----------------------------------------------------------------------
 template <int Base = 10, typename T> [[nodiscard]] inline bool FromCharsExact(std::string_view sToken_, T& value_)

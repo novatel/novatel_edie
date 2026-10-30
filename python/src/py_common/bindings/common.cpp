@@ -93,9 +93,9 @@ void py_common::init_common(nb::module_& m)
         .def_rw("week", &MetaDataBase::usWeek)
         .def_rw("milliseconds", &MetaDataBase::dMilliseconds)
         .def_rw("binary_msg_length", &MetaDataBase::uiBinaryMsgLength,
-                "Message length according to the binary header. If ASCII, this field is not used.")
+                "Payload length according to the binary header, excluding the header and CRC. Not used for ASCII or JSON.")
         .def_rw("length", &MetaDataBase::uiLength, "Length of the entire log, including the header and CRC.")
-        .def_rw("header_length", &MetaDataBase::uiHeaderLength, "The length of the message header. Used for NovAtel logs.")
+        .def_rw("header_length", &MetaDataBase::uiHeaderLength, "Bytes before the payload. Zero for JSON. Used for NovAtel logs.")
         .def_rw("message_id", &MetaDataBase::usMessageId)
         .def_rw("message_crc", &MetaDataBase::uiMessageCrc)
         .def_prop_rw(

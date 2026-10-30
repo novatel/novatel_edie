@@ -127,8 +127,8 @@ class HeaderDecoder
     //! \param[out] stInterHeader_ The IntermediateHeader to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
-    //! uiLength is the input buffer extent in bytes, excluding any NUL terminator,
-    //! and is not modified.
+    //! uiLength must be set by the caller to the input buffer extent in bytes, excluding
+    //! any NUL terminator, and is not modified. The default of 0 returns FAILURE.
     //
     //! \return An error code describing the result of decoding.
     //!   SUCCESS: The operation was successful.

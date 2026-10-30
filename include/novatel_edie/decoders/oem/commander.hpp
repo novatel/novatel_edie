@@ -91,7 +91,7 @@ class Commander
     //! \param[in] pcAbbrevAsciiCommand_ A buffer containing the abbreviated
     //! ASCII command to be .
     //! \param[in] uiAbbrevAsciiCommandLength_ The length of the command contained
-    //! within pcAbbrevAsciiCommand_.
+    //! within pcAbbrevAsciiCommand_, which need not be NUL-terminated.
     //! \param[out] pcEncodeBuffer_ The buffer to return the encoded command to.
     //! \param[out] uiEncodeBufferSize_ The length of pcEncodeBuffer_, upon return
     //! will indicate the length of the encoded message
@@ -124,7 +124,7 @@ class Commander
     //! \param[in] pcAbbrevAsciiCommand_ A buffer containing the abbreviated
     //! ASCII command to be .
     //! \param[in] uiAbbrevAsciiCommandLength_ The length of the command contained
-    //! within pcAbbrevAsciiCommand_.
+    //! within pcAbbrevAsciiCommand_, which need not be NUL-terminated.
     //! \param[out] pcEncodeBuffer_ The buffer to return the encoded command to.
     //! \param[out] uiEncodeBufferSize_ The length of pcEncodeBuffer_, upon return
     //! will indicate the length of the encoded message
