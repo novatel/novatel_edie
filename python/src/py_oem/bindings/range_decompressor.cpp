@@ -29,11 +29,11 @@ void py_oem::init_novatel_range_decompressor(nb::module_& m)
         .def(
             "decompress",
             [](oem::RangeDecompressor& self, const nb::bytes& data, oem::MetaDataStruct& metadata, ENCODE_FORMAT encode_format) -> nb::object {
-                if (data.size() > MESSAGE_SIZE_MAX - 1) { return nb::make_tuple(STATUS::BUFFER_FULL, nb::none()); }
+                if (data.size() > MESSAGE_SIZE_MAX) { return nb::make_tuple(STATUS::BUFFER_FULL, nb::none()); }
                 char buffer[MESSAGE_SIZE_MAX];
                 uint32_t buf_size = MESSAGE_SIZE_MAX;
                 memcpy(buffer, data.c_str(), data.size());
-                buffer[data.size()] = '\0';
+                metadata.uiLength = data.size();
                 STATUS status = self.Decompress(reinterpret_cast<unsigned char*>(buffer), buf_size, metadata, encode_format);
                 throw_exception_from_status(status);
                 return nb::bytes(buffer, metadata.uiLength);
