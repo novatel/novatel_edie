@@ -142,6 +142,7 @@ TEST_F(JsonDbReaderTest, FieldDefaultValues)
     const FieldInfo& stFieldInfo = *pstMsgDef->fieldInfo.at(pstMsgDef->latestMessageCrc);
     ASSERT_EQ(stFieldInfo.GetFieldDefByName("trigger")->defaultValue, SimpleValueVariant(int32_t{4})); // ONCE
     ASSERT_EQ(stFieldInfo.GetFieldDefByName("offset")->defaultValue, SimpleValueVariant(0.0));
+    ASSERT_EQ(stFieldInfo.GetFieldDefByName("message_id")->defaultValue, std::nullopt); // null in the database
 }
 
 TEST_F(JsonDbReaderTest, FieldDefaultValueTypes)
