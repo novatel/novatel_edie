@@ -145,21 +145,16 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
         break;
     }
     case ASCII_HEADER::PORT: stInterHeader_.uiPortAddress = static_cast<uint32_t>(GetEnumValue(vMyPortAddressDefinitions, sToken)); break;
-    case ASCII_HEADER::SEQUENCE: {
-        uint16_t usSequence = 0;
-        auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usSequence);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+    case ASCII_HEADER::SEQUENCE:
+        if (!FromCharsExact(sToken, stInterHeader_.usSequence))
         {
             pclMyLogger->debug("Failed to parse SEQUENCE.");
             return false;
         }
-        stInterHeader_.usSequence = usSequence;
         break;
-    }
     case ASCII_HEADER::IDLE_TIME: {
         float fIdleTime = 0.0F;
-        auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), fIdleTime);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        if (!FromCharsExact(sToken, fIdleTime))
         {
             pclMyLogger->debug("Failed to parse IDLE_TIME.");
             return false;
@@ -168,21 +163,16 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
         break;
     }
     case ASCII_HEADER::TIME_STATUS: stInterHeader_.uiTimeStatus = GetEnumValue(vMyGpsTimeStatusDefinitions, sToken); break;
-    case ASCII_HEADER::WEEK: {
-        uint16_t usWeek = 0;
-        auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usWeek);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+    case ASCII_HEADER::WEEK:
+        if (!FromCharsExact(sToken, stInterHeader_.usWeek))
         {
             pclMyLogger->debug("Failed to parse WEEK.");
             return false;
         }
-        stInterHeader_.usWeek = usWeek;
         break;
-    }
     case ASCII_HEADER::SECONDS: {
         double dSeconds = 0.0;
-        auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), dSeconds);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+        if (!FromCharsExact(sToken, dSeconds))
         {
             pclMyLogger->debug("Failed to parse SECONDS.");
             return false;
@@ -190,28 +180,20 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, s
         stInterHeader_.dMilliseconds = 1000.0 * dSeconds;
         break;
     }
-    case ASCII_HEADER::RECEIVER_STATUS: {
-        uint32_t uiReceiverStatus = 0;
-        auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), uiReceiverStatus, 16);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+    case ASCII_HEADER::RECEIVER_STATUS:
+        if (!FromCharsExact(sToken, stInterHeader_.uiReceiverStatus, 16))
         {
             pclMyLogger->debug("Failed to parse RECEIVER_STATUS.");
             return false;
         }
-        stInterHeader_.uiReceiverStatus = uiReceiverStatus;
         break;
-    }
-    case ASCII_HEADER::MSG_DEF_CRC: {
-        uint32_t uiMessageDefinitionCrc = 0;
-        auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), uiMessageDefinitionCrc, 16);
-        if (result.ec != std::errc() || result.ptr != sToken.data() + sToken.size())
+    case ASCII_HEADER::MSG_DEF_CRC:
+        if (!FromCharsExact(sToken, stInterHeader_.uiMessageDefinitionCrc, 16))
         {
             pclMyLogger->debug("Failed to parse MSG_DEF_CRC.");
             return false;
         }
-        stInterHeader_.uiMessageDefinitionCrc = uiMessageDefinitionCrc;
         break;
-    }
     case ASCII_HEADER::RECEIVER_SW_VERSION: {
         uint16_t usReceiverSwVersion = 0;
         auto result = std::from_chars(sToken.data(), sToken.data() + sToken.size(), usReceiverSwVersion);

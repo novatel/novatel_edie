@@ -68,7 +68,7 @@ class Parser
 
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
     unsigned char* pucMyEncodeBufferPointer{nullptr};
-    std::unique_ptr<unsigned char[]> pcMyFrameBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize + 1)};
+    std::unique_ptr<unsigned char[]> pcMyFrameBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
     unsigned char* pucMyFrameBufferPointer{nullptr};
 
     // Configuration options

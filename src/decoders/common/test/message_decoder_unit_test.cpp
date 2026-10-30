@@ -506,7 +506,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_ARRAY_LENGTH_BOUNDS)
     {
         CompositeField decoded(info);
         const auto* input = data;
-        EXPECT_THROW(decoder.TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+        EXPECT_EQ(decoder.TestDecodeBinary(*info, &input, decoded, length), STATUS::MALFORMED_INPUT);
         EXPECT_EQ(input, data + 1);
     }
 
@@ -538,6 +538,30 @@ TEST_F(MessageDecoderTypesTest, BINARY_REFERENCED_ARRAY_LENGTH)
     EXPECT_EQ(input, data);
 }
 
+TEST_F(MessageDecoderTypesTest, BINARY_ARRAY_LENGTH_OVERFLOW)
+{
+    // 0x40000001 * sizeof(uint32_t) wraps to 4 in 32-bit arithmetic, so the payload size check must not overflow
+    auto values = std::make_shared<ArrayField>("values", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%u", DATA_TYPE::UINT, 4);
+    values->arrayLengthFieldSize = 4;
+    const auto info = BuildFieldInfo({values});
+    const unsigned char data[] = {0x01, 0x00, 0x00, 0x40, 0, 0, 0, 0};
+    CompositeField decoded(info);
+    const auto* input = data;
+    EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, sizeof(data)), STATUS::MALFORMED_INPUT);
+
+    // A referenced length that is negative must be rejected rather than wrapping to a huge count
+    auto count = std::make_shared<BaseField>("count", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::INT);
+    auto bytes = std::make_shared<ArrayField>("bytes", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%uc", DATA_TYPE::UCHAR, 4);
+    bytes->arrayLengthRef = "count";
+    const auto refInfo = BuildFieldInfo({count, bytes});
+    CompositeField refDecoded(refInfo);
+    refDecoded.SetFieldValue<true>(count->index, int32_t{-1});
+    FieldInfo arrayOnly;
+    arrayOnly.messageOrderedFields = {bytes};
+    input = data;
+    EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(arrayOnly, &input, refDecoded, sizeof(data)), STATUS::MALFORMED_INPUT);
+}
+
 TEST_F(MessageDecoderTypesTest, BINARY_ARRAY_PAYLOAD_BOUNDS)
 {
     for (const auto type : {FIELD_TYPE::FIXED_LENGTH_ARRAY, FIELD_TYPE::VARIABLE_LENGTH_ARRAY})
@@ -552,7 +576,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_ARRAY_PAYLOAD_BOUNDS)
         {
             CompositeField decoded(info);
             const auto* input = start;
-            EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+            EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), STATUS::MALFORMED_INPUT);
         }
         CompositeField decoded(info);
         const auto* input = start;
@@ -570,7 +594,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_STRING_BOUNDS)
     {
         CompositeField decoded(info);
         const auto* input = data;
-        EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), STATUS::MALFORMED_INPUT);
         EXPECT_EQ(input, data);
     }
     CompositeField decoded(info);
@@ -589,7 +613,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_RESPONSE_BOUNDS)
     {
         CompositeField decoded(info);
         const auto* input = data;
-        EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), STATUS::MALFORMED_INPUT);
     }
     for (uint32_t length : {4U, 6U})
     {
@@ -616,7 +640,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_FIELD_ARRAY_BOUNDS)
         {
             CompositeField decoded(info);
             const auto* input = data;
-            EXPECT_THROW(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), std::runtime_error);
+            EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(*info, &input, decoded, length), STATUS::MALFORMED_INPUT);
         }
         CompositeField decoded(info);
         const auto* input = data;

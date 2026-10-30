@@ -181,8 +181,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, CompositeField&
         // invert ascii crc
         const auto* pcCRC = reinterpret_cast<const char*>(pucTempMessagePointer);
         uint32_t uiCRC = 0;
-        const auto result = std::from_chars(pcCRC, pcCRC + OEM4_ASCII_CRC_LENGTH, uiCRC, 16);
-        if (result.ec != std::errc() || result.ptr != pcCRC + OEM4_ASCII_CRC_LENGTH) { return STATUS::MALFORMED_INPUT; }
+        if (!FromCharsExact(std::string_view(pcCRC, OEM4_ASCII_CRC_LENGTH), uiCRC, 16)) { return STATUS::MALFORMED_INPUT; }
         uiCRC ^= 0xFFFFFFFF;
         // Write the CRC as exactly OEM4_ASCII_CRC_LENGTH zero-padded hex digits
         for (int32_t iShift = 4 * (OEM4_ASCII_CRC_LENGTH - 1); iShift >= 0; iShift -= 4)
