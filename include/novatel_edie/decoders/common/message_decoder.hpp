@@ -1825,47 +1825,51 @@ class MessageDecoderBase
     MessageDatabase::ConstPtr MessageDb() const { return std::const_pointer_cast<const MessageDatabase>(pclMyMsgDb); }
 
     //----------------------------------------------------------------------------
-    //! \brief Decode a message payload from the provided frame.
+    //! \brief Decode a message body into a CompositeField.
     //
     //! \param[in] pucMessage_ A pointer to the message body payload, or to a JSON
     //! document containing a top-level "body" field for JSON.
-    //! \param[out] stInterMessage_ The CompositeField to be populated.
+    //! \param[out] stInterMessage_ Decoded body. It may be partially populated on failure.
     //! \param[in, out] stMetaData_ Metadata describing this input. The base and OEM implementations
     //! read it without populating missing values; derived definition lookup may modify it.
     //
-    //! \details Metadata members (in declaration order, including OEM MetaDataStruct extensions):
-    //! - bResponse: Set true for command responses, false otherwise.
-    //! - eFormat: Required for every input. Set to ASCII, ABB_ASCII, BINARY, or JSON.
-    //! - usWeek: Not used by Decode; may retain its default value.
-    //! - dMilliseconds: Not used by Decode; may retain its default value.
-    //! - uiLength: Set to the exact full input frame length, including any checksum/trailer.
-    //!   For JSON, set to the length of the document containing "body". Ignored for BINARY.
-    //! - uiBinaryMsgLength: Required for BINARY. Set to the binary payload length, excluding the
-    //!   header and frame CRC. Ignored for ASCII/ABB_ASCII/JSON.
-    //! - uiHeaderLength: Set to the number of frame bytes skipped before pucMessage_; must not
-    //!   exceed uiLength. Must be 0 for payload-only input. Ignored for BINARY/JSON.
-    //! - usMessageId: Required to select the database definition.
-    //! - uiMessageCrc: Set to the definition's CRC. If the given CRC is not in the database, the
-    //!   latest CRC is used as a fallback.
-    //! - messageName: Not used by Decode, except to reject "RXCONFIG".
+    //! \details Metadata fields used by the decoder:
+    //! - bResponse: True for command responses. Responses supported for ASCII, ABB_ASCII, and BINARY only.
+    //! - eFormat: ASCII, ABB_ASCII, BINARY, or JSON; Decode returns UNKNOWN for any other value.
+    //! - uiLength: Length of the message frame, including any checksum and trailer.
+    //!   For JSON, this is the entire document length. Ignored for BINARY.
+    //! - uiBinaryMsgLength: Binary body length, excluding the header and frame CRC. Ignored for
+    //!   ASCII, ABB_ASCII, and JSON.
+    //! - uiHeaderLength: Number of frame bytes before pucMessage_ for ASCII and ABB_ASCII; must not
+    //!   exceed uiLength. Set to zero for body-only input. Ignored for BINARY and JSON.
+    //! - usMessageId: Used to look up the message definition; OEM responses use a response definition.
+    //! - uiMessageCrc: Used to look up the field definitions; if not found, the latest definitions are used.
+    //!   Ignored for responses.
+    //! - messageName: If equal to "RXCONFIG", Decode returns UNSUPPORTED.
     //
-    //! \remark The caller guarantees these readable bytes at pucMessage_: uiBinaryMsgLength for BINARY,
-    //! uiLength for JSON, and uiLength - uiHeaderLength for ASCII/ABB_ASCII. Decoding stays within that
-    //! extent, so input need not be NUL-terminated. BINARY STRING fields must still contain their own
-    //! NUL terminators; input too short for its definition returns MALFORMED_INPUT.
+    //! \remark The caller must provide at least uiBinaryMsgLength readable bytes for BINARY, uiLength
+    //! for JSON, or uiLength - uiHeaderLength for ASCII and ABB_ASCII at pucMessage_. Input need not
+    //! have a trailing NUL sentinel.
     //
     //! \remark Framers supply uiLength; HeaderDecoders supply eFormat, uiBinaryMsgLength, uiHeaderLength,
     //! usMessageId, uiMessageCrc, and messageName, but do not set uiLength. Direct callers must supply
     //! uiLength themselves.
+    //
+    //! \remark BINARY message fields of type FIELD_TYPE::STRING must be NUL-terminated.
+    //
+    //! \remark For ASCII, ABB_ASCII, and BINARY, Decode will return MALFORMED_INPUT when any message
+    //! field is missing from the input buffer.
+    //
     //! \return An error code describing the result of decoding.
     //!   SUCCESS: The operation was successful.
     //!   NULL_PROVIDED: pucMessage_ is a null pointer.
     //!   NO_DATABASE: No database was ever loaded into this component.
-    //!   NO_DEFINITION: No definition for the current log was found in the
-    //! provided database.
-    //!   MALFORMED_INPUT: uiHeaderLength exceeds uiLength, or the payload is malformed.
+    //!   NO_DEFINITION: No message definition was found, or a response has an unsupported format.
+    //!   MALFORMED_INPUT: The input lengths or body are invalid, or the JSON document is invalid
+    //!   or lacks a top-level "body" field.
     //!   UNSUPPORTED: RXCONFIG requires RxConfigHandler.
     //!   UNKNOWN: The payload format provided is not supported.
+    //! \throws std::runtime_error If a required field definition is missing or unsupported.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, CompositeField& stInterMessage_, MetaDataBase& stMetaData_) const;
 };
