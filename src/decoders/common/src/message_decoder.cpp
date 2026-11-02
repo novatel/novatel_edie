@@ -280,7 +280,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
     };
 
     // Skip the alignment padding before a field of the given size; false if the padded field would not fit
-    const auto alignField = [&](size_t length) {
+    const auto alignBufToField = [&](size_t length) {
         const auto alignBytes = fMyAlignmentFunc(length, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
         if (bytesRemaining() < alignBytes + length) { return false; }
         *ppucLogBuf_ += alignBytes;
@@ -300,7 +300,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         {
             // Make sure the buffer is large enough to read the array length field
             const auto& arrayDef = dynamic_cast<const ArrayField&>(*field);
-            if (arrayDef.arrayLengthRef.empty() && arrayDef.arrayLengthFieldSize != 0 && !alignField(arrayDef.arrayLengthFieldSize))
+            if (arrayDef.arrayLengthRef.empty() && arrayDef.arrayLengthFieldSize != 0 && !alignBufToField(arrayDef.arrayLengthFieldSize))
             {
                 return malformed("Not enough space for array length");
             }
@@ -312,7 +312,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         {
             // Make sure the buffer is large enough to read the fixed-length field
             fieldTypeLength = field->type == FIELD_TYPE::RESPONSE_ID ? sizeof(int32_t) : static_cast<size_t>(field->dataType.length);
-            if (!alignField(fieldTypeLength)) { return malformed("Not enough space for field"); }
+            if (!alignBufToField(fieldTypeLength)) { return malformed("Not enough space for field"); }
         }
 
         switch (field->type)
@@ -343,7 +343,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         }
         case FIELD_TYPE::FIXED_LENGTH_ARRAY:
             uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength;
-            if ((uiArraySize != 0 && !alignField(field->dataType.length)) || bytesRemaining() < size_t{uiArraySize} * field->dataType.length)
+            if ((uiArraySize != 0 && !alignBufToField(field->dataType.length)) || bytesRemaining() < size_t{uiArraySize} * field->dataType.length)
             {
                 return malformed("Not enough space for fixed length array");
             }
@@ -389,7 +389,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 vFieldArrayContainer.reserve(uiArraySize);
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
-                    if (!alignField(fieldTypeLength)) { return malformed("Not enough space for field array element"); }
+                    if (!alignBufToField(fieldTypeLength)) { return malformed("Not enough space for field array element"); }
                     auto& newField = vFieldArrayContainer.emplace_back(subFieldDefinitions->fieldInfo->fixedFieldBytes,
                                                                        subFieldDefinitions->fieldInfo->varFieldCount);
                     newField.SetFieldInfo(subFieldDefinitions->fieldInfo);
