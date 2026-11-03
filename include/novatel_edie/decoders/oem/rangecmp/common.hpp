@@ -755,10 +755,8 @@ struct MeasurementSignalBlock
 //-----------------------------------------------------------------------
 struct LockTimeInfo
 {
-    double dMilliseconds{0.0};                           // The current running lock time for this observation.
-    double dLastBitfieldChangeMilliseconds{0.0};         // The last time (milliseconds from OEM header) lock time was updated.
-    uint8_t ucBits{std::numeric_limits<uint8_t>::max()}; // The last recorded bit pattern.
-    bool bAbsolute{false};                               // Is the lock time absolute or relative?
+    double dTimeOfLastLock{0.0};    // The estimated time the signal last became locked.
+    double dLastTime{0.0};          // The last time the signal was observed.
 };
 
 constexpr uint64_t MakeKey(SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal, MEASUREMENT_SOURCE source)

@@ -171,46 +171,17 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
     // Store the lock time if it is different from the once we have currently.
     LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[key_];
 
-    // Is the lock time relative and has a bitfield change been found?
-    if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
-    {
-        // Set lock time as absolute if bits are 0 or if bits have changed since previous observation.
-        if (ucLockTimeBits_ == 0 || ucLockTimeBits_ > stLockTimeInfo.ucBits)
-        {
-            stLockTimeInfo.bAbsolute = true;
+    const auto lockTimeLowerBound = lockTime[ucLockTimeBits_];
+    const auto timeDelta = stMetaData_.dMilliseconds - stLockTimeInfo.dLastTime;
 
-            double dLockTimeDeltaMs = std::abs(lockTime[ucLockTimeBits_] - stLockTimeInfo.dMilliseconds);
-            if (dLockTimeDeltaMs > std::numeric_limits<double>::epsilon())
-            {
-                pclMyLogger->warn("Detected a lock time jump of {}ms at time {}w, {}ms.", dLockTimeDeltaMs, stMetaData_.usWeek,
-                                  stMetaData_.dMilliseconds);
-            }
-        }
-
-        // Record the last bit change and the bitfield that was changed to.
-        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        stLockTimeInfo.ucBits = ucLockTimeBits_;
-    }
-    // If the lock time is absolute and the lock time bits have decreased, there was likely an outage.
-    else if (ucLockTimeBits_ < stLockTimeInfo.ucBits)
+    if (timeDelta > lockTimeLowerBound)
     {
-        // In the event of an outage of any kind, reset the lock time to relative.
-        stLockTimeInfo.bAbsolute = false;
-        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        stLockTimeInfo.ucBits = ucLockTimeBits_;
+        stLockTimeInfo.dTimeOfLastLock = stMetaData_.dMilliseconds - lockTimeLowerBound;
+    }
+    stLockTimeInfo.dLastTime = stMetaData_.dMilliseconds;
 
-        pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms.",
-                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds);
-    }
-    // If the lock time is absolute and the bitfield hasn't changed within the expected time, reset the last change time
-    else if (stLockTimeInfo.bAbsolute && ucLockTimeBits_ < 15 &&
-             stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > lockTime[ucLockTimeBits_ + 1])
-    {
-        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms.", stMetaData_.usWeek, stMetaData_.dMilliseconds);
-    }
-    stLockTimeInfo.dMilliseconds = stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLockTimeInfo.ucBits];
-    return stLockTimeInfo.dMilliseconds / SEC_TO_MILLI_SEC;
+    const auto timeLocked = stMetaData_.dMilliseconds - stLockTimeInfo.dTimeOfLastLock;
+    return timeLocked / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
