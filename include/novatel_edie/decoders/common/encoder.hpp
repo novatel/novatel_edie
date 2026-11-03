@@ -181,7 +181,10 @@ template <typename BufferType>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType, typename T> [[nodiscard]] bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const T& item)
+// String-like arguments (literals, std::string, std::string_view) go to the std::string_view overload instead.
+// A char pointer or array converts by strlen, so it must be NUL-terminated.
+template <typename BufferType, typename T, std::enable_if_t<!std::is_convertible_v<const T&, std::string_view>, int> = 0>
+[[nodiscard]] bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const T& item)
 {
     AssertWritableByteBuffer<BufferType>();
     static_assert(!std::is_pointer_v<T>, "Pointers not allowed.");
@@ -193,18 +196,6 @@ template <typename BufferType, typename T> [[nodiscard]] bool CopyToBuffer(Buffe
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType> [[nodiscard]] bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const char* ptItem_)
-{
-    AssertWritableByteBuffer<BufferType>();
-    auto uiItemSize = static_cast<uint32_t>(std::strlen(ptItem_));
-    if (uiBytesLeft_ < uiItemSize) { return false; }
-    std::memcpy(*buffer_, ptItem_, uiItemSize);
-    *buffer_ += uiItemSize;
-    uiBytesLeft_ -= uiItemSize;
-    return true;
-}
-
-// -------------------------------------------------------------------------------------------------------
 template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, std::string_view sv)
 {
     AssertWritableByteBuffer<BufferType>();
@@ -212,17 +203,6 @@ template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType
     std::memcpy(*buffer_, sv.data(), sv.size());
     *buffer_ += sv.size();
     uiBytesLeft_ -= static_cast<uint32_t>(sv.size());
-    return true;
-}
-
-// -------------------------------------------------------------------------------------------------------
-template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, const std::string& str)
-{
-    AssertWritableByteBuffer<BufferType>();
-    if (uiBytesLeft_ < str.size()) { return false; }
-    std::memcpy(*buffer_, str.data(), str.size());
-    *buffer_ += str.size();
-    uiBytesLeft_ -= static_cast<uint32_t>(str.size());
     return true;
 }
 

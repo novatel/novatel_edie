@@ -31,6 +31,7 @@
 #include <cassert>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -955,7 +956,7 @@ class MessageDatabase
     //
     //! \param[in] sMsgName_ The message name string
     //----------------------------------------------------------------------------
-    [[nodiscard]] uint32_t MsgNameToMsgId(std::string sMsgName_) const;
+    [[nodiscard]] uint32_t MsgNameToMsgId(std::string_view sMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Convert a message ID number to a message name string.

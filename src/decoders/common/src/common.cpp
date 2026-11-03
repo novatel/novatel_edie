@@ -105,19 +105,3 @@ int32_t GetResponseId(const std::shared_ptr<const EnumDefinition>& stRespDef_, s
 {
     return GetResponseId(stRespDef_.get(), strResp_);
 }
-
-//-----------------------------------------------------------------------
-void ConsumeAbbrevFormatting(const char** ppcMessageBuffer_)
-{
-    while (true)
-    {
-        switch (**ppcMessageBuffer_)
-        {
-        case '<': [[fallthrough]];
-        case ' ': [[fallthrough]];
-        case '\r': [[fallthrough]];
-        case '\n': *ppcMessageBuffer_ += sizeof(char); break;
-        default: return;
-        }
-    }
-}

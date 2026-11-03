@@ -24,6 +24,7 @@
 // ! \file novatel_test.cpp
 // ===============================================================================
 
+#include <algorithm>
 #include <chrono>
 #include <climits>
 // TODO: C++ 14 tech-debt - codecvt is deprecated in C++ 17 and removed in C++ 20 without direct replacement
@@ -72,7 +73,6 @@ template <typename FramerType> class FramerTest : public ::testing::Test
         pclMyFramer = std::make_unique<FramerType>(pclMyFixedBuffer);
         pclMyFramer->SetReportUnknownBytes(true);
         pclMyFramer->SetPayloadOnly(false);
-        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
 
     // Per-test-suite teardown
@@ -87,6 +87,7 @@ template <typename FramerType> class FramerTest : public ::testing::Test
   public:
     template <DECODE_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
     {
+        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(uiFrameLength_);
         MetaDataStruct stExpectedMetaData;
         stExpectedMetaData.eFormat = F;
         stExpectedMetaData.uiLength = uiLength_;
@@ -118,6 +119,7 @@ template <typename FramerType> class FramerTest : public ::testing::Test
 
     static void FlushFramer()
     {
+        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(MAX_ASCII_MESSAGE_LENGTH);
         while (pclMyFramer->Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
     }
 };
@@ -349,6 +351,13 @@ TYPED_TEST(AsciiFramerTest, ASCII_TRICK)
     this->template FramerHelper<DECODE_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
+TYPED_TEST(AsciiFramerTest, ASCII_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
+}
+
 // -------------------------------------------------------------------------------------------------------
 // Binary Framer Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -513,6 +522,13 @@ TYPED_TEST(BinaryFramerTest, BINARY_TRICK)
     this->template FramerHelper<DECODE_FORMAT::BINARY, STATUS::SUCCESS>(104, MAX_BINARY_MESSAGE_LENGTH);
 }
 
+TYPED_TEST(BinaryFramerTest, BINARY_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
+}
+
 // -------------------------------------------------------------------------------------------------------
 // Short ASCII Framer Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -648,6 +664,13 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_TRICK)
         this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     }
     this->template FramerHelper<DECODE_FORMAT::ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+}
+
+TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -796,6 +819,13 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_TRICK)
         this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, MAX_SHORT_BINARY_MESSAGE_LENGTH);
     }
     this->template FramerHelper<DECODE_FORMAT::BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+}
+
+TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1104,6 +1134,13 @@ TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_SEGMENTED)
     ASSERT_EQ(stTestMetaData, stExpectedMetaData);
     ASSERT_EQ(uiLogSize, uiBytesWritten);
     this->FlushFramer();
+}
+
+TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_NO_BUFFER_OVERFLOW_WITH_UNKNOWN_BYTES)
+{
+    const auto fill = std::vector<uint8_t>(256, uint8_t{0xFF});
+    this->WriteBytesToFramer(fill.data(), static_cast<uint32_t>(fill.size()));
+    this->template FramerHelper<DECODE_FORMAT::UNKNOWN, STATUS::UNKNOWN>(8, 8);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -2213,10 +2250,17 @@ class DecodeEncodeTest : public ::testing::Test
         CompositeField stMessage;
 
         unsigned char* pucTempPtr = pucMessageBuffer_;
+        stMetaData_.uiLength = pucTempPtr[0] == OEM4_BINARY_SYNC1
+                      ? (pucTempPtr[2] == OEM4_SHORT_BINARY_SYNC3 ? sizeof(Oem4BinaryShortHeader) : sizeof(Oem4BinaryHeader))
+                      : static_cast<uint32_t>(std::strlen(reinterpret_cast<const char*>(pucTempPtr)));
         STATUS eStatus = pclMyHeaderDecoder->Decode(pucTempPtr, stHeader, stMetaData_);
         if (STATUS::SUCCESS != eStatus) { return HEADER_DECODER_ERROR; }
 
         pucTempPtr += stMetaData_.uiHeaderLength;
+        const size_t bodyLength = stMetaData_.eFormat == DECODE_FORMAT::BINARY
+                          ? stMetaData_.uiBinaryMsgLength
+                          : std::strlen(reinterpret_cast<const char*>(pucTempPtr));
+        stMetaData_.uiLength = stMetaData_.uiHeaderLength + static_cast<uint32_t>(bodyLength);
         eStatus = pclMyMessageDecoder->Decode(pucTempPtr, stMessage, stMetaData_);
         if (STATUS::SUCCESS != eStatus) { return MESSAGE_DECODER_ERROR; }
 
@@ -2300,6 +2344,68 @@ class DecodeEncodeTest : public ::testing::Test
 
 MessageDatabase::Ptr DecodeEncodeTest::pclMyJsonDb = nullptr;
 std::unique_ptr<HeaderDecoder> DecodeEncodeTest::pclMyHeaderDecoder = nullptr;
+
+TEST_F(DecodeEncodeTest, HEADER_TEXT_BUFFER_BOUNDS)
+{
+    for (const std::string_view input : {
+             "#BESTPOSA,COM1,0,80.0,FINESTEERING,2217,164041.000,02000000,cdba,32768;",
+             "%INSPVASA,2217,164041.000;",
+             "<BESTPOS COM1 0 80.0 FINESTEERING 2217 164041.000 02000000 cdba 32768\r\n",
+             "<INSPVAS 2217 164041.000\r\n"})
+    {
+        SCOPED_TRACE(input);
+        const std::vector<unsigned char> buffer(input.begin(), input.end());
+        MetaDataStruct metadata;
+        IntermediateHeader header;
+        metadata.uiLength = static_cast<uint32_t>(buffer.size());
+        ASSERT_EQ(pclMyHeaderDecoder->Decode(buffer.data(), header, metadata), STATUS::SUCCESS);
+        EXPECT_EQ(metadata.uiHeaderLength, buffer.size());
+        EXPECT_EQ(metadata.uiLength, buffer.size());
+        for (uint32_t length = 0; length < buffer.size(); ++length)
+        {
+            metadata.uiLength = length;
+            EXPECT_EQ(pclMyHeaderDecoder->Decode(buffer.data(), header, metadata), STATUS::FAILURE) << length;
+        }
+    }
+}
+
+TEST_F(DecodeEncodeTest, HEADER_BINARY_BUFFER_BOUNDS)
+{
+    for (const bool shortHeader : {false, true})
+    {
+        std::vector<unsigned char> buffer(shortHeader ? sizeof(Oem4BinaryShortHeader) : sizeof(Oem4BinaryHeader));
+        buffer[0] = OEM4_BINARY_SYNC1;
+        buffer[1] = OEM4_BINARY_SYNC2;
+        buffer[2] = shortHeader ? OEM4_SHORT_BINARY_SYNC3 : OEM4_BINARY_SYNC3;
+        MetaDataStruct metadata;
+        IntermediateHeader header;
+        metadata.uiLength = static_cast<uint32_t>(buffer.size());
+        ASSERT_EQ(pclMyHeaderDecoder->Decode(buffer.data(), header, metadata), STATUS::SUCCESS);
+        EXPECT_EQ(metadata.uiHeaderLength, buffer.size());
+        for (uint32_t length = 0; length < buffer.size(); ++length)
+        {
+            metadata.uiLength = length;
+            EXPECT_EQ(pclMyHeaderDecoder->Decode(buffer.data(), header, metadata), STATUS::FAILURE) << length;
+        }
+    }
+}
+
+TEST_F(DecodeEncodeTest, HEADER_JSON_AND_RESPONSE_BUFFER_BOUNDS)
+{
+    for (const std::string_view input : {R"({"header":{"id":42}})", "<OK", "<ERROR"})
+    {
+        SCOPED_TRACE(input);
+        const std::string buffer = std::string(input) + "unexpected trailing storage";
+        MetaDataStruct metadata;
+        IntermediateHeader header;
+        metadata.uiLength = static_cast<uint32_t>(input.size());
+        ASSERT_EQ(pclMyHeaderDecoder->Decode(reinterpret_cast<const unsigned char*>(buffer.data()), header, metadata), STATUS::SUCCESS);
+        EXPECT_EQ(metadata.uiHeaderLength, input.front() == '{' ? 0U : 1U);
+        if (input.front() == '{') { EXPECT_EQ(header.usMessageId, 42U); }
+        --metadata.uiLength;
+        EXPECT_EQ(pclMyHeaderDecoder->Decode(reinterpret_cast<const unsigned char*>(buffer.data()), header, metadata), STATUS::FAILURE);
+    }
+}
 std::unique_ptr<MessageDecoder> DecodeEncodeTest::pclMyMessageDecoder = nullptr;
 std::unique_ptr<Encoder> DecodeEncodeTest::pclMyEncoder = nullptr;
 
@@ -3155,6 +3261,49 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
                                        ENCODE_FORMAT::UNSPECIFIED));
 }
 
+// Suite parameterized by encode formats
+class EncodeFormatTest : public DecodeEncodeTest, public ::testing::WithParamInterface<ENCODE_FORMAT>
+{
+};
+
+TEST_P(EncodeFormatTest, ENCODE_NO_BUFFER_OVERFLOW_WHEN_BUFFER_TOO_SMALL)
+{
+    // Arrange
+    const ENCODE_FORMAT eFormat = GetParam();
+    unsigned char aucLog[] = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n";
+    IntermediateHeader stHeader;
+    CompositeField stMessage;
+    MetaDataStruct stMetaData;
+    stMetaData.uiLength = sizeof(aucLog) - 1;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyHeaderDecoder->Decode(aucLog, stHeader, stMetaData));
+    ASSERT_EQ(STATUS::SUCCESS, pclMyMessageDecoder->Decode(aucLog + stMetaData.uiHeaderLength, stMessage, stMetaData));
+
+    static constexpr unsigned char ucGuard = 0xA5;
+    std::vector<unsigned char> buffer(MAX_ASCII_MESSAGE_LENGTH, ucGuard);
+    unsigned char* pucBuffer = buffer.data();
+    MessageDataStruct stMessageData;
+
+    // Determine a barely insufficient buffer length
+    (void)pclMyEncoder->Encode(&pucBuffer, static_cast<uint32_t>(buffer.size()), stHeader, stMessage, stMessageData, eFormat);
+    const uint32_t uiBarelyInsufficientBufferLength = stMessageData.uiMessageLength - 1;
+    // Fill buffer with guard value to identify where data is written
+    std::fill(buffer.begin(), buffer.end(), ucGuard);
+
+    // Act
+    STATUS eResult = pclMyEncoder->Encode(&pucBuffer, uiBarelyInsufficientBufferLength, stHeader, stMessage, stMessageData, eFormat);
+
+    // Assert
+    // Confirm that encode failed
+    EXPECT_EQ(STATUS::BUFFER_FULL, eResult);
+    // Check that encoder did not write past buffer end
+    EXPECT_TRUE(std::all_of(buffer.begin() + uiBarelyInsufficientBufferLength, buffer.end(), [](unsigned char c) { return c == ucGuard; }));
+}
+
+INSTANTIATE_TEST_SUITE_P(AllFormats, EncodeFormatTest,
+                         ::testing::Values(ENCODE_FORMAT::ASCII, ENCODE_FORMAT::ABBREV_ASCII, ENCODE_FORMAT::BINARY,
+                                           ENCODE_FORMAT::FLATTENED_BINARY, ENCODE_FORMAT::JSON),
+                         [](const ::testing::TestParamInfo<ENCODE_FORMAT>& info_) { return EncodeFormatToString(info_.param); });
+
 // -------------------------------------------------------------------------------------------------------
 // ASCII Response Decode/Encode Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -3184,6 +3333,28 @@ TEST_F(DecodeEncodeTest, ASCII_RESPONSE_ERROR_FORMAT_SPEC_S)
     unsigned char aucLog[] = "#SATEL4CONFIGR,COM1,0,44.0,UNKNOWN,0,0.000,00000000,d387,0;ERROR:Invalid combination of parameters (1 & 2)*60b8324b\r\n";
     MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 59);
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
+}
+
+TEST_F(DecodeEncodeTest, RESPONSE_ID)
+{
+    const std::vector<std::pair<std::string_view, int32_t>> vCases = {
+        {"#SATEL4CONFIGR,COM1,0,0.0,UNKNOWN,0,0.000,00000000,0000,0;ERROR:Radio must be detected before configuration*3aa62ce2\r\n", 237},
+        {"<ERROR:Message is invalid for this model\r\n", 36},
+        {"#FRESETR,COM1,0,73.0,UNKNOWN,0,0.000,00000000,06e5,0;OK*55c70910\r\n", 1}};
+
+    for (const auto& [sLog, iExpectedResponseId] : vCases)
+    {
+        MetaDataStruct stMetaData;
+        IntermediateHeader stHeader;
+        CompositeField stMessage;
+        const auto* pucLog = reinterpret_cast<const unsigned char*>(sLog.data());
+        stMetaData.uiLength = static_cast<uint32_t>(sLog.size());
+        ASSERT_EQ(STATUS::SUCCESS, pclMyHeaderDecoder->Decode(pucLog, stHeader, stMetaData)) << sLog;
+        ASSERT_EQ(STATUS::SUCCESS, pclMyMessageDecoder->Decode(pucLog + stMetaData.uiHeaderLength, stMessage, stMetaData)) << sLog;
+        const auto& vFields = stMessage.GetFieldInfo()->messageOrderedFields;
+        ASSERT_FALSE(vFields.empty());
+        EXPECT_EQ(stMessage.GetFieldValue<int32_t>(*vFields.front()), iExpectedResponseId) << sLog;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -3533,6 +3704,14 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_LOG_PARTIAL)
     ASSERT_EQ(STATUS::MALFORMED_INPUT, TestCommandConversion("LOG THISPORT BESTPOSA ONCE\r\n", acEncodeBuffer, sizeof(acEncodeBuffer), ENCODE_FORMAT::BINARY));
 }
 
+TEST_F(CommandEncodeTest, COMMAND_ENCODE_OVERSIZED_PARAMETERS)
+{
+    // Parameters longer than any internal command buffer must be rejected rather than overflow
+    std::vector<char> vEncodeBuffer(MAX_ASCII_MESSAGE_LENGTH);
+    const std::string sCommand = "INSTHRESHOLDS " + std::string(2 * MAX_ASCII_MESSAGE_LENGTH, 'A');
+    ASSERT_NE(STATUS::SUCCESS, TestCommandConversion(sCommand, vEncodeBuffer.data(), static_cast<uint32_t>(vEncodeBuffer.size()), ENCODE_FORMAT::ASCII));
+}
+
 TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_UALCONTROL)
 {
     unsigned char aucExpectedCommand[] = {0xAA, 0x44, 0x12, 0x1C, 0x5B, 0x06, 0x00, 0xC0, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA3, 0x49, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F, 0xFF, 0xF8, 0x3A, 0xA7};
@@ -3573,9 +3752,10 @@ class FilterTest : public ::testing::Test
     void SetUp() override { pclMyFilter->ClearFilters(); }
 
   public:
-    static bool TestFilter(const unsigned char* pucMessage_)
+    static bool TestFilter(const unsigned char* pucMessage_, uint32_t length_)
     {
         MetaDataStruct stMetaData;
+        stMetaData.uiLength = length_;
         IntermediateHeader stHeader;
         const STATUS eStatus = pclMyHeaderDecoder->Decode(pucMessage_, stHeader, stMetaData);
         if (STATUS::SUCCESS != eStatus && STATUS::UNSUPPORTED != eStatus)
@@ -3589,12 +3769,12 @@ class FilterTest : public ::testing::Test
 
     static bool TestFilter(const std::initializer_list<unsigned char>& data)
     {
-        return TestFilter(data.begin());
+        return TestFilter(data.begin(), static_cast<uint32_t>(data.size()));
     }
 
     static bool TestFilter(const char* str)
     {
-        return TestFilter(reinterpret_cast<const unsigned char*>(str));
+        return TestFilter(reinterpret_cast<const unsigned char*>(str), static_cast<uint32_t>(std::strlen(str)));
     }
 };
 
@@ -4222,6 +4402,25 @@ TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
     ASSERT_EQ(numSuccess, 2);
 }
 
+TEST_F(ParserTest, PARSER_NO_BUFFER_OVERREAD_WITH_INCOMPLETE_ABBREV_ASCII_LOG)
+{
+    MessageDataStruct messageData;
+    IntermediateHeader header;
+    CompositeField message;
+    MetaDataStruct metadata;
+    Parser parser(std::getenv("TEST_DATABASE_PATH"));
+    parser.SetReturnUnknownBytes(true);
+    
+    const auto fill = std::vector<uint8_t>(MESSAGE_SIZE_MAX, uint8_t{0xFF});
+    ASSERT_EQ(parser.Write(fill.data(), fill.size()), fill.size());
+    ASSERT_EQ(parser.Read(messageData, metadata), STATUS::UNKNOWN); // Discard fill bytes
+    ASSERT_EQ(parser.Flush(), 0);
+
+    std::string badLog = "<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     1";
+    ASSERT_EQ(parser.Write(reinterpret_cast<const unsigned char*>(badLog.data()), badLog.size()), badLog.size());
+    EXPECT_EQ(parser.ReadIntermediate(messageData, header, message, metadata, true), STATUS::UNKNOWN);
+}
+
 // -------------------------------------------------------------------------------------------------------
 // Novatel Types Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -4271,11 +4470,11 @@ class NovatelTypesTest : public ::testing::Test
       public:
         DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoder(pclMessageDb_) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_, CompositeField& vIntermediateFormat_)
+        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, std::string_view& input_, CompositeField& vIntermediateFormat_)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
             vIntermediateFormat_.resize(fieldInfo.fixedFieldBytes, fieldInfo.varFieldCount);
-            return DecodeAscii<false>(fieldInfo, ppcLogBuf_, vIntermediateFormat_);
+            return DecodeAscii<false>(fieldInfo, input_, vIntermediateFormat_);
         }
 
         STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& vIntermediateFormat_)
@@ -4299,6 +4498,13 @@ class NovatelTypesTest : public ::testing::Test
             }
 
             return DecodeBinary(fieldInfo, ppucLogBuf_, vIntermediateFormat_, msgDefFieldsSize);
+        }
+
+        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& fields, const unsigned char** buffer, CompositeField& decoded, uint32_t length)
+        {
+            const FieldInfo info = BuildFieldInfo(fields);
+            decoded.resize(info.fixedFieldBytes, info.varFieldCount);
+            return DecodeBinary(info, buffer, decoded, length);
         }
     };
 
@@ -4387,6 +4593,24 @@ class NovatelTypesTest : public ::testing::Test
     }
 };
 
+TEST_F(NovatelTypesTest, BINARY_STRING_PADDING_BOUNDS)
+{
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("text", FIELD_TYPE::STRING, "%s", DATA_TYPE::CHAR));
+    const unsigned char data[] = {'h', 0, 0, 0};
+    for (uint32_t length = 0; length < sizeof(data); ++length)
+    {
+        CompositeField decoded;
+        const auto* input = data;
+        EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &input, decoded, length), STATUS::MALFORMED_INPUT);
+        EXPECT_LE(input, data + length);
+    }
+    CompositeField decoded;
+    const auto* input = data;
+    EXPECT_EQ(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &input, decoded, sizeof(data)), STATUS::SUCCESS);
+    EXPECT_EQ(decoded.GetFieldValue<std::string>(*MsgDefFields[0]), "h");
+    EXPECT_EQ(input, data + sizeof(data));
+}
+
 TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec1", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
@@ -4395,9 +4619,9 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec4", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
     CompositeField vIntermediateFormat_;
 
-    const auto* testInput = "-1.000,0.000,604800.000,4294967295.000";
+    std::string_view testInput = "-1.000,0.000,604800.000,4294967295.000";
 
-    STATUS stDecoderStatus = pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
+    STATUS stDecoderStatus = pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInput, vIntermediateFormat_);
 
     ASSERT_EQ(stDecoderStatus, STATUS::SUCCESS);
     // If GPS time exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong

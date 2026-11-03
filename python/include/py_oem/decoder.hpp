@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 #include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
@@ -25,7 +27,7 @@ class PyDecoder
     {
     }
 
-    nb::object DecodeMessage(const nb::bytes raw_body, py_oem::PyHeader& header, oem::MetaDataStruct& metadata) const;
+    nb::object DecodeMessage(std::string_view raw_body, py_oem::PyHeader& header, oem::MetaDataStruct& metadata) const;
 };
 
 } // namespace novatel::edie::py_oem
