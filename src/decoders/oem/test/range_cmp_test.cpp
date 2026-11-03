@@ -38,14 +38,11 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-// Structure representing the body of a RANGECMP4 signal block for testing purposes.
-struct RangeCmp4Data
+struct RangeCmpData
 {
     unsigned system{0};
     unsigned satellite{10};
     unsigned signal{1};
-    bool differential{false};
-    unsigned referenceId{0};
     unsigned glonassFrequency{7};
     bool parity{false};
     bool halfCycle{false};
@@ -54,10 +51,18 @@ struct RangeCmp4Data
     unsigned psrStdDev{0};
     unsigned adrStdDev{0};
     uint64_t pseudorange{0};
-    int32_t pseudorangeDelta{0};
     int32_t phaseDelta{0};
     int32_t doppler{0};
 };
+
+struct RangeCmp4Data : RangeCmpData
+{
+    bool differential{false};
+    unsigned referenceId{0};
+    int32_t pseudorangeDelta{0};
+};
+
+struct RangeCmp5Data : RangeCmpData {};
 
 class RangeCmpTest : public ::testing::Test
 {
@@ -67,33 +72,36 @@ class RangeCmpTest : public ::testing::Test
     static std::unique_ptr<Encoder> encoder;
     static std::unique_ptr<MessageDecoder> decoder;
 
-    static IntermediateHeader MakeRangeCmp4Header()
+    static IntermediateHeader MakeRangeCmpHeader(uint16_t messageId, uint16_t definitionCrc)
     {
         IntermediateHeader header;
-        header.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+        header.usMessageId = messageId;
         header.uiPortAddress = 32;
         header.uiTimeStatus = static_cast<uint32_t>(TIME_STATUS::FINESTEERING);
         header.uiReceiverStatus = 0x02000020;
-        header.uiMessageDefinitionCrc = 0xfb0e;
+        header.uiMessageDefinitionCrc = definitionCrc;
         header.usReceiverSwVersion = 32768;
         return header;
     }
 
-    // Generates a byte vector representing RANGECMP4 data based on the provided body structure.
-    static CompositeField MakeRangeCmp4Body(const RangeCmp4Data& bodyData = {})
+    static IntermediateHeader MakeRangeCmp4Header() { return MakeRangeCmpHeader(RANGECMP4_MSG_ID, 0xfb0e); }
+    static IntermediateHeader MakeRangeCmp5Header() { return MakeRangeCmpHeader(RANGECMP5_MSG_ID, 0x4f34); }
+
+    static CompositeField MakeRangeCmpBody(const RangeCmpData& bodyData, bool isRangeCmp5, bool differential = false,
+                                           unsigned referenceId = 0, int32_t pseudorangeDelta = 0)
     {
         CompositeField rangecmpBody;
-        rangecmpBody.SetFieldInfo(pclMyJsonDb->GetMsgDef(RANGECMP4_MSG_ID));
+        rangecmpBody.SetFieldInfo(pclMyJsonDb->GetMsgDef(isRangeCmp5 ? RANGECMP5_MSG_ID : RANGECMP4_MSG_ID));
 
         if (bodyData.system >= 16 || bodyData.satellite == 0 || bodyData.satellite > 64 || bodyData.signal >= 16)
         {
-            throw std::invalid_argument("Invalid RANGECMP4 system, satellite, or signal");
+            throw std::invalid_argument("Invalid RANGECMP system, satellite, or signal");
         }
 
         std::vector<uint8_t> bytes;
         unsigned bitOffset = 0;
         const auto append = [&](uint64_t value, unsigned width) {
-            if (width < 64 && value >> width) { throw std::invalid_argument("RANGECMP4 field exceeds its bit width"); }
+            if (width < 64 && value >> width) { throw std::invalid_argument("RANGECMP field exceeds its bit width"); }
             for (unsigned bit = 0; bit < width; ++bit, ++bitOffset)
             {
                 if (bitOffset % 8 == 0) { bytes.push_back(0); }
@@ -102,7 +110,7 @@ class RangeCmpTest : public ::testing::Test
         };
         const auto appendSigned = [&](int32_t value, unsigned width) {
             const int64_t limit = int64_t{1} << (width - 1);
-            if (value < -limit || value >= limit) { throw std::invalid_argument("RANGECMP4 signed field exceeds its bit width"); }
+            if (value < -limit || value >= limit) { throw std::invalid_argument("RANGECMP signed field exceeds its bit width"); }
             append(static_cast<uint64_t>(value) & ((uint64_t{1} << width) - 1), width);
         };
 
@@ -110,23 +118,30 @@ class RangeCmpTest : public ::testing::Test
         append(uint64_t{1} << (bodyData.satellite - 1), 64);
         append(uint64_t{1} << bodyData.signal, 16);
         append(1, 1);
-        append(bodyData.differential, 1);
-        append(bodyData.referenceId, 3);
-        if (bodyData.system == 1 && !bodyData.differential) { append(bodyData.glonassFrequency, 5); }
+        append(differential, 1);
+        append(referenceId, 3);
+        if (bodyData.system == 1 && !differential) { append(bodyData.glonassFrequency, 5); }
         append(bodyData.parity, 1);
         append(bodyData.halfCycle, 1);
         append(bodyData.cno, 11);
         append(bodyData.lockTime, 4);
-        append(bodyData.psrStdDev, 4);
-        append(bodyData.adrStdDev, 4);
-        if (bodyData.differential) { appendSigned(bodyData.pseudorangeDelta, 19); }
+        append(bodyData.psrStdDev, isRangeCmp5 ? 5 : 4);
+        append(bodyData.adrStdDev, isRangeCmp5 ? 5 : 4);
+        if (differential) { appendSigned(pseudorangeDelta, 19); }
         else { append(bodyData.pseudorange, 37); }
-        appendSigned(bodyData.phaseDelta, bodyData.differential ? 16 : 23);
-        appendSigned(bodyData.doppler, bodyData.differential ? 18 : 26);
+        appendSigned(bodyData.phaseDelta, differential ? 16 : 23);
+        appendSigned(bodyData.doppler, isRangeCmp5 ? 28 : (differential ? 18 : 26));
 
         rangecmpBody.SetFieldValue(*rangecmpBody.GetFieldInfo()->GetFieldDefByName("range_data"), bytes);
         return rangecmpBody;
     }
+
+    static CompositeField MakeRangeCmp4Body(const RangeCmp4Data& bodyData = {})
+    {
+        return MakeRangeCmpBody(bodyData, false, bodyData.differential, bodyData.referenceId, bodyData.pseudorangeDelta);
+    }
+
+    static CompositeField MakeRangeCmp5Body(const RangeCmp5Data& bodyData = {}) { return MakeRangeCmpBody(bodyData, true); }
 
     static CompositeField Decompress(const IntermediateHeader& header, const CompositeField& body)
     {
@@ -134,13 +149,13 @@ class RangeCmpTest : public ::testing::Test
         auto* pointer = buffer.data();
         MetaDataStruct metaData;
         MessageDataStruct messageData;
-        if (encoder->Encode(&pointer, static_cast<uint32_t>(buffer.size()), header, body, messageData, ENCODE_FORMAT::BINARY) != STATUS::SUCCESS)
+        if (encoder->Encode(&pointer, static_cast<uint32_t>(buffer.size()), header, body, messageData, ENCODE_FORMAT::ASCII) != STATUS::SUCCESS)
         {
             throw std::runtime_error("Encoding failed");
         }
         metaData.uiHeaderLength = messageData.uiMessageHeaderLength;
         metaData.uiLength = messageData.uiMessageLength;
-        if (pclMyRangeDecompressor->Decompress(buffer.data(), messageData.uiMessageLength, metaData, ENCODE_FORMAT::BINARY) != STATUS::SUCCESS)
+        if (pclMyRangeDecompressor->Decompress(buffer.data(), MAX_ASCII_MESSAGE_LENGTH, metaData, ENCODE_FORMAT::ASCII) != STATUS::SUCCESS)
         {
             throw std::runtime_error("Decompression failed");
         }
@@ -727,6 +742,38 @@ TEST_F(RangeCmpTest, RANGECMP4_WEEK_ROLLOVER)
     observations = current.GetFieldValueByName<FieldArray>("obs");
     ASSERT_EQ(observations.size(), 1U);
     EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("lock_time"), 263.144f);
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_INVALID_PSR_ADR_STDDEV)
+{
+    auto header = MakeRangeCmp4Header();
+    RangeCmp4Data observation;
+    observation.pseudorange = rangecmp4::RBLK_INVALID_PSR[0];
+    observation.psrStdDev = 15;
+    observation.phaseDelta = rangecmp4::SIG_RBLK_INVALID_PHR;
+    observation.adrStdDev = 15;
+    auto rangecmpBody = MakeRangeCmp4Body(observation);
+    const auto decompressed = Decompress(header, rangecmpBody);
+    auto observations = decompressed.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("sd_psr"), 0.0f);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("sd_adr"), 0.0f);
+}
+
+TEST_F(RangeCmpTest, RANGECMP5_INVALID_PSR_ADR_STDDEV)
+{
+    auto header = MakeRangeCmp5Header();
+    RangeCmp5Data observation;
+    observation.pseudorange = rangecmp5::RBLK_INVALID_PSR[0];
+    observation.psrStdDev = 15;
+    observation.phaseDelta = rangecmp5::SIG_RBLK_INVALID_PHR;
+    observation.adrStdDev = 15;
+    auto rangecmpBody = MakeRangeCmp5Body(observation);
+    const auto decompressed = Decompress(header, rangecmpBody);
+    auto observations = decompressed.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("sd_psr"), 0.0f);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("sd_adr"), 0.0f);
 }
 
 // RANGECMP4 messages landing on whole-second boundaries should clear existing (stale)
