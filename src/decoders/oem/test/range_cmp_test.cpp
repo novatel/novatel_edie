@@ -62,7 +62,9 @@ struct RangeCmp4Data : RangeCmpData
     int32_t pseudorangeDelta{0};
 };
 
-struct RangeCmp5Data : RangeCmpData {};
+struct RangeCmp5Data : RangeCmpData
+{
+};
 
 class RangeCmpTest : public ::testing::Test
 {
@@ -87,8 +89,8 @@ class RangeCmpTest : public ::testing::Test
     static IntermediateHeader MakeRangeCmp4Header() { return MakeRangeCmpHeader(RANGECMP4_MSG_ID, 0xfb0e); }
     static IntermediateHeader MakeRangeCmp5Header() { return MakeRangeCmpHeader(RANGECMP5_MSG_ID, 0x4f34); }
 
-    static CompositeField MakeRangeCmpBody(const RangeCmpData& bodyData, bool isRangeCmp5, bool differential = false,
-                                           unsigned referenceId = 0, int32_t pseudorangeDelta = 0)
+    static CompositeField MakeRangeCmpBody(const RangeCmpData& bodyData, bool isRangeCmp5, bool differential = false, unsigned referenceId = 0,
+                                           int32_t pseudorangeDelta = 0)
     {
         CompositeField rangecmpBody;
         rangecmpBody.SetFieldInfo(pclMyJsonDb->GetMsgDef(isRangeCmp5 ? RANGECMP5_MSG_ID : RANGECMP4_MSG_ID));

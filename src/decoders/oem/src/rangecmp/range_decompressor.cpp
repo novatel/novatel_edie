@@ -234,9 +234,9 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     // Any fields flagged as invalid are set to NaN and appear in the log as such.
     stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGlonassFrequencyNumber_);
     stRangeData_.dPsr = stBlock_.bValidPsr ? stBlock_.dPsr : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fPsrStdDev = stBlock_.bValidPsr ? stdDevPsrScaling[stBlock_.ucPsrStdDev] : 0.0f;
+    stRangeData_.fPsrStdDev = stBlock_.bValidPsr ? stdDevPsrScaling[stBlock_.ucPsrStdDev] : 0.0F;
     stRangeData_.dAdr = stBlock_.bValidPhr ? -stBlock_.dPhr / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fAdrStdDev = stBlock_.bValidPhr ? stdDevAdrScaling[stBlock_.ucPhrStdDev] : 0.0f;
+    stRangeData_.fAdrStdDev = stBlock_.bValidPhr ? stdDevAdrScaling[stBlock_.ucPhrStdDev] : 0.0F;
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
     stRangeData_.fLockTime =
@@ -279,9 +279,9 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     // Any fields flagged as invalid are set to NaN and appear in the log as such.
     stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGlonassFrequencyNumber_);
     stRangeData_.dPsr = stBlock_.bValidPsr ? stBlock_.dPsr : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fPsrStdDev = stBlock_.bValidPsr ? stdDevPsrScaling[stBlock_.ucPsrStdDev] : 0.0f;
+    stRangeData_.fPsrStdDev = stBlock_.bValidPsr ? stdDevPsrScaling[stBlock_.ucPsrStdDev] : 0.0F;
     stRangeData_.dAdr = stBlock_.bValidPhr ? -stBlock_.dPhr / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fAdrStdDev = stBlock_.bValidPhr ? stdDevPhrScaling[stBlock_.ucPhrStdDev] : 0.0f;
+    stRangeData_.fAdrStdDev = stBlock_.bValidPhr ? stdDevPhrScaling[stBlock_.ucPhrStdDev] : 0.0F;
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
     stRangeData_.fLockTime =
