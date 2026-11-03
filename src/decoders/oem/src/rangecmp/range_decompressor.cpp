@@ -645,8 +645,8 @@ void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiB
     stBlock_.bValidPhr = iPhr != SIG_RBLK_INVALID_PHR;
     // TODO: documentation says secondary adds primary phr, but target data suggests this is intended behaviour?
     stBlock_.dPhr = iPhr * SIG_BLK_PHR_SCALE_FACTOR + stBlock_.dPsr;
-    stBlock_.bValidDoppler = iDopplerBitfield != PSIG_RBLK_INVALID_DOPPLER;
-    stBlock_.dDoppler = iDopplerBitfield * SIG_BLK_DOPPLER_SCALE_FACTOR + (Secondary ? primaryDoppler : 0);
+    stBlock_.bValidDoppler = iDopplerBitfield != RBLK_INVALID_DOPPLER[Secondary];
+    stBlock_.dDoppler = iDopplerBitfield * SIG_BLK_DOPPLER_SCALE_FACTOR[Secondary] + (Secondary ? primaryDoppler : 0);
 }
 
 //------------------------------------------------------------------------------
