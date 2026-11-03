@@ -97,9 +97,8 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 }
 
 //------------------------------------------------------------------------------
-// RANGECMP4 lock times are quantized into discrete ranges. Using ordered, accurate
-// timestamps and a lock time that resets on each break, this function estimates a
-// lower bound on the actual lock time for each signal.
+// RANGECMP4 lock times are quantized into discrete ranges. This function gives a
+// lower bound on the actual lock time for each signal using header timestamps.
 //
 // Let D be the time between consecutive observations of a signal, b its current
 // lock time index, and d its actual current lock time. If lock was lost and
