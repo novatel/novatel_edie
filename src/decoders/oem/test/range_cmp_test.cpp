@@ -621,6 +621,28 @@ TEST_F(RangeCmpTest, RANGECMP4_AMBIGUOUS_LOCK_BREAK)
     EXPECT_FLOAT_EQ(secondObservations[0].GetFieldValueByName<float>("lock_time"), 0.128f);
 }
 
+TEST_F(RangeCmpTest, RANGECMP4_OUTPUT_BELOW_LOCK_TABLE_LOWER_BOUND)
+{
+    auto header = MakeRangeCmp4Header();
+    header.usWeek = 2400;
+    header.dMilliseconds = 1000;
+    RangeCmp4Data observation;
+    observation.lockTime = 14;
+    const auto first = Decompress(header, MakeRangeCmp4Body(observation));
+
+    header.dMilliseconds += 200;
+    observation.lockTime = 15;
+    const auto second = Decompress(header, MakeRangeCmp4Body(observation));
+
+    const auto firstObservations = first.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(firstObservations.size(), 1U);
+    EXPECT_FLOAT_EQ(firstObservations[0].GetFieldValueByName<float>("lock_time"), 131.072f);
+
+    const auto secondObservations = second.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(secondObservations.size(), 1U);
+    EXPECT_FLOAT_EQ(secondObservations[0].GetFieldValueByName<float>("lock_time"), 131.272f);
+}
+
 TEST_F(RangeCmpTest, RANGECMP4_DECREASING_LOCK_INDEX)
 {
     auto header = MakeRangeCmp4Header();
