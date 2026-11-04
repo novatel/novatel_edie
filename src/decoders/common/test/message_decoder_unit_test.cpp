@@ -427,6 +427,31 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     ASSERT_NEAR(std::get<double>(vIntermediateFormat.GetFieldValueVariant(*MsgDefFields[13])), 5.44061788e3, 0.001);
 }
 
+TEST_F(MessageDecoderTypesTest, ASCII_SIGNED_CONVERSION_SIZED_BY_DATA_TYPE)
+{
+    auto charField = std::make_shared<BaseField>("char", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::CHAR);
+    auto shortField = std::make_shared<BaseField>("short", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::SHORT);
+    auto fixedCharArray = std::make_shared<ArrayField>("fixed_chars", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%d", DATA_TYPE::CHAR, 3);
+    auto varCharArray = std::make_shared<ArrayField>("var_chars", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "%d", DATA_TYPE::CHAR, 4);
+
+    const auto fieldInfo = BuildFieldInfo({charField, shortField, fixedCharArray, varCharArray});
+    CompositeField body(fieldInfo);
+
+    const auto* testInput = "-5,-300,1,-2,3,3,-128,0,127";
+    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(*fieldInfo, &testInput, body));
+
+    EXPECT_EQ(std::get<int8_t>(body.GetFieldValueVariant(*charField)), -5);
+    EXPECT_EQ(std::get<int16_t>(body.GetFieldValueVariant(*shortField)), -300);
+
+    const auto fixedValues = std::get<TypedBuffer<int8_t>>(body.GetFieldValueVariant(*fixedCharArray));
+    ASSERT_EQ(fixedValues.size(), 3U);
+    EXPECT_EQ(fixedValues[0], 1);
+    EXPECT_EQ(fixedValues[1], -2);
+    EXPECT_EQ(fixedValues[2], 3);
+
+    EXPECT_EQ(std::get<std::vector<int8_t>>(body.GetFieldValueVariant(*varCharArray)), (std::vector<int8_t>{-128, 0, 127}));
+}
+
 TEST(MessageDecoderContainerTypesTest, FixedFieldRegionSimpleFieldRoundTripAndBounds)
 {
     FixedFieldRegion fields(sizeof(uint32_t));
