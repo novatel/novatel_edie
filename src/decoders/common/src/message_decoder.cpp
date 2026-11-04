@@ -101,11 +101,28 @@ void MessageDecoderBase::InitFieldMaps()
             const bool value = (tokenLength_ == nTrue);
             if (fixed_) { clCompField_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
             else { clCompField_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
+            return;
         }
-        else
+
+        switch (pstMessageDataType_.dataType.length)
         {
+        case 1:
+            if (fixed_) { ParseAndEmplace<true, int8_t>(clCompField_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, int8_t>(clCompField_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            return;
+        case 2:
+            if (fixed_) { ParseAndEmplace<true, int16_t>(clCompField_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, int16_t>(clCompField_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            return;
+        case 4:
             if (fixed_) { ParseAndEmplace<true, int32_t>(clCompField_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             else { ParseAndEmplace<false, int32_t>(clCompField_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            return;
+        case 8:
+            if (fixed_) { ParseAndEmplace<true, int64_t>(clCompField_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, int64_t>(clCompField_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            return;
+        default: throw std::runtime_error("invalid signed length");
         }
     };
 
@@ -217,8 +234,17 @@ void MessageDecoderBase::InitFieldMaps()
         if (pstMessageDataType_.dataType.name == DATA_TYPE::BOOL)
         {
             PushElement<bool>(clCompField_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_);
+            return;
         }
-        else { PushElement<int32_t>(clCompField_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); }
+
+        switch (pstMessageDataType_.dataType.length)
+        {
+        case 1: PushElement<int8_t>(clCompField_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 2: PushElement<int16_t>(clCompField_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 4: PushElement<int32_t>(clCompField_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 8: PushElement<int64_t>(clCompField_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        default: throw std::runtime_error("invalid signed length");
+        }
     };
 
     jsonFieldMap[CalculateBlockCrc32("u")] = [](CompositeField& clCompField_, const BaseField& pstMessageDataType_,
