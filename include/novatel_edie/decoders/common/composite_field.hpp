@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -58,8 +59,11 @@ template <typename T, template <typename...> class Template> inline constexpr bo
 class CompositeField;
 class FieldArray;
 
-//! Return type of GetFieldValue<T>: FieldArray is returned by reference to avoid copying its storage.
-template <typename T> using FieldValueResult = std::conditional_t<std::is_same_v<T, FieldArray>, const FieldArray&, T>;
+//! Return type of GetFieldValue<T>: variable-length values (std::string, std::vector, FieldArray) are returned by reference
+//! to avoid copying them. Fixed fields are stored as raw bytes, so they are returned by value (TypedBuffer is a view).
+template <typename T>
+using FieldValueResult =
+    std::conditional_t<std::is_same_v<T, FieldArray> || std::is_same_v<T, std::string> || is_specialization_of_v<T, std::vector>, const T&, T>;
 
 // ---------------------------------------------------------------------------
 //! \class TypedBuffer
@@ -259,9 +263,19 @@ template <typename T> inline void AssertFixedFieldType(const BaseField& fd_)
 }
 #endif
 
-template <typename T> inline bool CheckFixedFieldSize(const ArrayField& field_, size_t count_)
+//! Number of elements in a fixed field: the array length of a FIXED_LENGTH_ARRAY, otherwise 1.
+inline size_t FixedElementCount(const BaseField& field_)
 {
-    return sizeof(T) == field_.dataType.length && count_ == field_.arrayLength;
+    if (field_.type != FIELD_TYPE::FIXED_LENGTH_ARRAY) { return 1; }
+    const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
+    if (arrayField == nullptr) { throw std::runtime_error("SetFieldValue(): missing fixed array metadata"); }
+    return arrayField->arrayLength;
+}
+
+//! Whether a T is exactly one element of field_. A BOOL is stored in the first byte of its field, which is how it is read.
+template <typename T> inline bool IsFixedElementSize(const BaseField& field_)
+{
+    return sizeof(T) == field_.dataType.length || (sizeof(T) == 1 && field_.dataType.name == DATA_TYPE::BOOL);
 }
 
 // ---------------------------------------------------------------------------
@@ -354,28 +368,67 @@ class FixedFieldRegion
     }
 
     // ---------------------------------------------------------------------------
-    //! \brief Set a single field value at the specified index.
+    //! \brief Set one element of a fixed field: element 0 of a scalar field, or any
+    //!     element of a FIXED_LENGTH_ARRAY.
     //!
-    //! \tparam T The value type (must not be a pointer).
-    //! \param[in] startIndex_ The index in the byte region.
+    //! \tparam T The element type; its size must match the field's data type.
+    //! \param[in] field_ The field definition.
+    //! \param[in] elementIndex_ The element index within the field.
     //! \param[in] value_ The value to set.
+    //! \param[in] baseIndex_ Optional base byte offset (e.g. flat-array row start).
+    //! \throws std::runtime_error if the value or element index does not fit the field.
     // ---------------------------------------------------------------------------
-    template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>> void SetFieldValue(const BaseField& field_, const T& value_)
+    template <typename T> void SetFieldElement(const BaseField& field_, size_t elementIndex_, const T& value_, size_t baseIndex_ = 0)
     {
-        if constexpr (is_specialization_of_v<T, TypedBuffer> || is_specialization_of_v<T, std::vector> ||
-                      std::is_same_v<T, std::string>)
+        static_assert(std::is_trivially_copyable_v<T> && !std::is_pointer_v<T> && !is_specialization_of_v<T, TypedBuffer>,
+                      "SetFieldElement only supports trivially copyable element types");
+        assert(!IsView() && "SetFieldElement() is not permitted on a non-owning FixedFieldRegion view");
+        const size_t offset = baseIndex_ + field_.index + (elementIndex_ * sizeof(T));
+        // One combined branch keeps this cheap on the decoders' per-element path
+        if (!IsFixedElementSize<T>(field_) || (elementIndex_ != 0 && elementIndex_ >= FixedElementCount(field_)) ||
+            offset + sizeof(T) > byteRegion.size())
+        {
+            throw std::runtime_error("SetFieldValue(): value does not match the field's size, or element index is out of range");
+        }
+        std::memcpy(byteRegion.data() + offset, &value_, sizeof(T));
+    }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Set a whole fixed field: a scalar, or the elements of a FIXED_LENGTH_ARRAY.
+    //!
+    //! Array values may be shorter than the field; the rest of the field is zeroed.
+    //!
+    //! \tparam T A scalar, or a TypedBuffer, std::vector or std::string of elements.
+    //! \param[in] field_ The field definition.
+    //! \param[in] value_ The value to set.
+    //! \param[in] baseIndex_ Optional base byte offset (e.g. flat-array row start).
+    //! \throws std::runtime_error if the value does not fit the field.
+    // ---------------------------------------------------------------------------
+    template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
+    void SetFieldValue(const BaseField& field_, const T& value_, size_t baseIndex_ = 0)
+    {
+        const bool isArray = field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY;
+        if constexpr (is_specialization_of_v<T, TypedBuffer> || is_specialization_of_v<T, std::vector> || std::is_same_v<T, std::string>)
         {
             using ElementT = typename T::value_type;
-            if (sizeof(ElementT) != field_.dataType.length) { throw std::runtime_error("SetFieldValue(): wrong element size for FIXED_LENGTH_ARRAY field"); }
-            const auto arrayField = dynamic_cast<const ArrayField&>(field_);
-            if (arrayField == nullptr) { throw std::runtime_error("SetFieldValue(): missing fixed array metadata"); }
-            if (value_.size() != arrayField->length) { throw std::runtime_error("SetFieldValue(): wrong array length for FIXED_LENGTH_ARRAY field"); }
-            SetData(field_.index, value_.data(), value_.size() * sizeof(ElementT));
+            if (!isArray) { throw std::runtime_error("SetFieldValue(): array values require a FIXED_LENGTH_ARRAY field"); }
+            if (!IsFixedElementSize<ElementT>(field_))
+            {
+                throw std::runtime_error("SetFieldValue(): element size does not match the field's data type");
+            }
+            assert(!IsView() && "SetFieldValue() is not permitted on a non-owning FixedFieldRegion view");
+            const size_t start = baseIndex_ + field_.index;
+            const size_t capacity = FixedElementCount(field_) * sizeof(ElementT);
+            const size_t bytes = value_.size() * sizeof(ElementT);
+            if (bytes > capacity) { throw std::runtime_error("SetFieldValue(): values do not fit in the field"); }
+            if (start + capacity > byteRegion.size()) { throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion"); }
+            if (bytes != 0) { std::memcpy(byteRegion.data() + start, value_.data(), bytes); }
+            std::fill(byteRegion.begin() + start + bytes, byteRegion.begin() + start + capacity, std::byte{0});
         }
         else
         {
-            if (sizeof(T) != field_.dataType.length) { throw std::runtime_error("SetFieldValue(): wrong value size for SIMPLE field"); }
-            SetData(field_.index, &value_);
+            if (isArray) { throw std::runtime_error("SetFieldValue(): FIXED_LENGTH_ARRAY fields require an array value"); }
+            SetFieldElement(field_, 0, value_, baseIndex_);
         }
     }
 };
@@ -676,6 +729,26 @@ class CompositeField
     std::vector<FieldValueVariant> varFields;
     FieldInfo::ConstPtr fieldInfo;
 
+    //! The value in field_'s variable-length slot, which must hold a V.
+    template <typename V> const V& GetVarField(const BaseField& field_) const
+    {
+        if (const auto* value = std::get_if<V>(&varFields.at(field_.index))) { return *value; }
+        throw std::runtime_error("GetFieldValue<T>(): T does not match the type stored in the field");
+    }
+
+    //! Whether E is the element type a variable-length array field_ is stored with (a BOOL as uint8_t).
+    //! A string array is stored as a std::string, so char also matches a non-BOOL one-byte type.
+    template <typename E> static bool IsVarArrayElement(const BaseField& field_)
+    {
+        bool matches = false;
+        SimpleTypeVisitor(field_, [&](auto tag_) {
+            using TagT = decltype(tag_);
+            using StoredT = std::conditional_t<std::is_same_v<TagT, bool>, uint8_t, TagT>;
+            matches = std::is_same_v<E, StoredT> || (std::is_same_v<E, char> && sizeof(TagT) == 1 && !std::is_same_v<TagT, bool>);
+        });
+        return matches;
+    }
+
   public:
     // ---------------------------------------------------------------------------
     //! \brief Default constructor.
@@ -797,32 +870,24 @@ class CompositeField
             }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for FIXED_LENGTH_ARRAY"); }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
-            if constexpr (is_specialization_of_v<T, std::vector>) { return std::get<T>(varFields[field_.index]); }
-            else if constexpr (std::is_same_v<T, bool>)
+            // String arrays are stored as a std::string, everything else as a std::vector
+            if constexpr (is_specialization_of_v<T, std::vector> || std::is_same_v<T, std::string>) { return GetVarField<T>(field_); }
+            else if constexpr (std::is_trivially_copyable_v<T> && !is_specialization_of_v<T, TypedBuffer>)
             {
-                const auto& vec = std::get<std::vector<uint8_t>>(varFields[field_.index]);
+                const auto& vec = GetVarField<std::vector<std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>>>(field_);
                 if (elementIndex_ >= vec.size())
                 {
                     throw std::runtime_error("GetFieldValue<T>(): index out of bounds for variable-length array field");
                 }
-                return static_cast<bool>(vec[elementIndex_]);
-            }
-            else if constexpr (std::is_trivially_copyable_v<T> && !std::is_same_v<T, FieldArray> && !is_specialization_of_v<T, TypedBuffer>)
-            {
-                const auto& vec = std::get<std::vector<T>>(varFields[field_.index]);
-                if (elementIndex_ >= vec.size())
-                {
-                    throw std::runtime_error("GetFieldValue<T>(): index out of bounds for variable-length array field");
-                }
-                return vec[elementIndex_];
+                return static_cast<T>(vec[elementIndex_]);
             }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for VARIABLE_LENGTH_ARRAY"); }
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
         case FIELD_TYPE::STRING:
-            if constexpr (std::is_same_v<T, std::string>) { return std::get<std::string>(varFields[field_.index]); }
+            if constexpr (std::is_same_v<T, std::string>) { return GetVarField<std::string>(field_); }
             else { throw std::runtime_error("GetFieldValue<T>(): non-string type provided for string field"); }
         case FIELD_TYPE::FIELD_ARRAY:
-            if constexpr (std::is_same_v<T, FieldArray>) { return std::get<FieldArray>(varFields[field_.index]); }
+            if constexpr (std::is_same_v<T, FieldArray>) { return GetVarField<FieldArray>(field_); }
             else { throw std::runtime_error("GetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
         default:
             if constexpr (std::is_trivially_copyable_v<T> && !std::is_same_v<T, FieldArray> && !is_specialization_of_v<T, TypedBuffer>)
@@ -1036,57 +1101,43 @@ class CompositeField
             if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, TypedBuffer> ||
                           is_specialization_of_v<ValueT, std::vector>)
             {
-                const auto* arrayField = dynamic_cast<const ArrayField*>(&fieldDef_);
-                if (arrayField == nullptr) { throw std::runtime_error("SetFieldValue(): missing fixed array metadata"); }
-                size_t capacity = fieldDef_.dataType.length * arrayField->arrayLength;
-                if (value_.size() * sizeof(typename ValueT::value_type) > capacity) { throw std::runtime_error("SetFieldValue(): values do not fit in the field"); }
-                fixedFields.SetFieldValue(fieldDef_, std::forward<T>(value_));
+                fixedFields.SetFieldValue(fieldDef_, value_);
             }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIXED_LENGTH_ARRAY"); }
             break;
-        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, std::vector>)
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, std::vector> ||
+                          is_specialization_of_v<ValueT, TypedBuffer>)
             {
-                varFields.at(fieldDef_.index) = std::forward<T>(value_);
-                break;
-            }
-            else if constexpr (is_specialization_of_v<ValueT, TypedBuffer>)
-            {
-                using ElementT = typename ValueT::value_type;
-                using StoredT = std::conditional_t<std::is_same_v<ElementT, bool>, uint8_t, ElementT>;
-                auto val = std::vector<StoredT>(value_.size());
-                if (!val.empty()) { std::memcpy(val.data(), value_.data(), val.size() * sizeof(StoredT)); }
-                varFields.at(fieldDef_.index) = std::move(val);
-                break;
+                using StoredT = std::conditional_t<std::is_same_v<typename ValueT::value_type, bool>, uint8_t, typename ValueT::value_type>;
+                if (!IsVarArrayElement<StoredT>(fieldDef_))
+                {
+                    throw std::runtime_error("SetFieldValue<T>(): element type does not match the VARIABLE_LENGTH_ARRAY field's data type");
+                }
+                if constexpr (is_specialization_of_v<ValueT, TypedBuffer>)
+                {
+                    varFields.at(fieldDef_.index) = std::vector<StoredT>(value_.begin(), value_.end());
+                }
+                else { varFields.at(fieldDef_.index) = std::forward<T>(value_); }
             }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for VARIABLE_LENGTH_ARRAY"); }
             break;
-        }
         case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
-        case FIELD_TYPE::STRING: {
-            if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, std::vector>)
+        case FIELD_TYPE::STRING:
+            if constexpr (std::is_same_v<ValueT, std::string>) { varFields.at(fieldDef_.index) = std::forward<T>(value_); }
+            else if constexpr (std::is_same_v<ValueT, std::vector<uint8_t>> || std::is_same_v<ValueT, std::vector<int8_t>> ||
+                               std::is_same_v<ValueT, TypedBuffer<char>> || std::is_same_v<ValueT, TypedBuffer<unsigned char>>)
             {
-                varFields.at(fieldDef_.index) = std::forward<T>(value_);
-                break;
-            }
-            else if constexpr (std::is_same_v<ValueT, TypedBuffer<char>> || std::is_same_v<ValueT, TypedBuffer<unsigned char>>)
-            {
-                auto val = value_.empty() ? std::string{} : std::string(reinterpret_cast<const char*>(value_.data()), value_.size());
-                varFields.at(fieldDef_.index) = std::move(val);
-                break;
+                varFields.at(fieldDef_.index) = std::string(value_.begin(), value_.end());
             }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for RESPONSE_STR or STRING"); }
             break;
-        }
         case FIELD_TYPE::FIELD_ARRAY:
             if constexpr (std::is_same_v<ValueT, FieldArray>) { varFields.at(fieldDef_.index) = std::forward<T>(value_); }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
             break;
         default:
-            if constexpr (std::is_trivially_copyable_v<ValueT> && !std::is_pointer_v<ValueT>)
-            {
-                fixedFields.SetFieldValue(fieldDef_, std::forward<T>(value_));
-            }
+            if constexpr (std::is_trivially_copyable_v<ValueT> && !std::is_pointer_v<ValueT>) { fixedFields.SetFieldValue(fieldDef_, value_); }
             else { throw std::runtime_error("SetFieldValue<T>(): type T must be trivially copyable for SIMPLE fields"); }
         }
     }
@@ -1110,7 +1161,7 @@ class CompositeField
     {
         using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
 
-        if constexpr (Fixed) { fixedFields.SetFieldValue(fieldDef_.index + (elementIndex_ * sizeof(StoredType)), static_cast<StoredType>(value_)); }
+        if constexpr (Fixed) { fixedFields.SetFieldElement(fieldDef_, elementIndex_, static_cast<StoredType>(value_)); }
         else
         {
             if (fieldDef_.index >= varFields.size()) { throw std::runtime_error("SetArrayElement(): varFields index is out of range"); }
@@ -1307,21 +1358,14 @@ template <typename T> void FieldArray::SetFieldValue(const BaseField& fieldDef_,
     }
 
     using ValueT = std::decay_t<T>;
-    if (fieldDef_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
+    if (fieldDef_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY || fieldDef_.type == FIELD_TYPE::SIMPLE || fieldDef_.type == FIELD_TYPE::ENUM ||
+        fieldDef_.type == FIELD_TYPE::RESPONSE_ID)
     {
-        if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, TypedBuffer> ||
+        if constexpr ((std::is_trivially_copyable_v<ValueT> && !std::is_pointer_v<ValueT>) || std::is_same_v<ValueT, std::string> ||
                       is_specialization_of_v<ValueT, std::vector>)
         {
             if (index_ >= size()) { throw std::runtime_error("SetFieldValue(): record index out of range"); }
-            std::get<FixedFieldRegion>(storage).SetFieldValue(index_ * fieldInfo->fixedFieldBytes + fieldDef_.index, std::forward<T>(value_));
-            return;
-        }
-    }
-    else if (fieldDef_.type == FIELD_TYPE::SIMPLE || fieldDef_.type == FIELD_TYPE::ENUM || fieldDef_.type == FIELD_TYPE::RESPONSE_ID)
-    {
-        if constexpr (std::is_trivially_copyable_v<ValueT> && !std::is_pointer_v<ValueT> && !is_specialization_of_v<ValueT, TypedBuffer>)
-        {
-            std::get<FixedFieldRegion>(storage).SetFieldValue(index_ * fieldInfo->fixedFieldBytes + fieldDef_.index, value_);
+            std::get<FixedFieldRegion>(storage).SetFieldValue(fieldDef_, value_, index_ * fieldInfo->fixedFieldBytes);
             return;
         }
     }
@@ -1343,7 +1387,7 @@ CompositeField FieldArray::FieldArrayRecord<Mutable>::ReplaceRecord(const Compos
     }
     CompositeField previous(fieldArray->fieldInfo);
     previous.SetFixedData(fields.data() + (index * recordBytes), recordBytes);
-    fields.SetFieldValue(index * recordBytes, record_.GetFixedFields().data(), recordBytes);
+    fields.SetData(index * recordBytes, record_.GetFixedFields().data(), recordBytes);
     return previous;
 }
 

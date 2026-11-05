@@ -447,7 +447,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         stMessageData_.uiMessageHeaderLength = 1;
 
         if (fieldDefinitions.size() <= 1) { return STATUS::MALFORMED_INPUT; }
-        auto sResponse = stMessage_.GetFieldValue<std::string>(*fieldDefinitions.at(1));
+        const auto& sResponse = stMessage_.GetFieldValue<std::string>(*fieldDefinitions.at(1));
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         stMessageData_.pucMessage = *ppucBuffer_;

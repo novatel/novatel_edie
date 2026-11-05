@@ -430,9 +430,17 @@ void PyField::set_regular_array(const ArrayField::ConstPtr& arrFieldDef_, nb::ha
         if (nb::isinstance<nb::str>(value_)) { strVal = nb::cast<nb::str>(value_).c_str(); }
         else { strVal = nb::cast<nb::bytes>(value_).c_str(); }
         if (strVal.size() > arrFieldDef_->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
-        std::vector<uint8_t> values(arrFieldDef_->type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? arrFieldDef_->arrayLength : strVal.size());
-        std::copy(strVal.begin(), strVal.end(), values.begin());
-        set_field_value(*arrFieldDef_, std::move(values));
+        SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
+            // Store the characters as the field's own one-byte element type
+            using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
+            if constexpr (sizeof(ValueT) != 1) { throw nb::type_error("String value is not valid for an array of multi-byte elements."); }
+            else
+            {
+                std::vector<ValueT> values(arrFieldDef_->type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? arrFieldDef_->arrayLength : strVal.size());
+                std::copy(strVal.begin(), strVal.end(), values.begin());
+                set_field_value(*arrFieldDef_, std::move(values));
+            }
+        });
     }
     else if (nb::isinstance<nb::list>(value_))
     {
