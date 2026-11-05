@@ -755,7 +755,7 @@ struct MeasurementSignalBlock
 //-----------------------------------------------------------------------
 struct LockTimeInfo
 {
-    double dTimeOfLastLock{0.0}; // The estimated time the signal last became locked (std::nullopt if no previous lock).
+    double dTimeOfLastLock{0.0}; // The estimated time the signal last became locked.
     double dLastTime{-262145.0}; // The last time the signal was observed. Initially set to -lockTime[15] - 1 so that
                                  // the first observation is always treated as an anchor point.
 };
