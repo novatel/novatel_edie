@@ -397,7 +397,15 @@ obsArr.GetFieldValueByName<float>("C_No", 0); // GOOD - stMessage is still alive
 ```
 
 > [!TIP]
-> `GetFieldValue<FieldArray>` returns a reference, so bind it with `const auto&` or `const FieldArray&`. Binding it with `auto` or `FieldArray` copies the entire array.
+> `GetFieldValue` returns variable-length values (`FieldArray`, `std::vector` and `std::string`) by reference into the message, so bind them with `const auto&` to avoid a copy. Binding them with `auto` copies the value, which is safe even from a temporary message.
+> Fixed-size values are returned by value; fixed-length arrays are returned as a `TypedBuffer`, a view into the message.
+
+> [!WARNING]
+> Don't loop directly over a field of a temporary message: in C++17 the message is destroyed before the loop body runs.
+>
+> ```cpp
+> for (const auto obs : ReadMessage().GetFieldValue<FieldArray>(*pstObsDef)) {} // BAD - undefined behaviour!
+> ```
 
 #### Copy to generated struct (specialized use cases)
 
