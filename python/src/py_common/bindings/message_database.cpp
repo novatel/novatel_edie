@@ -9,6 +9,7 @@
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
+#include "novatel_edie/decoders/common/message_decoder.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/field_objects.hpp"
 #include "py_common/init_bindings.hpp"
@@ -217,7 +218,37 @@ void py_common::init_common_message_database(nb::module_& m)
             [](BaseField& self, DATA_TYPE value) {
                 self.dataType.name = value;
                 self.dataType.length = static_cast<uint16_t>(DataTypeSize(value));
+                // Keep the default the type the field now decodes to, or drop it if it doesn't fit
+                if (self.defaultValue) { self.defaultValue = ConvertToFieldType(self, *self.defaultValue); }
             })
+        .def_prop_rw(
+            "default_value", [](const BaseField& self) { return self.defaultValue; },
+            [](BaseField& self, nb::handle value) {
+                if (value.is_none())
+                {
+                    self.defaultValue.reset();
+                    return;
+                }
+
+                // Read the value as the widest type of its kind, then store it as the type the field decodes to
+                SimpleValueVariant variant;
+                int64_t llValue;
+                uint64_t ullValue;
+                if (nb::isinstance<nb::bool_>(value)) { variant = nb::cast<bool>(value); }
+                else if (nb::isinstance<nb::int_>(value) && nb::try_cast(value, llValue)) { variant = llValue; }
+                else if (nb::isinstance<nb::int_>(value) && nb::try_cast(value, ullValue)) { variant = ullValue; }
+                else if (nb::isinstance<nb::float_>(value)) { variant = nb::cast<double>(value); }
+                else if (nb::isinstance<nb::int_>(value)) { throw nb::value_error("default_value is out of range of any integer type"); }
+                else { throw nb::type_error("default_value must be a bool, int, float or None"); }
+
+                std::optional<SimpleValueVariant> converted = ConvertToFieldType(self, variant);
+                if (!converted) { throw nb::value_error("default_value doesn't fit the field's data type"); }
+                self.defaultValue = converted;
+            },
+            nb::for_setter(nb::arg("value").none()),
+            "The value used when a command leaves this field out, or None if it has none. For arrays, the value of each element.\n\n"
+            "It is stored as the type the field decodes to, so setting a value that doesn't fit the field's data type raises a "
+            "ValueError. Changing the data type converts the default, or sets it to None if it doesn't fit.")
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
         .def_ro("index", &BaseField::index)
         .def("__eq__", [](const BaseField& self, const BaseField& other) { return self == other; })

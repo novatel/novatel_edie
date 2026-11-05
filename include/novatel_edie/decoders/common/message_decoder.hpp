@@ -179,6 +179,68 @@ template <typename Fn> inline void SimpleTypeVisitor(const BaseField& fd_, Fn&& 
     }
 }
 
+// ---------------------------------------------------------------------------
+//! \brief Convert a value to the type a simple or enum field decodes to.
+//! \details Integers must be in range of the field's type, and a BOOL only
+//!     takes a bool or an integer of 0 or 1. A floating point value only fits a
+//!     floating point type.
+//!
+//! \param[in] fd_ The BaseField whose type to convert to.
+//! \param[in] value_ The value to convert.
+//! \return The converted value, or nullopt if the field has no simple data type
+//!     or the value doesn't fit it.
+// ---------------------------------------------------------------------------
+inline std::optional<SimpleValueVariant> ConvertToFieldType(const BaseField& fd_, const SimpleValueVariant& value_)
+{
+    if (fd_.type == FIELD_TYPE::ENUM)
+    {
+        if (fd_.dataType.length != 1 && fd_.dataType.length != 2 && fd_.dataType.length != 4) { return std::nullopt; }
+    }
+    else if (fd_.dataType.name == DATA_TYPE::UNKNOWN) { return std::nullopt; }
+
+    std::optional<SimpleValueVariant> converted;
+    SimpleTypeVisitor(fd_, [&](auto tag_) {
+        using T = decltype(tag_);
+        std::visit(
+            [&](const auto v_) {
+                using V = std::decay_t<decltype(v_)>;
+                if constexpr (std::is_same_v<T, bool>)
+                {
+                    if constexpr (std::is_same_v<V, bool>) { converted = v_; }
+                    else if constexpr (std::is_integral_v<V>)
+                    {
+                        if (v_ == 0 || v_ == 1) { converted = v_ == 1; }
+                    }
+                }
+                else if constexpr (std::is_floating_point_v<T>)
+                {
+                    if constexpr (!std::is_same_v<V, bool>) { converted = static_cast<T>(v_); }
+                }
+                else if constexpr (std::is_integral_v<V> && !std::is_same_v<V, bool>)
+                {
+                    // Compare as 64-bit values so that mixing signed and unsigned types can't wrap
+                    if constexpr (std::is_signed_v<V>)
+                    {
+                        if (v_ < 0)
+                        {
+                            if constexpr (std::is_signed_v<T>)
+                            {
+                                if (static_cast<int64_t>(v_) >= static_cast<int64_t>(std::numeric_limits<T>::min()))
+                                {
+                                    converted = static_cast<T>(v_);
+                                }
+                            }
+                            return;
+                        }
+                    }
+                    if (static_cast<uint64_t>(v_) <= static_cast<uint64_t>(std::numeric_limits<T>::max())) { converted = static_cast<T>(v_); }
+                }
+            },
+            value_);
+    });
+    return converted;
+}
+
 #ifndef NDEBUG
 // ---------------------------------------------------------------------------
 //! \brief Debug-only assertion that the requested load type T matches the
