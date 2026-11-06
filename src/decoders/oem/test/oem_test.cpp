@@ -3516,6 +3516,15 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_ASCII_INSTHRESHOLDS)
     ASSERT_EQ(0, memcmp(acEncodeBuffer, aucExpectedCommand, sizeof(aucExpectedCommand)));
 }
 
+TEST_F(CommandEncodeTest, COMMAND_ENCODE_ASCII_SAVECONFIG)
+{
+    char aucExpectedCommand[] = "#SAVECONFIGA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,a83d,0;*05fc032d\r\n";
+    char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
+
+    ASSERT_EQ(STATUS::SUCCESS, TestCommandConversion("SAVECONFIG", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODE_FORMAT::ASCII));
+    ASSERT_EQ(0, memcmp(acEncodeBuffer, aucExpectedCommand, sizeof(aucExpectedCommand)));
+}
+
 // -------------------------------------------------------------------------------------------------------
 // Binary Command Encoding Unit Tests
 // -------------------------------------------------------------------------------------------------------
