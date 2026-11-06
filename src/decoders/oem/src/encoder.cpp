@@ -563,8 +563,9 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
     {
     case ENCODE_FORMAT::ASCII: {
         auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
+        const char* pcBodyStart = pcTempBuffer;
         if (!EncodeAsciiBody<false>(stMessage_, fieldDefinitions, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
-        pcTempBuffer--; // Remove last delimiter ','
+        if (pcTempBuffer != pcBodyStart) { pcTempBuffer--; } // Remove last delimiter ','
         const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1,
                                                    reinterpret_cast<unsigned char*>(pcTempBuffer) - stMessageData_.pucMessageHeader - 1);
         if (!CopyAllToBuffer(&pcTempBuffer, uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n")) { return STATUS::BUFFER_FULL; }
