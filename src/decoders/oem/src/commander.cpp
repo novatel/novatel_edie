@@ -65,7 +65,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     const auto strAbbrevAsciiCommand = std::string(pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_);
     const size_t ullPos = strAbbrevAsciiCommand.find_first_of(' ');
     const std::string strCmdName = strAbbrevAsciiCommand.substr(0, ullPos);
-    const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1);
+    const std::string strCmdParams = ullPos == std::string::npos ? "" : strAbbrevAsciiCommand.substr(ullPos + 1);
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
@@ -117,7 +117,7 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
     const auto strAbbrevAsciiCommand = std::string(pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_);
     const size_t ullPos = strAbbrevAsciiCommand.find_first_of(' ');
     const std::string strCmdName = strAbbrevAsciiCommand.substr(0, ullPos);
-    const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1);
+    const std::string strCmdParams = ullPos == std::string::npos ? "" : strAbbrevAsciiCommand.substr(ullPos + 1);
 
     MessageDefinition::ConstPtr pclMessageDef = clJsonDb_.GetMsgDef(strCmdName);
     if (!pclMessageDef) { return STATUS::NO_DEFINITION; }
