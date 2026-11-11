@@ -734,8 +734,8 @@ TEST_F(MessageDecoderTypesTest, ASCII_SIGNED_CONVERSION_SIZED_BY_DATA_TYPE)
     const auto fieldInfo = BuildFieldInfo({charField, shortField, fixedCharArray, varCharArray});
     CompositeField body(fieldInfo);
 
-    const auto* testInput = "-5,-300,1,-2,3,3,-128,0,127";
-    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(*fieldInfo, &testInput, body));
+    std::string_view testInput = "-5,-300,1,-2,3,3,-128,0,127";
+    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(*fieldInfo, testInput, body));
 
     EXPECT_EQ(std::get<int8_t>(body.GetFieldValueVariant(*charField)), -5);
     EXPECT_EQ(std::get<int16_t>(body.GetFieldValueVariant(*shortField)), -300);
