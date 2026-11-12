@@ -376,7 +376,10 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             DecodeBinaryField<true>(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
-            if (bytesRemaining() < size_t{uiArraySize} * field->dataType.length) { return malformed("Not enough space for variable length array"); }
+            if ((uiArraySize != 0 && !alignBufToField(field->dataType.length)) || bytesRemaining() < size_t{uiArraySize} * field->dataType.length)
+            {
+                return malformed("Not enough space for variable length array");
+            }
             DecodeBinaryField<false>(*field, ppucLogBuf_, clCompField_, uiArraySize);
             break;
         case FIELD_TYPE::STRING: {

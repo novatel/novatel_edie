@@ -344,7 +344,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         sMessage.remove_prefix(1); // Move the input buffer past the sync char '<'
 
         // Abbreviated ascii responses have no headers
-        if ((sMessage.size() >= 2 && strncmp(sMessage.data(), "OK", 2) == 0) || (sMessage.size() >= 5 && strncmp(sMessage.data(), "ERROR", 5) == 0))
+        if ((sMessage.size() >= 2 && memcmp(sMessage.data(), "OK", 2) == 0) || (sMessage.size() >= 5 && memcmp(sMessage.data(), "ERROR", 5) == 0))
         {
             stMetaData_.bResponse = true;
             stMetaData_.messageName = "UNKNOWN";

@@ -81,11 +81,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             [](const py_oem::PyDecoder& decoder, const nb::bytes raw_header, oem::MetaDataStruct* metadata) {
                 py_oem::PyHeader header;
                 oem::MetaDataStruct default_metadata;
-                if (metadata == nullptr)
-                {
-                    metadata = &default_metadata;
-                    metadata->uiLength = static_cast<uint32_t>(raw_header.size());
-                }
+                if (metadata == nullptr) { metadata = &default_metadata; }
 
                 // At this point, metadata->uiLength could either be a full frame length (e.g. as set by the framer),
                 // or just the header length. Also, raw_header could contain the full message frame or just a header.
