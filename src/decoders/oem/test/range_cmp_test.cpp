@@ -24,7 +24,6 @@
 // ! \file range_cmp_test.cpp
 // ===============================================================================
 
-#include <iomanip>
 #include <sstream>
 #include <vector>
 
@@ -32,22 +31,151 @@
 
 #include "novatel_edie/common/test_utils/logger_registry_test.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
+#include "novatel_edie/decoders/oem/encoder.hpp"
+#include "novatel_edie/decoders/oem/message_decoder.hpp"
 #include "novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
+
+struct RangeCmpData
+{
+    unsigned system{0};
+    unsigned satellite{10};
+    unsigned signal{1};
+    unsigned glonassFrequency{7};
+    bool parity{false};
+    bool halfCycle{false};
+    unsigned cno{0};
+    unsigned lockTime{15};
+    unsigned psrStdDev{0};
+    unsigned adrStdDev{0};
+    uint64_t pseudorange{0};
+    int32_t phaseDelta{0};
+    int32_t doppler{0};
+};
+
+struct RangeCmp4Data : RangeCmpData
+{
+    bool differential{false};
+    unsigned referenceId{0};
+    int32_t pseudorangeDelta{0};
+};
+
+struct RangeCmp5Data : RangeCmpData
+{
+};
 
 class RangeCmpTest : public ::testing::Test
 {
   protected:
     static std::unique_ptr<RangeDecompressor> pclMyRangeDecompressor;
     static MessageDatabase::Ptr pclMyJsonDb;
+    static std::unique_ptr<Encoder> encoder;
+    static std::unique_ptr<MessageDecoder> decoder;
+
+    static IntermediateHeader MakeRangeCmpHeader(uint16_t messageId, uint16_t definitionCrc)
+    {
+        IntermediateHeader header;
+        header.usMessageId = messageId;
+        header.uiPortAddress = 32;
+        header.uiTimeStatus = static_cast<uint32_t>(TIME_STATUS::FINESTEERING);
+        header.uiReceiverStatus = 0x02000020;
+        header.uiMessageDefinitionCrc = definitionCrc;
+        header.usReceiverSwVersion = 32768;
+        return header;
+    }
+
+    static IntermediateHeader MakeRangeCmp4Header() { return MakeRangeCmpHeader(RANGECMP4_MSG_ID, 0xfb0e); }
+    static IntermediateHeader MakeRangeCmp5Header() { return MakeRangeCmpHeader(RANGECMP5_MSG_ID, 0x4f34); }
+
+    static CompositeField MakeRangeCmpBody(const RangeCmpData& bodyData, bool isRangeCmp5, bool differential = false, unsigned referenceId = 0,
+                                           int32_t pseudorangeDelta = 0)
+    {
+        CompositeField rangecmpBody;
+        rangecmpBody.SetFieldInfo(pclMyJsonDb->GetMsgDef(isRangeCmp5 ? RANGECMP5_MSG_ID : RANGECMP4_MSG_ID));
+
+        if (bodyData.system >= 16 || bodyData.satellite == 0 || bodyData.satellite > 64 || bodyData.signal >= 16)
+        {
+            throw std::invalid_argument("Invalid RANGECMP system, satellite, or signal");
+        }
+
+        std::vector<uint8_t> bytes;
+        unsigned bitOffset = 0;
+        const auto append = [&](uint64_t value, unsigned width) {
+            if (width < 64 && value >> width) { throw std::invalid_argument("RANGECMP field exceeds its bit width"); }
+            for (unsigned bit = 0; bit < width; ++bit, ++bitOffset)
+            {
+                if (bitOffset % 8 == 0) { bytes.push_back(0); }
+                bytes.back() |= static_cast<uint8_t>(((value >> bit) & 1U) << (bitOffset % 8));
+            }
+        };
+        const auto appendSigned = [&](int32_t value, unsigned width) {
+            const int64_t limit = int64_t{1} << (width - 1);
+            if (value < -limit || value >= limit) { throw std::invalid_argument("RANGECMP signed field exceeds its bit width"); }
+            append(static_cast<uint64_t>(value) & ((uint64_t{1} << width) - 1), width);
+        };
+
+        append(uint64_t{1} << bodyData.system, 16);
+        append(uint64_t{1} << (bodyData.satellite - 1), 64);
+        append(uint64_t{1} << bodyData.signal, 16);
+        append(1, 1);
+        append(differential, 1);
+        append(referenceId, 3);
+        if (bodyData.system == 1 && !differential) { append(bodyData.glonassFrequency, 5); }
+        append(bodyData.parity, 1);
+        append(bodyData.halfCycle, 1);
+        append(bodyData.cno, 11);
+        append(bodyData.lockTime, 4);
+        append(bodyData.psrStdDev, isRangeCmp5 ? 5 : 4);
+        append(bodyData.adrStdDev, isRangeCmp5 ? 5 : 4);
+        if (differential) { appendSigned(pseudorangeDelta, 19); }
+        else { append(bodyData.pseudorange, 37); }
+        appendSigned(bodyData.phaseDelta, differential ? 16 : 23);
+        appendSigned(bodyData.doppler, isRangeCmp5 ? 28 : (differential ? 18 : 26));
+
+        rangecmpBody.SetFieldValue(*rangecmpBody.GetFieldInfo()->GetFieldDefByName("range_data"), bytes);
+        return rangecmpBody;
+    }
+
+    static CompositeField MakeRangeCmp4Body(const RangeCmp4Data& bodyData = {})
+    {
+        return MakeRangeCmpBody(bodyData, false, bodyData.differential, bodyData.referenceId, bodyData.pseudorangeDelta);
+    }
+
+    static CompositeField MakeRangeCmp5Body(const RangeCmp5Data& bodyData = {}) { return MakeRangeCmpBody(bodyData, true); }
+
+    static CompositeField Decompress(const IntermediateHeader& header, const CompositeField& body)
+    {
+        std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> buffer{};
+        auto* pointer = buffer.data();
+        MetaDataStruct metaData;
+        MessageDataStruct messageData;
+        if (encoder->Encode(&pointer, static_cast<uint32_t>(buffer.size()), header, body, messageData, ENCODE_FORMAT::ASCII) != STATUS::SUCCESS)
+        {
+            throw std::runtime_error("Encoding failed");
+        }
+        metaData.uiHeaderLength = messageData.uiMessageHeaderLength;
+        metaData.uiLength = messageData.uiMessageLength;
+        if (pclMyRangeDecompressor->Decompress(buffer.data(), MAX_ASCII_MESSAGE_LENGTH, metaData, ENCODE_FORMAT::ASCII) != STATUS::SUCCESS)
+        {
+            throw std::runtime_error("Decompression failed");
+        }
+        CompositeField rangeBody;
+        if (decoder->Decode(buffer.data() + metaData.uiHeaderLength, rangeBody, metaData) != STATUS::SUCCESS)
+        {
+            throw std::runtime_error("Decoding failed");
+        }
+        return rangeBody;
+    }
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
         pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
         pclMyRangeDecompressor = std::make_unique<RangeDecompressor>(pclMyJsonDb);
+        encoder = std::make_unique<Encoder>(pclMyJsonDb);
+        decoder = std::make_unique<MessageDecoder>(pclMyJsonDb);
     }
 
     // Per-test-suite teardown
@@ -81,6 +209,8 @@ class RangeCmpTest : public ::testing::Test
 
 std::unique_ptr<RangeDecompressor> RangeCmpTest::pclMyRangeDecompressor = nullptr;
 MessageDatabase::Ptr RangeCmpTest::pclMyJsonDb = nullptr;
+std::unique_ptr<Encoder> RangeCmpTest::encoder = nullptr;
+std::unique_ptr<MessageDecoder> RangeCmpTest::decoder = nullptr;
 
 // clang-format off
 
@@ -456,26 +586,218 @@ TEST_F(RangeCmpTest, RANGECMP4_SKIP_DIFFERENTIAL_MISSING_REFERENCE)
 // has been reached.
 TEST_F(RangeCmpTest, RANGECMP4_LARGE_LOCK_TIME)
 {
-    constexpr char aucCompressedData1[] = "#RANGECMP4A,COM1,0,0.000,FINESTEERING,0,0.000,02000020,fb0e,32768;27,01000002000000000000020001003c000000000000000000000000*b83f0bf6\r\n";
-    constexpr char aucCompressedData2[] = "#RANGECMP4A,COM1,0,1000.000,FINESTEERING,0,1000.000,02000020,fb0e,32768;27,01000002000000000000020001003c000000000000000000000000*e3a15b34\r\n";
-    constexpr char aucDecompressedData[] = "#RANGEA,COM1,0,104.0,FINESTEERING,0,1000.000,02000020,fb0e,32768;1,10,0,0.000,0.020,-0.000000,0.003,-0.000,0.0,1262.144,08001404*2b036e31\r\n";
-
-    char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    MetaDataStruct metadata;
+    auto header = MakeRangeCmp4Header();
+    auto rangecmpBody = MakeRangeCmp4Body();
+    const auto decompressed1 = Decompress(header, rangecmpBody);
+    header.dMilliseconds = 250000;
+    const auto decompressed2 = Decompress(header, rangecmpBody);
     
-    std::memcpy(aucCompressionBuffer, aucCompressedData1, sizeof(aucCompressedData1) - 1);
-    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
-    metadata.uiLength = static_cast<uint32_t>(sizeof(aucCompressedData1) - 1);
-    ASSERT_EQ(STATUS::SUCCESS,
-              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
+    auto observations = decompressed1.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("lock_time"), 262.144f);
 
-    metadata = {};
-    std::memcpy(aucCompressionBuffer, aucCompressedData2, sizeof(aucCompressedData2) - 1);
-    metadata.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
-    metadata.uiLength = static_cast<uint32_t>(sizeof(aucCompressedData2) - 1);
-    ASSERT_EQ(STATUS::SUCCESS,
-              pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), metadata));
-    compareStrings(aucCompressionBuffer, aucDecompressedData);
+    observations = decompressed2.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("lock_time"), 512.144f);
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_AMBIGUOUS_LOCK_BREAK)
+{
+    auto header = MakeRangeCmp4Header();
+    header.dMilliseconds = 1000;
+    RangeCmp4Data observation;
+    observation.lockTime = 2;
+    auto rangecmpBody = MakeRangeCmp4Body(observation);
+    const auto first = Decompress(header, rangecmpBody);
+
+    header.dMilliseconds += 200;
+    observation.lockTime = 4;
+    rangecmpBody = MakeRangeCmp4Body(observation);
+    const auto second = Decompress(header, rangecmpBody);
+
+    const auto firstObservations = first.GetFieldValueByName<FieldArray>("obs");
+    EXPECT_FLOAT_EQ(firstObservations[0].GetFieldValueByName<float>("lock_time"), 0.032f);
+    const auto secondObservations = second.GetFieldValueByName<FieldArray>("obs");
+    EXPECT_FLOAT_EQ(secondObservations[0].GetFieldValueByName<float>("lock_time"), 0.128f);
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_OUTPUT_BELOW_LOCK_TABLE_LOWER_BOUND)
+{
+    auto header = MakeRangeCmp4Header();
+    header.usWeek = 2400;
+    header.dMilliseconds = 1000;
+    RangeCmp4Data observation;
+    observation.lockTime = 14;
+    const auto first = Decompress(header, MakeRangeCmp4Body(observation));
+
+    header.dMilliseconds += 200;
+    observation.lockTime = 15;
+    const auto second = Decompress(header, MakeRangeCmp4Body(observation));
+
+    const auto firstObservations = first.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(firstObservations.size(), 1U);
+    EXPECT_FLOAT_EQ(firstObservations[0].GetFieldValueByName<float>("lock_time"), 131.072f);
+
+    const auto secondObservations = second.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(secondObservations.size(), 1U);
+    EXPECT_FLOAT_EQ(secondObservations[0].GetFieldValueByName<float>("lock_time"), 131.272f);
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_DECREASING_LOCK_INDEX)
+{
+    auto header = MakeRangeCmp4Header();
+    header.dMilliseconds = 1000;
+    RangeCmp4Data observation;
+    const std::array<std::pair<unsigned, float>, 5> cases = {{{0, 0.0f}, {4, 0.128f}, {5, 0.328f}, {6, 0.528f}, {4, 0.128f}}};
+
+    for (const auto& [lockIndex, expectedLockTime] : cases)
+    {
+        observation.lockTime = lockIndex;
+        const auto rangecmpBody = MakeRangeCmp4Body(observation);
+        const auto rangeBody = Decompress(header, rangecmpBody);
+
+        const auto observations = rangeBody.GetFieldValueByName<FieldArray>("obs");
+        ASSERT_EQ(observations.size(), 1U);
+        EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("lock_time"), expectedLockTime);
+        header.dMilliseconds += 200;
+    }
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_LOCK_TIME_PER_SATELLITE)
+{
+    auto header = MakeRangeCmp4Header();
+    header.dMilliseconds = 1000;
+    RangeCmp4Data observation;
+    const std::array<std::tuple<unsigned, unsigned, float>, 4> cases = {
+        {{10, 4, 0.128f}, {11, 0, 0.0f}, {10, 5, 0.328f}, {11, 4, 0.128f}}};
+
+    for (const auto& [satellite, lockIndex, expectedLockTime] : cases)
+    {
+        observation.satellite = satellite;
+        observation.lockTime = lockIndex;
+        const auto rangeBody = Decompress(header, MakeRangeCmp4Body(observation));
+        const auto observations = rangeBody.GetFieldValueByName<FieldArray>("obs");
+        ASSERT_EQ(observations.size(), 1U);
+        EXPECT_EQ(observations[0].GetFieldValueByName<uint16_t>("sv_prn"), satellite);
+        EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("lock_time"), expectedLockTime);
+        header.dMilliseconds += 100;
+    }
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_RESET_CLEAR_LOCK_TIME)
+{
+    auto header = MakeRangeCmp4Header();
+    header.dMilliseconds = 1000;
+    RangeCmp4Data observation;
+    observation.lockTime = 4;
+    const auto first = Decompress(header, MakeRangeCmp4Body(observation));
+
+    header.dMilliseconds += 200;
+    observation.lockTime = 5;
+    const auto second = Decompress(header, MakeRangeCmp4Body(observation));
+    const auto secondObservations = second.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(secondObservations.size(), 1U);
+    EXPECT_FLOAT_EQ(secondObservations[0].GetFieldValueByName<float>("lock_time"), 0.328f);
+
+    pclMyRangeDecompressor->Reset();
+    header.dMilliseconds += 200;
+    const auto afterReset = Decompress(header, MakeRangeCmp4Body(observation));
+    const auto observations = afterReset.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("lock_time"), 0.256f);
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_SYNTHETIC_REFERENCE_AND_DIFFERENTIAL)
+{
+    auto header = MakeRangeCmp4Header();
+    header.dMilliseconds = 10000;
+    RangeCmp4Data observation;
+    observation.satellite = 11;
+    observation.referenceId = 3;
+    observation.cno = 900;
+    observation.lockTime = 7;
+    observation.pseudorange = 100000;
+    auto rangecmpBody = MakeRangeCmp4Body(observation);
+    const auto referenceRangeBody = Decompress(header, rangecmpBody);
+
+    header.dMilliseconds = 10500;
+    observation.differential = true;
+    observation.pseudorangeDelta = 2000;
+    observation.phaseDelta = -1000;
+    rangecmpBody = MakeRangeCmp4Body(observation);
+    const auto differentialRangeBody = Decompress(header, rangecmpBody);
+
+    const auto referenceObservations = referenceRangeBody.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(referenceObservations.size(), 1U);
+    EXPECT_EQ(referenceObservations[0].GetFieldValueByName<uint16_t>("sv_prn"), 11U);
+    EXPECT_DOUBLE_EQ(referenceObservations[0].GetFieldValueByName<double>("psr"), 50.0);
+    EXPECT_FLOAT_EQ(referenceObservations[0].GetFieldValueByName<float>("lock_time"), 1.024f);
+
+    const auto differentialObservations = differentialRangeBody.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(differentialObservations.size(), 1U);
+    EXPECT_EQ(differentialObservations[0].GetFieldValueByName<uint16_t>("sv_prn"), 11U);
+    EXPECT_EQ(differentialObservations[0].GetFieldValueByName<uint16_t>("sv_freq"), 0U);
+    EXPECT_DOUBLE_EQ(differentialObservations[0].GetFieldValueByName<double>("psr"), 51.0);
+    EXPECT_FLOAT_EQ(differentialObservations[0].GetFieldValueByName<float>("C_No"), 45.0f);
+    EXPECT_FLOAT_EQ(differentialObservations[0].GetFieldValueByName<float>("lock_time"), 1.524f);
+
+    observation.lockTime = 16;
+    EXPECT_THROW(MakeRangeCmp4Body(observation), std::invalid_argument);
+    observation.lockTime = 7;
+    observation.phaseDelta = 32768;
+    EXPECT_THROW(MakeRangeCmp4Body(observation), std::invalid_argument);
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_WEEK_ROLLOVER)
+{
+    auto header = MakeRangeCmp4Header();
+    header.usWeek = 7;
+    header.dMilliseconds = 604799000;
+    auto rangecmpBody = MakeRangeCmp4Body();
+    const auto previous = Decompress(header, rangecmpBody);
+    header.usWeek = 8;
+    header.dMilliseconds = 0;
+    const auto current = Decompress(header, rangecmpBody);
+
+    auto observations = previous.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("lock_time"), 262.144f);
+
+    observations = current.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("lock_time"), 263.144f);
+}
+
+TEST_F(RangeCmpTest, RANGECMP4_INVALID_PSR_ADR_STDDEV)
+{
+    auto header = MakeRangeCmp4Header();
+    RangeCmp4Data observation;
+    observation.pseudorange = rangecmp4::RBLK_INVALID_PSR[0];
+    observation.psrStdDev = 15;
+    observation.phaseDelta = rangecmp4::SIG_RBLK_INVALID_PHR;
+    observation.adrStdDev = 15;
+    auto rangecmpBody = MakeRangeCmp4Body(observation);
+    const auto decompressed = Decompress(header, rangecmpBody);
+    auto observations = decompressed.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("sd_psr"), 0.0f);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("sd_adr"), 0.0f);
+}
+
+TEST_F(RangeCmpTest, RANGECMP5_INVALID_PSR_ADR_STDDEV)
+{
+    auto header = MakeRangeCmp5Header();
+    RangeCmp5Data observation;
+    observation.pseudorange = rangecmp5::RBLK_INVALID_PSR[0];
+    observation.psrStdDev = 15;
+    observation.phaseDelta = rangecmp5::SIG_RBLK_INVALID_PHR;
+    observation.adrStdDev = 15;
+    auto rangecmpBody = MakeRangeCmp5Body(observation);
+    const auto decompressed = Decompress(header, rangecmpBody);
+    auto observations = decompressed.GetFieldValueByName<FieldArray>("obs");
+    ASSERT_EQ(observations.size(), 1U);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("sd_psr"), 0.0f);
+    EXPECT_FLOAT_EQ(observations[0].GetFieldValueByName<float>("sd_adr"), 0.0f);
 }
 
 // RANGECMP4 messages landing on whole-second boundaries should clear existing (stale)

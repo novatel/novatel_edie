@@ -97,63 +97,22 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 }
 
 //------------------------------------------------------------------------------
-// RANGECMP4 lock time information is categorized into certain ranges for a
-// given observation. Decompressing this information without knowledge of the
-// precise time at which lock was acquired can result in initially misleading
-// lock times. There are a number of cases which may occur when decompressing
-// the lock time bitfields from a RANGECMP4 observation:
-// NOTE: See lockTime for bitfield:lock time translations.
-//   1. The lock time bitfield is b0000:
-//      - This is the simplest case. The lock time will increase with the time
-//        reported by the message header.
-//   2. The lock time bitfield is b1111:
-//      - There is no way to determine when the lock time reached that range,
-//        so as for case 1, the lock time will increase with the time reported
-//        by the message header.
-//   3. The lock time bitfield is any value from b0001 to b1110:
-//      - This case is the most complex. Because there is no guarantee that
-//        the current lock time reported has just transitioned to the lower
-//        boundary of the bitfield representation, it must be stated that the
-//        lock time is relative, and not absolute. Only when a change in the
-//        bitfield is detected can it be guaranteed that the lock time is
-//        absolute. At this point, the lock time can jump or slip to adjust
-//        to the newly found bitfield. After the jump or slip occurs, the
-//        lock time must not change again, as the lower bitfield values will
-//        produce the highest degree of accuracy.
-//      - For example, if the lock time bitfield is b0111, the observation has
-//        been locked for at least 1024ms. However, it is possible the message
-//        was produced when the observation was locked for 1800ms. This means
-//        a 776ms discrepancy exists between what the RangeDecompressor tracks
-//        and what is reported in the RANGECMP messages. When this discrepancy
-//        is detected, the lock time can jump to match what the RANGECMP message
-//        reports. Thus, the distinction between "relative" and "absolute"
-//        must be made to allow the decompressor to accurately reflect
-//        observation lock times. See the example below:
+// RANGECMP4 lock times are quantized into discrete ranges. This function gives a
+// lower bound on the actual lock time for each signal using header timestamps.
 //
-// Lock Time (t)
-//   ^
-//   |                                                 . < Continues 1:1
-//   |                                               .
-//   |                                             .
-//   |                                           /
-//   |                                         /
-//   |                                       /
-//   |                                     /
-//   |                                   /   < At this point a bitfield change
-//   |                                 *|      was found. The transition from
-//   |                               *  |      "relative" to "absolute" time
-//   |                             *    |      results in a lock time jump as
-//   |                           *      |      seen here.
-//   |                         *       /
-//   |                       *       /
-//   |                     *       /
-//   |                   *       /
-//   | Absolute        *       /   < Relative lock time inferred by the
-//   | lock time >    *       /       RangeDecompressor. These values
-//   |             *       /         will be output to RANGE message
-//   |           *       /           lock time fields.
-//   +-------------------------------------------------------------------->
-//                   Header time (t)
+// Let D be the time between consecutive observations of a signal, b its current
+// lock time index, and d its actual current lock time. If lock was lost and
+// reacquired between observations, then lockTime[b] <= d < D:
+//
+// previous observation    break   reacquisition               current observation
+//         |-----------------x-----------|------------------------------|
+//         |<------------------------ D ------------------------------->|
+//                                       |<------------ d ------------->|
+//
+// However, the converse is not necessarily true: if lockTime[b] < D, a break may
+// or may not have happened. This function conservatively assumes that lock was
+// lost in ambiguous cases. Therefore, this function correctly adjusts the reported
+// lock time whenever lock was actually lost, but may also adjust when it wasn't.
 //------------------------------------------------------------------------------
 double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, uint64_t key_)
 {
@@ -171,46 +130,17 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
     // Store the lock time if it is different from the once we have currently.
     LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[key_];
 
-    // Is the lock time relative and has a bitfield change been found?
-    if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
-    {
-        // Set lock time as absolute if bits are 0 or if bits have changed since previous observation.
-        if (ucLockTimeBits_ == 0 || ucLockTimeBits_ > stLockTimeInfo.ucBits)
-        {
-            stLockTimeInfo.bAbsolute = true;
+    const auto time = (static_cast<double>(stMetaData_.usWeek) * SECS_IN_WEEK * SEC_TO_MILLI_SEC) + stMetaData_.dMilliseconds;
+    const auto timeDelta = time - stLockTimeInfo.dLastTime;
+    const auto lockTimeLowerBound = lockTime[ucLockTimeBits_];
 
-            double dLockTimeDeltaMs = std::abs(lockTime[ucLockTimeBits_] - stLockTimeInfo.dMilliseconds);
-            if (dLockTimeDeltaMs > std::numeric_limits<double>::epsilon())
-            {
-                pclMyLogger->warn("Detected a lock time jump of {}ms at time {}w, {}ms.", dLockTimeDeltaMs, stMetaData_.usWeek,
-                                  stMetaData_.dMilliseconds);
-            }
-        }
+    // If the following condition holds, then it is possible that lock was lost since
+    // the last observation.
+    if (timeDelta > lockTimeLowerBound) { stLockTimeInfo.dTimeOfLastLock = time - lockTimeLowerBound; }
+    stLockTimeInfo.dLastTime = time;
 
-        // Record the last bit change and the bitfield that was changed to.
-        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        stLockTimeInfo.ucBits = ucLockTimeBits_;
-    }
-    // If the lock time is absolute and the lock time bits have decreased, there was likely an outage.
-    else if (ucLockTimeBits_ < stLockTimeInfo.ucBits)
-    {
-        // In the event of an outage of any kind, reset the lock time to relative.
-        stLockTimeInfo.bAbsolute = false;
-        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        stLockTimeInfo.ucBits = ucLockTimeBits_;
-
-        pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms.",
-                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds);
-    }
-    // If the lock time is absolute and the bitfield hasn't changed within the expected time, reset the last change time
-    else if (stLockTimeInfo.bAbsolute && ucLockTimeBits_ < 15 &&
-             stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > lockTime[ucLockTimeBits_ + 1])
-    {
-        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms.", stMetaData_.usWeek, stMetaData_.dMilliseconds);
-    }
-    stLockTimeInfo.dMilliseconds = stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLockTimeInfo.ucBits];
-    return stLockTimeInfo.dMilliseconds / SEC_TO_MILLI_SEC;
+    const auto timeLocked = time - stLockTimeInfo.dTimeOfLastLock;
+    return timeLocked / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
@@ -304,9 +234,9 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     // Any fields flagged as invalid are set to NaN and appear in the log as such.
     stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGlonassFrequencyNumber_);
     stRangeData_.dPsr = stBlock_.bValidPsr ? stBlock_.dPsr : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fPsrStdDev = stdDevPsrScaling[stBlock_.ucPsrStdDev];
+    stRangeData_.fPsrStdDev = stBlock_.bValidPsr ? stdDevPsrScaling[stBlock_.ucPsrStdDev] : 0.0F;
     stRangeData_.dAdr = stBlock_.bValidPhr ? -stBlock_.dPhr / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fAdrStdDev = stdDevAdrScaling[stBlock_.ucPhrStdDev];
+    stRangeData_.fAdrStdDev = stBlock_.bValidPhr ? stdDevAdrScaling[stBlock_.ucPhrStdDev] : 0.0F;
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
     stRangeData_.fLockTime =
@@ -349,9 +279,9 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     // Any fields flagged as invalid are set to NaN and appear in the log as such.
     stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGlonassFrequencyNumber_);
     stRangeData_.dPsr = stBlock_.bValidPsr ? stBlock_.dPsr : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fPsrStdDev = stdDevPsrScaling[stBlock_.ucPsrStdDev];
+    stRangeData_.fPsrStdDev = stBlock_.bValidPsr ? stdDevPsrScaling[stBlock_.ucPsrStdDev] : 0.0F;
     stRangeData_.dAdr = stBlock_.bValidPhr ? -stBlock_.dPhr / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fAdrStdDev = stdDevPhrScaling[stBlock_.ucPhrStdDev];
+    stRangeData_.fAdrStdDev = stBlock_.bValidPhr ? stdDevPhrScaling[stBlock_.ucPhrStdDev] : 0.0F;
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
     stRangeData_.fLockTime =
