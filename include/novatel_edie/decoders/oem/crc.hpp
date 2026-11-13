@@ -98,7 +98,8 @@ inline uint32_t CalculateBlockCrc32Chorba(const unsigned char* ucBuffer_, uint32
     std::memcpy(leftover, ucBuffer_ + i, uiCount_ - i);
     for (size_t j = 0; j < 5; j++) { leftover[j] ^= acc[j]; }
 
-    return novatel::edie::CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(reinterpret_cast<const unsigned char*>(leftover), uiCount_ - i, 0);
+    return novatel::edie::CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(reinterpret_cast<const unsigned char*>(leftover),
+                                                                          static_cast<uint32_t>(uiCount_ - i), 0);
 }
 } // namespace
 
