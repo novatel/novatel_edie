@@ -51,3 +51,50 @@ function(install_novatel_edie_cmake_config)
         DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
         COMPONENT novatel_edie)
 endfunction()
+
+# Generate and install novatel_edie.pc
+function(install_novatel_edie_pkg_config)
+    include(GNUInstallDirs)
+
+    foreach(dir LIBDIR INCLUDEDIR DATADIR)
+        if(IS_ABSOLUTE "${CMAKE_INSTALL_${dir}}")
+            set(PKG_CONFIG_${dir} "${CMAKE_INSTALL_${dir}}")
+        else()
+            set(PKG_CONFIG_${dir} "\${prefix}/${CMAKE_INSTALL_${dir}}")
+        endif()
+    endforeach()
+
+    set(PKG_CONFIG_LIBS "")
+    foreach(target oem_decoder decoders_common common)
+        get_target_property(lib_name ${target} OUTPUT_NAME)
+        if(target STREQUAL "oem_decoder" AND NOT BUILD_SHARED_LIBS)
+            set(archive "\${libdir}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib_name}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+            if(MSVC)
+                list(APPEND PKG_CONFIG_LIBS "/WHOLEARCHIVE:${archive}")
+            elseif(APPLE)
+                list(APPEND PKG_CONFIG_LIBS "-Wl,-force_load,${archive}")
+            else()
+                list(APPEND PKG_CONFIG_LIBS "-Wl,--whole-archive" "-l${lib_name}" "-Wl,--no-whole-archive")
+            endif()
+        else()
+            list(APPEND PKG_CONFIG_LIBS "-l${lib_name}")
+        endif()
+    endforeach()
+    list(JOIN PKG_CONFIG_LIBS " " PKG_CONFIG_LIBS)
+
+    set(PKG_CONFIG_EXTRA_CFLAGS "")
+    if(spdlog_setup_VENDORED)
+        set(PKG_CONFIG_EXTRA_CFLAGS " -I\${includedir}/novatel_edie/third_party")
+    endif()
+
+    set(PKG_CONFIG_PREFIX "@CMAKE_INSTALL_PREFIX@")
+    set(pc_stage "${CMAKE_CURRENT_BINARY_DIR}/novatel_edie.pc.stage")
+    set(pc_file "${CMAKE_CURRENT_BINARY_DIR}/novatel_edie.pc")
+    configure_file(cmake/novatel_edie.pc.in "${pc_stage}" @ONLY)
+
+    install(CODE "configure_file(\"${pc_stage}\" \"${pc_file}\" @ONLY)"
+        COMPONENT novatel_edie)
+    install(FILES "${pc_file}"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+        COMPONENT novatel_edie)
+endfunction()
