@@ -454,11 +454,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
             if (IsAsciiCrc(uiMyByteCount - 1))
             {
                 uiMyByteCount--; // rewind back to delimiter before copying
-                char acCrc[OEM4_ASCII_CRC_LENGTH + 1];
+                char acCrc[OEM4_ASCII_CRC_LENGTH];
                 for (int32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; i++) { acCrc[i] = clInternalFrameBuffer[uiMyByteCount + i]; }
                 uiMyByteCount += OEM4_ASCII_CRC_LENGTH + 2; // Add 2 for CRLF
                 stMetaData_.uiLength = uiMyByteCount;
-                acCrc[OEM4_ASCII_CRC_LENGTH] = '\0';
                 uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;
@@ -516,10 +515,9 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                     ResetState();
                     continue;
                 }
-                char acCrc[NMEA_CRC_LENGTH + 1];
+                char acCrc[NMEA_CRC_LENGTH];
                 const size_t crcStartIndexInBuffer = uiMyByteCount - NMEA_CRC_LENGTH - 2;
                 for (int32_t i = 0; i < NMEA_CRC_LENGTH; ++i) { acCrc[i] = clInternalFrameBuffer[crcStartIndexInBuffer + i]; }
-                acCrc[NMEA_CRC_LENGTH] = '\0';
                 uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;

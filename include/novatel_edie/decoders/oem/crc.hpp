@@ -29,7 +29,7 @@
 #include "novatel_edie/common/crc.hpp"
 
 namespace {
-constexpr size_t CHORBA_WINDOW = 48; // 6 words * 8 bytes/word
+constexpr uint64_t CHORBA_WINDOW = 48; // 6 words * 8 bytes/word
 
 //============================================================================
 //! \brief An implementation of the Chorba CRC32 algorithm from https://arxiv.org/abs/2412.16398.
@@ -50,7 +50,7 @@ inline uint32_t CalculateBlockCrc32Chorba(const unsigned char* ucBuffer_, uint32
     uint64_t f[4] = {0};
     uint64_t cur = 0;
 
-    uint32_t i = 0;
+    uint64_t i = 0;
 
     // A zero polynomial Z(x) satisfies Z(x) mod G(x) = 0, where G(x) is the generator.
     // The core idea of the Chorba algorithm is that adding any multiple of such a
@@ -77,7 +77,7 @@ inline uint32_t CalculateBlockCrc32Chorba(const unsigned char* ucBuffer_, uint32
     // vars:      cur               f[0]     f[1]     f[2]     f[3]
     //            acc[0]   acc[1]   acc[2]   acc[3]   acc[4]
 
-    for (; i + CHORBA_WINDOW < uiCount_; i += 8)
+    for (; i + CHORBA_WINDOW < static_cast<uint64_t>(uiCount_); i += 8)
     {
         std::memcpy(&cur, ucBuffer_ + i, sizeof(cur));
         cur ^= acc[0];
@@ -98,7 +98,8 @@ inline uint32_t CalculateBlockCrc32Chorba(const unsigned char* ucBuffer_, uint32
     std::memcpy(leftover, ucBuffer_ + i, uiCount_ - i);
     for (size_t j = 0; j < 5; j++) { leftover[j] ^= acc[j]; }
 
-    return novatel::edie::CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(reinterpret_cast<const unsigned char*>(leftover), uiCount_ - i, 0);
+    return novatel::edie::CalculateBlockCrc<uint32_t, 0xEDB88320UL, true>(reinterpret_cast<const unsigned char*>(leftover),
+                                                                          static_cast<uint32_t>(uiCount_ - i), 0);
 }
 } // namespace
 

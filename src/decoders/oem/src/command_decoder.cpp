@@ -288,6 +288,7 @@ STATUS CommandDecoder::Decode(const char* pcCommand_, const uint32_t uiCommandLe
     // Prime the metadata with information we already know
     MetaDataStruct stMetaData;
     stMetaData.eFormat = DECODE_FORMAT::ABB_ASCII;
+    stMetaData.uiLength = static_cast<uint32_t>(strParams.size());
     stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
     stMetaData.uiMessageCrc = pclMessageDef->latestMessageCrc;
 

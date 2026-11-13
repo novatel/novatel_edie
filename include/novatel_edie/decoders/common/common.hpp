@@ -27,11 +27,13 @@
 #ifndef DECODERS_COMMON_HPP
 #define DECODERS_COMMON_HPP
 
+#include <charconv>
 #include <cstdint>
 #include <cstring>
 #include <iosfwd>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <fmt/core.h>
 #include <fmt/format.h>
@@ -53,6 +55,21 @@ template <typename T, typename BufferType> inline T LoadValueFromBuffer(const Bu
     T value;
     std::memcpy(&value, logBuf_, sizeof(T));
     return value;
+}
+
+//-----------------------------------------------------------------------
+//! \brief Parse all of sToken_ as a number with std::from_chars.
+//! \tparam Base The numeric base for integers; ignored for floating-point types.
+//! \param[in] sToken_ The token. It is not trimmed, so surrounding whitespace or a leading '+' fails.
+//! \return True only if parsing succeeded and consumed every character.
+//-----------------------------------------------------------------------
+template <int Base = 10, typename T> [[nodiscard]] inline bool FromCharsExact(std::string_view sToken_, T& value_)
+{
+    const char* pcEnd = sToken_.data() + sToken_.size();
+    std::from_chars_result result;
+    if constexpr (std::is_integral_v<T>) { result = std::from_chars(sToken_.data(), pcEnd, value_, Base); }
+    else { result = std::from_chars(sToken_.data(), pcEnd, value_); }
+    return result.ec == std::errc() && result.ptr == pcEnd;
 }
 
 inline void ValidateMessageDatabaseFamily(MessageDatabase::ConstPtr pclMessageDb_, std::string_view expectedFamily,
@@ -286,9 +303,9 @@ struct MetaDataBase
     DECODE_FORMAT eFormat{DECODE_FORMAT::UNKNOWN};
     uint16_t usWeek{0};
     double dMilliseconds{0.0};
-    uint32_t uiLength{0};
-    uint32_t uiBinaryMsgLength{0}; //!< Message length according to the binary header. If ASCII, this field is not used.
-    uint32_t uiHeaderLength{0};
+    uint32_t uiLength{0};          //!< Full frame bytes, including checksum/trailer, excluding an optional NUL sentinel; not buffer capacity.
+    uint32_t uiBinaryMsgLength{0}; //!< Binary payload bytes from the header, excluding header and frame CRC; unused for ASCII/JSON decoding.
+    uint32_t uiHeaderLength{0};    //!< Bytes before the payload; must not exceed uiLength when decoding. Zero for payload-only input and JSON.
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
     std::string messageName;
@@ -390,15 +407,10 @@ int32_t GetEnumValue(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, 
 int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, std::string_view strResp_);
 int32_t GetResponseId(const novatel::edie::EnumDefinition::ConstPtr& stRespDef_, std::string_view strResp_);
 
+// ----------------------------------------------------------------------
+//! \brief Abbreviated ASCII formatting characters.
 //-----------------------------------------------------------------------
-//! \brief Strip abbreviated ASCII formatting from the front of the
-//! log buffer.
-//
-//! \param[in] ppcMessageBuffer_ A pointer to the buffer containing the
-//! message to have abbreviated ASCII formatting stripped.
-//! Message is assumed to be null terminated.
-//-----------------------------------------------------------------------
-void ConsumeAbbrevFormatting(const char** ppcMessageBuffer_);
+constexpr auto ABBREV_ASCII_FORMATTING = std::string_view("< \r\n");
 
 //-----------------------------------------------------------------------
 //! \struct SatelliteId

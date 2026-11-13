@@ -73,17 +73,17 @@ void MessageDatabase::RemoveBitMask(std::string_view strBitMask_)
 }
 
 //-----------------------------------------------------------------------
-uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
+uint32_t MessageDatabase::MsgNameToMsgId(std::string_view sMsgName_) const
 {
     uint32_t uiSiblingId = NULL_SIBLING_ID;
     uint32_t uiMsgFormat;
     uint32_t uiResponse;
 
     // Ingest the sibling information, i.e. the _1 from LOGNAMEA_1
-    if (sMsgName_.find_last_of('_') != std::string::npos && sMsgName_.find_last_of('_') == sMsgName_.size() - 2)
+    if (sMsgName_.size() >= 2 && sMsgName_[sMsgName_.size() - 2] == '_')
     {
         uiSiblingId = static_cast<uint32_t>(ToDigit(sMsgName_.back()));
-        sMsgName_.resize(sMsgName_.size() - 2);
+        sMsgName_.remove_suffix(2);
     }
 
     // If this is an abbrev msg (no format information), we will be able to find the MsgDef
@@ -101,17 +101,17 @@ uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
     case 'R': // ASCII Response
         uiResponse = static_cast<uint32_t>(true);
         uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ASCII);
-        sMsgName_.pop_back();
+        sMsgName_.remove_suffix(1);
         break;
     case 'A': // ASCII
         uiResponse = static_cast<uint32_t>(false);
         uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ASCII);
-        sMsgName_.pop_back();
+        sMsgName_.remove_suffix(1);
         break;
     case 'B': // Binary
         uiResponse = static_cast<uint32_t>(false);
         uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::BINARY);
-        sMsgName_.pop_back();
+        sMsgName_.remove_suffix(1);
         break;
     default: // Abbreviated ASCII
         uiResponse = static_cast<uint32_t>(false);
