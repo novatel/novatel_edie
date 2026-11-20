@@ -248,6 +248,23 @@ def test_response(data: bytes, decoder: oem.Decoder, exp_name: str, exp_id: int,
     assert msg.response_string == exp_string
     assert msg.response_enum == exp_enum
 
+def test_loglist_message_id_subfields(decoder: oem.Decoder):
+    """Tests that each LOGLIST entry splits its message ID from the logged format."""
+    # Arrange
+    data = b"#LOGLISTA,COM1,0,63.5,FINESTEERING,2172,164226.000,02010000,c00c,16248;6,COM1,RXSTATUSEVENTA,ONNEW,0.000000,0.000000,HOLD,COM1,INTERFACEMODE,ONTIME,20.000000,0.000000,NOHOLD,COM1,LOGLISTA,ONCE,0.000000,0.000000,NOHOLD,COM2,RXSTATUSEVENTA,ONNEW,0.000000,0.000000,HOLD,CCOM1,INSPVACMPB,ONTIME,0.050000,0.000000,HOLD,CCOM1,INSPVASDCMPB,ONTIME,1.000000,0.000000,HOLD*53104c0f\r\n"
+    # Act
+    msg = decoder.decode(data)
+    # Assert
+    assert all(isinstance(entry.message_id, oem.messages.MessageId) for entry in msg.log_list)
+    assert [(entry.message_id.message_id, entry.message_id.format) for entry in msg.log_list] == [
+        (94, oem.enums.MessageFormat.ASCII),
+        (3, oem.enums.MessageFormat.ABBREVIATED_ASCII),
+        (5, oem.enums.MessageFormat.ASCII),
+        (94, oem.enums.MessageFormat.ASCII),
+        (1889, oem.enums.MessageFormat.BINARY),
+        (1890, oem.enums.MessageFormat.BINARY),
+    ]
+
 @pytest.mark.parametrize("data, exp_dict", [
     (
         b'#SATVIS2A,USB1,1,64.0,FINESTEERING,2379,485000.000,02000020,a867,32768;QZSS,TRUE,TRUE,5,194,1,13.5,306.6,142.865,142.827,195,1,-19.6,268.0,-241.672,-241.710,199,1,-25.6,293.3,-3.932,-3.970,200,16,-41.5,329.5,-3.242,-3.280,196,16,-48.1,278.4,327.067,327.029*c8e214c6\r\n',

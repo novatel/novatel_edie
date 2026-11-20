@@ -28,6 +28,10 @@ from novatel_edie.oem.messages import (
     BESTSATS_satellite_entries_Field,
     ChannelTrackingStatus,
     ExtendedSolutionStatus,
+    LOG,
+    LOGLIST,
+    LOGLIST_log_list_Field,
+    MessageId,
     PASSCOM1,
     RANGE,
     RANGE_obs_Field,
@@ -39,6 +43,7 @@ from novatel_edie.oem.enums import (
     ChannelCorrelatorType,
     ChannelTrackingState,
     Datum,
+    MessageFormat,
     PseudorangeInnoCorrection,
     SatelliteSystem,
     SolStatus,
@@ -259,6 +264,56 @@ class TestBitfields:
         assert isinstance(channel_status.tracking_state, ChannelTrackingState)
         assert isinstance(channel_status.correlator_type, ChannelCorrelatorType)
         assert isinstance(channel_status.satellite_system, SatelliteSystem)
+
+    def test_loglist_message_id(self, constructor_type):
+        # Arrange
+        expected_value = 0x400602
+        bitfield_params = {
+            'message_id': 1538,
+            'format': MessageFormat.ABBREVIATED_ASCII,
+        }
+
+        # Act
+        if constructor_type == 'value':
+            bitfield = MessageId(expected_value)
+        else:
+            bitfield = MessageId(**bitfield_params)
+        entry = LOGLIST_log_list_Field(message_id=bitfield)
+
+        message = LOGLIST(log_list=[entry])
+        message_id = message.log_list[0].message_id
+
+        # Assert
+        assert message_id.value == expected_value
+        assert message_id.message_id == 1538
+        assert message_id.sibling_id == 0
+        assert message_id.format == MessageFormat.ABBREVIATED_ASCII
+        assert isinstance(message_id.format, MessageFormat)
+        assert message_id.is_response == 0
+
+    def test_log_message_id(self, constructor_type):
+        # Arrange
+        expected_value = 0xA1002A
+        bitfield_params = {
+            'message_id': 42,
+            'sibling_id': 1,
+            'format': MessageFormat.ASCII,
+            'is_response': 1,
+        }
+
+        # Act
+        if constructor_type == 'value':
+            bitfield = MessageId(expected_value)
+        else:
+            bitfield = MessageId(**bitfield_params)
+        message = LOG(message_id=bitfield)
+
+        # Assert
+        assert message.message_id.value == expected_value
+        assert message.message_id.message_id == 42
+        assert message.message_id.sibling_id == 1
+        assert message.message_id.format == MessageFormat.ASCII
+        assert message.message_id.is_response == 1
 
 
 class TestSetattr:
