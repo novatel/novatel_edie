@@ -287,10 +287,10 @@ struct PyResponse : public PyEncodableField
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_), complete(complete_) {};
 
     // Retrieve response ID from first field of response
-    int32_t GetResponseId() { return fieldsPtr->GetFieldValue<int32_t>(*fieldsPtr->GetFieldInfo()->messageOrderedFields[0]); }
+    int32_t GetResponseId() { return owned_fields().GetFieldValue<int32_t>(*fieldInfo->messageOrderedFields[0]); }
 
     // Retrieve response string from second field of response
-    std::string GetResponseString() const { return fieldsPtr->GetFieldValue<std::string>(*fieldsPtr->GetFieldInfo()->messageOrderedFields[1]); }
+    std::string GetResponseString() const { return owned_fields().GetFieldValue<std::string>(*fieldInfo->messageOrderedFields[1]); }
 
     nb::object GetEnumValue()
     {

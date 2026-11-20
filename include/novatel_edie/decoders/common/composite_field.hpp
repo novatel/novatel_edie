@@ -568,8 +568,6 @@ class FieldArray
 
         FieldArrayRecord(FieldArrayPointer fieldArray_, size_t index_) : fieldArray(fieldArray_), index(index_) {}
 
-        [[nodiscard]] std::conditional_t<Mutable, CompositeField*, const CompositeField*> GetCompositeField() const;
-
         template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const
         {
             return fieldArray->template GetFieldValue<T>(field_, index, elementIndex_);
@@ -586,8 +584,8 @@ class FieldArray
             fieldArray->SetFieldValue(fieldDef_, index, std::forward<T>(value_));
         }
 
-        template <bool Enabled = Mutable, std::enable_if_t<Enabled && Mutable, int> = 0>
-        CompositeField ReplaceRecord(const CompositeField& record_) const;
+        //! Replace this record, returning the previous one.
+        template <bool Enabled = Mutable, std::enable_if_t<Enabled && Mutable, int> = 0> CompositeField ReplaceRecord(CompositeField record_) const;
     };
 
     explicit FieldArray(std::vector<CompositeField> records_ = {}, FieldInfo::ConstPtr fieldInfo_ = nullptr)
@@ -898,7 +896,7 @@ class CompositeField
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
-        case FIELD_TYPE::RESPONSE_STR: return varFields[field_.index];
+        case FIELD_TYPE::RESPONSE_STR: return varFields.at(field_.index);
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
             const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
             if (arrayField == nullptr) { throw std::runtime_error("GetFieldValueVariant(): missing fixed array metadata"); }
@@ -1330,13 +1328,6 @@ inline size_t CompositeField::GetFieldByteSize(const BaseField& field_) const
     }
 }
 
-template <bool Mutable>
-std::conditional_t<Mutable, CompositeField*, const CompositeField*> FieldArray::FieldArrayRecord<Mutable>::GetCompositeField() const
-{
-    auto* records = std::get_if<CompositeFieldArray>(&fieldArray->storage);
-    return records != nullptr ? &records->at(index) : nullptr;
-}
-
 template <typename T> void FieldArray::SetFieldValue(const BaseField& fieldDef_, size_t index_, T&& value_)
 {
     if (auto* records = std::get_if<CompositeFieldArray>(&storage))
@@ -1362,9 +1353,10 @@ template <typename T> void FieldArray::SetFieldValue(const BaseField& fieldDef_,
 
 template <bool Mutable>
 template <bool Enabled, std::enable_if_t<Enabled && Mutable, int>>
-CompositeField FieldArray::FieldArrayRecord<Mutable>::ReplaceRecord(const CompositeField& record_) const
+CompositeField FieldArray::FieldArrayRecord<Mutable>::ReplaceRecord(CompositeField record_) const
 {
-    if (auto* records = std::get_if<CompositeFieldArray>(&fieldArray->storage)) { return std::exchange(records->at(index), record_); }
+    // record_ is taken by value, so it is safe to replace a record with itself
+    if (auto* records = std::get_if<CompositeFieldArray>(&fieldArray->storage)) { return std::exchange(records->at(index), std::move(record_)); }
 
     auto& fields = std::get<FixedFieldRegion>(fieldArray->storage);
     if (index >= fieldArray->size()) { throw std::out_of_range("ReplaceRecord(): index out of range"); }

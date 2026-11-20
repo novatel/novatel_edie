@@ -35,10 +35,11 @@ A `CompositeField` stores the decoded contents of a message. It holds:
 
 - `CompositeField::GetFieldValue` and `FieldArray::GetFieldValue` can be used to get the value of most fields by their definition
 - `CompositeField::GetFieldValueVariant` wraps a field's value in a variant for programming convenience
+- Iterating a `FieldArray` yields each record as a `CompositeField`, whichever way the records are stored
 
 ### Writing fields
 
-- `CompositeField::SetFieldValue` and `FieldArray` record views set fields by definition, accepting values or a pointer and element count
+- `CompositeField::SetFieldValue` and `FieldArray` record views set a whole field by definition
 - `CompositeField::SetFixedData` copies raw bytes to the start of the fixed region for whole-message decoding
 - `CompositeField::SetArrayElement` can be used to set the values of individual elements of FIXED_LENGTH_ARRAYs/VARIABLE_LENGTH_ARRAYs
 - Use `CompositeField::GetFixedFields`/`CompositeField::GetVarFields` to obtain references to the fixed/variable regions, respectively
