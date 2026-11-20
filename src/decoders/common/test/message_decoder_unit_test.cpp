@@ -792,7 +792,7 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageRequiresValidSchemaAndWholeRe
     EXPECT_THROW((void)FieldArray(std::vector<std::byte>{}, variableInfo), std::runtime_error);
     const FieldArray empty(std::vector<std::byte>{}, fieldInfo);
     EXPECT_TRUE(empty.empty());
-    EXPECT_TRUE(empty.ForEachRecord([](const CompositeField&) { ADD_FAILURE(); return false; }));
+    EXPECT_EQ(empty.begin(), empty.end());
 }
 
 TEST(MessageDecoderContainerTypesTest, FixedStorageWritesReplacesAndVisitsRecords)
@@ -816,14 +816,8 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageWritesReplacesAndVisitsRecord
     EXPECT_THROW((void)records[0].ReplaceRecord(CompositeField(0, 1)), std::runtime_error);
 
     std::vector<uint32_t> visited;
-    EXPECT_TRUE(records.ForEachRecord([&](const CompositeField& record) {
-        visited.push_back(record.GetFieldValue<uint32_t>(*valueField));
-        return true;
-    }));
+    for (const auto& record : records) { visited.push_back(record.GetFieldValue<uint32_t>(*valueField)); }
     EXPECT_EQ(visited, (std::vector<uint32_t>{11U, 33U}));
-    size_t visits = 0;
-    EXPECT_FALSE(records.ForEachRecord([&](const CompositeField&) { ++visits; return false; }));
-    EXPECT_EQ(visits, 1U);
 }
 
 TEST(MessageDecoderContainerTypesTest, RecordViewSetFieldValueForBothStorageTypes)
@@ -1173,7 +1167,7 @@ TEST(MessageDecoderContainerTypesTest, CompositeFieldIsNothrowMovable)
     EXPECT_TRUE(std::is_nothrow_move_assignable_v<CompositeField>);
 }
 
-TEST(MessageDecoderContainerTypesTest, ForEachRecordProvidesFieldInfoForBothStorageTypes)
+TEST(MessageDecoderContainerTypesTest, IteratedRecordsProvideFieldInfoForBothStorageTypes)
 {
     auto valueField = std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
     const auto fieldInfo = BuildFieldInfo({valueField});
@@ -1186,7 +1180,7 @@ TEST(MessageDecoderContainerTypesTest, ForEachRecordProvidesFieldInfoForBothStor
     for (auto& array : arrays)
     {
         // Records must behave the same regardless of how the array stores them
-        EXPECT_TRUE(array.ForEachRecord([](const CompositeField& r) { return r.GetFieldValueByName<uint32_t>("value") == 7U; }));
+        EXPECT_EQ(array.begin()->GetFieldValueByName<uint32_t>("value"), 7U);
         EXPECT_EQ(array[0].ReplaceRecord(record).GetFieldValueByName<uint32_t>("value"), 7U);
     }
 }
@@ -1232,7 +1226,7 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageIteratorFind)
     fieldArray.SetFieldValue<int16_t>(*f1, static_cast<int16_t>(15), 2 * fieldInfo->fixedFieldBytes);
 
     FieldArray wrapped(std::vector<std::byte>(fieldArray.data(), fieldArray.data() + fieldArray.size()), fieldInfo);
-    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
         return row.template GetFieldValue<uint32_t>(*f0) == 22U;
     });
     ASSERT_NE(it, wrapped.end());
@@ -1240,12 +1234,12 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageIteratorFind)
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*f0), 22U);
     EXPECT_EQ((*it).GetFieldValue<int16_t>(*f1), static_cast<int16_t>(9));
 
-    const auto missing = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
+    const auto missing = std::find_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
         return row.template GetFieldValue<uint32_t>(*f0) == 99U;
     });
     EXPECT_EQ(missing, wrapped.end());
 
-    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
         return row.template GetFieldValue<int16_t>(*f1) > 0;
     }), 2);
 }
@@ -1313,14 +1307,14 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayFlatBackedIteratorFind)
     body.SetFieldValue(*fieldArrayField, std::move(stored));
 
     const auto& wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
-    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
         return row.template GetFieldValue<uint32_t>(*nestedU32) == 22U;
     });
     ASSERT_NE(it, wrapped.end());
     EXPECT_EQ(std::distance(wrapped.begin(), it), 1);
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 22U);
     EXPECT_EQ((*it).GetFieldValue<int16_t>(*nestedI16), static_cast<int16_t>(9));
-    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
         return row.template GetFieldValue<int16_t>(*nestedI16) > 0;
     }), 1);
 }
@@ -1390,14 +1384,14 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayCompositeBackedIteratorFind)
     body.SetFieldValue(*fieldArrayField, FieldArray({row0, row1}, nestedFieldInfo));
 
     const auto& wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
-    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
         return row.template GetFieldValue<uint32_t>(*nestedU32) == 20U;
     });
     ASSERT_NE(it, wrapped.end());
     EXPECT_EQ(std::distance(wrapped.begin(), it), 1);
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 20U);
     EXPECT_EQ((*it).GetFieldValue<std::string>(*nestedStr), "twenty");
-    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
         return row.template GetFieldValue<uint32_t>(*nestedU32) > 0U;
     }), 2);
 }

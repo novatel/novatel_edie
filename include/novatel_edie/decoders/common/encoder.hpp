@@ -617,15 +617,14 @@ template <typename Derived> class EncoderBase
                 }
 
                 const auto& subfieldDefs = fieldArrayDef->fieldInfo->messageOrderedFields;
-                const bool encoded =
-                    std::get<FieldArray>(clCompField_.GetVarFields()[fieldDefRef.index]).ForEachRecord([&](const CompositeField& record) {
-                        if constexpr (Abbreviated)
-                        {
-                            if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
-                        }
-                        return EncodeAsciiBody<Abbreviated>(record, subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1);
-                    });
-                if (!encoded) { return false; }
+                for (const auto& record : std::get<FieldArray>(clCompField_.GetVarFields()[fieldDefRef.index]))
+                {
+                    if constexpr (Abbreviated)
+                    {
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
+                    }
+                    if (!EncodeAsciiBody<Abbreviated>(record, subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1)) { return false; }
+                }
 
                 newIndentLine = true;
                 break;
@@ -742,12 +741,14 @@ template <typename Derived> class EncoderBase
                 }
                 else
                 {
-                    const bool encoded =
-                        std::get<FieldArray>(clCompField_.GetVarFields()[fieldDefRef.index]).ForEachRecord([&](const CompositeField& record) {
-                            return EncodeJsonBody(record, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_) &&
-                                   CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',');
-                        });
-                    if (!encoded) { return false; }
+                    for (const auto& record : std::get<FieldArray>(clCompField_.GetVarFields()[fieldDefRef.index]))
+                    {
+                        if (!EncodeJsonBody(record, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_) ||
+                            !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
+                        {
+                            return false;
+                        }
+                    }
                     *(*ppcOutBuf_ - 1) = ']';
                     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
                 }

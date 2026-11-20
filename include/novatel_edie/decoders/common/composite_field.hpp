@@ -303,6 +303,12 @@ class FixedFieldRegion
 
     FixedFieldRegion(size_t sz_) : byteRegion(sz_) {}
 
+    // Copies always own their bytes, so copying a view never aliases the viewed memory
+    FixedFieldRegion(const FixedFieldRegion& other_) : byteRegion(other_.data(), other_.data() + other_.size()) {}
+    FixedFieldRegion(FixedFieldRegion&&) noexcept = default;
+    FixedFieldRegion& operator=(const FixedFieldRegion& other_) { return *this = FixedFieldRegion(other_); }
+    FixedFieldRegion& operator=(FixedFieldRegion&&) noexcept = default;
+
     // ---------------------------------------------------------------------------
     //! \brief Create a non-owning FixedFieldRegion that borrows external bytes.
     //!
@@ -609,9 +615,6 @@ class FieldArray
 
     [[nodiscard]] const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
 
-    //! Call fn_(const CompositeField&) on each record in order, stopping early if it returns false.
-    template <typename Fn> bool ForEachRecord(Fn&& fn_) const;
-
     // ---------------------------------------------------------------------------
     //! \brief Get a field value by its definition.
     //!
@@ -640,42 +643,10 @@ class FieldArray
 
     [[nodiscard]] FieldArrayRecord<false> operator[](size_t index_) const { return FieldArrayRecord<false>(this, index_); }
 
-    struct const_iterator
-    {
-        using value_type = FieldArrayRecord<false>;
-        using reference = value_type;
-        using pointer = void;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category = std::forward_iterator_tag;
+    struct const_iterator; // Defined after CompositeField, which it stores
 
-        FieldArrayRecord<false> record;
-
-        const_iterator(const FieldArray* fieldArray_, size_t index_ = 0) : record(fieldArray_, index_) {}
-
-        reference operator*() const { return record; }
-
-        const_iterator& operator++()
-        {
-            ++record.index;
-            return *this;
-        }
-
-        const_iterator operator++(int)
-        {
-            auto tmp = *this;
-            ++(*this);
-            return tmp;
-        }
-
-        bool operator==(const const_iterator& other) const
-        {
-            return record.fieldArray == other.record.fieldArray && record.index == other.record.index;
-        }
-        bool operator!=(const const_iterator& other) const { return !(*this == other); }
-    };
-
-    [[nodiscard]] const_iterator begin() const { return const_iterator(this); }
-    [[nodiscard]] const_iterator end() const { return const_iterator(this, size()); }
+    [[nodiscard]] const_iterator begin() const;
+    [[nodiscard]] const_iterator end() const;
 
   private:
     using CompositeFieldArray = std::vector<CompositeField>;
@@ -958,51 +929,7 @@ class CompositeField
     //! \return The size in bytes of the field's data.
     //! \throws std::runtime_error on invalid index or type mismatch.
     // ---------------------------------------------------------------------------
-    size_t GetFieldByteSize(const BaseField& field_) const
-    {
-        switch (field_.type)
-        {
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-            if (arrayField == nullptr) { throw std::runtime_error("GetFieldByteSize(): missing fixed array metadata"); }
-            return static_cast<size_t>(arrayField->arrayLength) * field_.dataType.length;
-        }
-        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
-        case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
-        case FIELD_TYPE::STRING: [[fallthrough]];
-        case FIELD_TYPE::RESPONSE_STR:
-            if (field_.index >= varFields.size()) { throw std::runtime_error("GetFieldByteSize(): var field index out of range"); }
-
-            return std::visit(
-                [&field_](const auto& value) -> size_t {
-                    using T = std::decay_t<decltype(value)>;
-                    if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::vector<std::byte>>) { return value.size(); }
-                    else if constexpr (std::is_same_v<T, FieldArray>)
-                    {
-                        const auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(&field_);
-                        if (fieldArrayField == nullptr) { throw std::runtime_error("GetFieldByteSize(): missing field array metadata"); }
-                        if (fieldArrayField->fieldInfo->varFieldCount == 0) { return fieldArrayField->fieldInfo->fixedFieldBytes * value.size(); }
-                        size_t byteSize = 0;
-                        value.ForEachRecord([&](const CompositeField& compField) {
-                            for (const auto& field : fieldArrayField->fieldInfo->messageOrderedFields)
-                            {
-                                byteSize += compField.GetFieldByteSize(*field);
-                            }
-                            return true;
-                        });
-                        return byteSize;
-                    }
-                    else if constexpr (std::is_arithmetic_v<T>)
-                    {
-                        throw std::runtime_error("GetFieldByteSize(): scalar values are not valid var field payloads");
-                    }
-                    else if constexpr (is_specialization_of_v<T, std::vector>) { return sizeof(typename T::value_type) * value.size(); }
-                    else { throw std::runtime_error("GetFieldByteSize(): unsupported var field payload type"); }
-                },
-                varFields[field_.index]);
-        default: return field_.dataType.length;
-        }
-    }
+    size_t GetFieldByteSize(const BaseField& field_) const;
 
     // ---------------------------------------------------------------------------
     //! \brief Get the number of subfields in a field.
@@ -1235,13 +1162,13 @@ class CompositeField
                         else
                         {
                             size_t written = 0;
-                            const bool success = value.ForEachRecord([&](const CompositeField& record) {
+                            for (const auto& record : value)
+                            {
                                 const std::optional<size_t> count = handler_(record, buffer_ + written, capacity_ - written);
-                                if (!count || *count > capacity_ - written) { return false; }
+                                if (!count || *count > capacity_ - written) { return 0; }
                                 written += *count;
-                                return true;
-                            });
-                            return success ? written : 0;
+                            }
+                            return written;
                         }
                     }
                     else if constexpr (std::is_arithmetic_v<T>)
@@ -1319,22 +1246,88 @@ inline size_t FieldArray::size() const
     return std::get<CompositeFieldArray>(storage).size();
 }
 
-template <typename Fn> bool FieldArray::ForEachRecord(Fn&& fn_) const
+//! Iterates records as CompositeFields. For flat storage, *it is a view stashed in the
+//! iterator, so it is only valid while that iterator is alive (copy it to keep it longer).
+struct FieldArray::const_iterator
 {
-    if (const auto* fields = std::get_if<FixedFieldRegion>(&storage))
+    using value_type = CompositeField;
+    using reference = const CompositeField&;
+    using pointer = const CompositeField*;
+    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::input_iterator_tag;
+
+    const FieldArray* fieldArray;
+    size_t index;
+    mutable CompositeField view; // Rebuilt on each dereference of a flat record
+
+    const_iterator(const FieldArray* fieldArray_, size_t index_) : fieldArray(fieldArray_), index(index_) {}
+
+    reference operator*() const
     {
-        const size_t recordBytes = fieldInfo->fixedFieldBytes;
-        for (size_t offset = 0; offset < fields->size(); offset += recordBytes)
-        {
-            if (!fn_(CompositeField::ViewFixedFields(fields->data() + offset, recordBytes, fieldInfo))) { return false; }
-        }
-        return true;
+        const auto* fields = std::get_if<FixedFieldRegion>(&fieldArray->storage);
+        if (fields == nullptr) { return std::get<CompositeFieldArray>(fieldArray->storage)[index]; }
+        const size_t recordBytes = fieldArray->fieldInfo->fixedFieldBytes;
+        view = CompositeField::ViewFixedFields(fields->data() + (index * recordBytes), recordBytes, fieldArray->fieldInfo);
+        return view;
     }
-    for (const auto& record : std::get<CompositeFieldArray>(storage))
+    pointer operator->() const { return &**this; }
+
+    const_iterator& operator++()
     {
-        if (!fn_(record)) { return false; }
+        ++index;
+        return *this;
     }
-    return true;
+    const_iterator operator++(int) { return {fieldArray, index++}; } // Avoids copying the stashed view
+
+    bool operator==(const const_iterator& other) const { return index == other.index; }
+    bool operator!=(const const_iterator& other) const { return index != other.index; }
+};
+
+inline FieldArray::const_iterator FieldArray::begin() const { return {this, 0}; }
+inline FieldArray::const_iterator FieldArray::end() const { return {this, size()}; }
+
+// Defined here because it iterates FieldArray records
+inline size_t CompositeField::GetFieldByteSize(const BaseField& field_) const
+{
+    switch (field_.type)
+    {
+    case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+        const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
+        if (arrayField == nullptr) { throw std::runtime_error("GetFieldByteSize(): missing fixed array metadata"); }
+        return static_cast<size_t>(arrayField->arrayLength) * field_.dataType.length;
+    }
+    case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
+    case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
+    case FIELD_TYPE::STRING: [[fallthrough]];
+    case FIELD_TYPE::RESPONSE_STR:
+        if (field_.index >= varFields.size()) { throw std::runtime_error("GetFieldByteSize(): var field index out of range"); }
+
+        return std::visit(
+            [&field_](const auto& value) -> size_t {
+                using T = std::decay_t<decltype(value)>;
+                if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::vector<std::byte>>) { return value.size(); }
+                else if constexpr (std::is_same_v<T, FieldArray>)
+                {
+                    const auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(&field_);
+                    if (fieldArrayField == nullptr) { throw std::runtime_error("GetFieldByteSize(): missing field array metadata"); }
+                    if (fieldArrayField->fieldInfo->varFieldCount == 0) { return fieldArrayField->fieldInfo->fixedFieldBytes * value.size(); }
+                    size_t byteSize = 0;
+                    for (const auto& record : value)
+                    {
+                        for (const auto& field : fieldArrayField->fieldInfo->messageOrderedFields) { byteSize += record.GetFieldByteSize(*field); }
+                    }
+                    return byteSize;
+                }
+                else if constexpr (std::is_arithmetic_v<T>)
+                {
+                    throw std::runtime_error("GetFieldByteSize(): scalar values are not valid var field payloads");
+                }
+                else if constexpr (is_specialization_of_v<T, std::vector>) { return sizeof(typename T::value_type) * value.size(); }
+                else { throw std::runtime_error("GetFieldByteSize(): unsupported var field payload type"); }
+            },
+            varFields[field_.index]);
+    default: return field_.dataType.length;
+    }
 }
 
 template <bool Mutable>
