@@ -280,8 +280,7 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_,
 {
     SimpleTypeVisitor(pstMessageDataType_, [&](auto valuePtr) {
         using T = std::decay_t<decltype(valuePtr)>;
-        if (pstMessageDataType_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY ||
-            pstMessageDataType_.type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+        if (pstMessageDataType_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY || pstMessageDataType_.type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
         {
             const auto buf = TypedBuffer<T>(reinterpret_cast<const std::byte*>(*ppucLogBuf_), n);
             clCompField_.SetFieldValue(pstMessageDataType_, buf);
@@ -877,10 +876,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                                 if (it.get(value) != simdjson::SUCCESS) { return STATUS::MALFORMED_INPUT; }
                                 vDecodedValues[i++] = static_cast<uint8_t>(value);
                             }
-                            if (!vDecodedValues.empty())
-                            {
-                                clCompField_.SetFieldValue(*field, vDecodedValues);
-                            }
+                            if (!vDecodedValues.empty()) { clCompField_.SetFieldValue(*field, vDecodedValues); }
                         }
                         else
                         {
@@ -908,10 +904,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                                 if (it.get(value) != simdjson::SUCCESS) { return STATUS::MALFORMED_INPUT; }
                                 vDecodedValues[i++] = static_cast<int8_t>(value);
                             }
-                            if (!vDecodedValues.empty())
-                            {
-                                clCompField_.SetFieldValue(*field, vDecodedValues);
-                            }
+                            if (!vDecodedValues.empty()) { clCompField_.SetFieldValue(*field, vDecodedValues); }
                         }
                         else
                         {
