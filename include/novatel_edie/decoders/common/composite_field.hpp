@@ -292,6 +292,10 @@ class FixedFieldRegion
     const std::byte* viewData = nullptr;
     size_t viewSize = 0;
 
+    // Whether [start_, start_ + len_) lies within byteRegion. Written so the sum can't wrap, which also
+    // lets GCC prove guarded memcpys stay in bounds (avoiding false -Warray-bounds errors).
+    [[nodiscard]] bool FitsInRegion(size_t start_, size_t len_) const { return len_ <= byteRegion.size() && start_ <= byteRegion.size() - len_; }
+
   public:
     FixedFieldRegion() = default;
 
@@ -363,7 +367,7 @@ class FixedFieldRegion
     {
         static_assert(std::is_trivially_copyable_v<T>, "SetData only supports trivially copyable types");
         assert(!IsView() && "SetData() is not permitted on a non-owning FixedFieldRegion view");
-        if (startIndex_ + (n * sizeof(T)) > byteRegion.size()) { throw std::runtime_error("SetData(): buffer overflow in FixedFieldRegion"); }
+        if (!FitsInRegion(startIndex_, n * sizeof(T))) { throw std::runtime_error("SetData(): buffer overflow in FixedFieldRegion"); }
         std::memcpy(byteRegion.data() + startIndex_, values_, n * sizeof(T));
     }
 
@@ -386,7 +390,7 @@ class FixedFieldRegion
         const size_t offset = baseIndex_ + field_.index + (elementIndex_ * sizeof(T));
         // One combined branch keeps this cheap on the decoders' per-element path
         if (!IsFixedElementSize<T>(field_) || (elementIndex_ != 0 && elementIndex_ >= FixedElementCount(field_)) ||
-            offset + sizeof(T) > byteRegion.size())
+            !FitsInRegion(offset, sizeof(T)))
         {
             throw std::runtime_error("SetFieldValue(): value does not match the field's size, or element index is out of range");
         }
@@ -421,7 +425,7 @@ class FixedFieldRegion
             const size_t capacity = FixedElementCount(field_) * sizeof(ElementT);
             const size_t bytes = value_.size() * sizeof(ElementT);
             if (bytes > capacity) { throw std::runtime_error("SetFieldValue(): values do not fit in the field"); }
-            if (start + capacity > byteRegion.size()) { throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion"); }
+            if (!FitsInRegion(start, capacity)) { throw std::runtime_error("SetFieldValue(): buffer overflow in FixedFieldRegion"); }
             if (bytes != 0) { std::memcpy(byteRegion.data() + start, value_.data(), bytes); }
             std::fill(byteRegion.begin() + start + bytes, byteRegion.begin() + start + capacity, std::byte{0});
         }
@@ -1150,37 +1154,28 @@ class CompositeField
     //!     should only be used to set the value of a complete field, as it cannot set
     //!     individual elements of a variable-length array.
     //!
-    //! \tparam Fixed True for fixed fields, false for variable-length fields.
+    //! A VARIABLE_LENGTH_ARRAY must already hold a vector with room for the element.
+    //!
     //! \tparam T The element type.
-    //! \param[in] fieldDef_ The definition of the array field.
-    //! \param[in] elementIndex_ The element index within the array.
+    //! \param[in] fieldDef_ The definition of the field.
+    //! \param[in] elementIndex_ The element index within the field.
     //! \param[in] value_ The value to set.
     //! \throws std::runtime_error on invalid index or type mismatch.
     // ---------------------------------------------------------------------------
-    template <bool Fixed = true, typename T> void SetArrayElement(const BaseField& fieldDef_, size_t elementIndex_, const T& value_)
+    template <typename T> void SetArrayElement(const BaseField& fieldDef_, size_t elementIndex_, const T& value_)
     {
         using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
 
-        if constexpr (Fixed) { fixedFields.SetFieldElement(fieldDef_, elementIndex_, static_cast<StoredType>(value_)); }
-        else
+        if (fieldDef_.type != FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
         {
-            if (fieldDef_.index >= varFields.size()) { throw std::runtime_error("SetArrayElement(): varFields index is out of range"); }
-
-            std::visit(
-                [&](auto& varValue) {
-                    using VarType = std::decay_t<decltype(varValue)>;
-                    if constexpr (std::is_same_v<VarType, std::vector<StoredType>>)
-                    {
-                        if (varValue.size() <= elementIndex_)
-                        {
-                            throw std::runtime_error("SetArrayElement(): element index exceeds stored vector size");
-                        }
-                        varValue[elementIndex_] = static_cast<StoredType>(value_);
-                    }
-                    else { throw std::runtime_error("SetArrayElement(): variant does not contain a vector of the correct type"); }
-                },
-                varFields[fieldDef_.index]);
+            fixedFields.SetFieldElement(fieldDef_, elementIndex_, static_cast<StoredType>(value_));
+            return;
         }
+
+        auto* values = std::get_if<std::vector<StoredType>>(&varFields.at(fieldDef_.index));
+        if (values == nullptr) { throw std::runtime_error("SetArrayElement(): variant does not contain a vector of the correct type"); }
+        if (elementIndex_ >= values->size()) { throw std::runtime_error("SetArrayElement(): element index exceeds stored vector size"); }
+        (*values)[elementIndex_] = static_cast<StoredType>(value_);
     }
 
     // ---------------------------------------------------------------------------

@@ -96,9 +96,9 @@ class MessageDecoderBase
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
     // The token passed to each entry is a view into the message and is not NUL-terminated.
-    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, bool, MessageDatabase&)>>
+    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, MessageDatabase&)>>
         asciiFieldMap;
-    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>>
+    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, MessageDatabase&)>>
         jsonFieldMap;
 
     [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
@@ -109,10 +109,8 @@ class MessageDecoderBase
 
     static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, CompositeField& clCompField_,
                                   size_t n = 1);
-    void DecodeAsciiField(const BaseField& field_, std::string_view token_, CompositeField& clCompField_, size_t elementIndex_ = 0,
-                          bool fixed_ = true) const;
-    void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, CompositeField& clCompField_, size_t elementIndex_ = 0,
-                         bool fixed_ = true) const;
+    void DecodeAsciiField(const BaseField& field_, std::string_view token_, CompositeField& clCompField_, size_t elementIndex_ = 0) const;
+    void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, CompositeField& clCompField_, size_t elementIndex_ = 0) const;
 
     //----------------------------------------------------------------------------
     //! \brief Add padding after string fields if necessary to maintain alignment.
@@ -132,7 +130,7 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    template <bool Fixed = true, typename T = int32_t, int R = 10>
+    template <typename T = int32_t, int R = 10>
     static void ParseAndEmplace(CompositeField& clCompField_, const BaseField& field_, std::string_view token, size_t elementIndex_ = 0)
     {
         // As of 6/26/2025 spaces may appear within ascii fields of OUTPUTDATUM and SETALIGNMENTVEL as they use conversion strings with width
@@ -144,26 +142,24 @@ class MessageDecoderBase
         T value;
         if (!FromCharsExact<R>(token, value)) { throw std::runtime_error("Failed to parse numeric value"); }
 
-        clCompField_.SetArrayElement<Fixed>(field_, elementIndex_, value);
+        clCompField_.SetArrayElement(field_, elementIndex_, value);
     }
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, bool, MessageDatabase&)> SimpleAsciiMapEntry()
+    static std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, MessageDatabase&)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
-        return [](CompositeField& vIntermediate_, const BaseField& pstField_, std::string_view token_, const size_t elementIndex_, const bool fixed_,
+        return [](CompositeField& vIntermediate_, const BaseField& pstField_, std::string_view token_, const size_t elementIndex_,
                   [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, token_, elementIndex_); }
-            else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, token_, elementIndex_); }
+            ParseAndEmplace<T, R>(vIntermediate_, pstField_, token_, elementIndex_);
         };
     }
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static void PushElement(CompositeField& vIntermediate_, const BaseField& field_, simdjson::dom::element clJsonField_, size_t elementIndex_ = 0,
-                            bool fixed_ = true)
+    static void PushElement(CompositeField& vIntermediate_, const BaseField& field_, simdjson::dom::element clJsonField_, size_t elementIndex_ = 0)
     {
         // Determine the intermediate type to use for simdjson::get
         using IntermediateType =
@@ -181,17 +177,16 @@ class MessageDecoderBase
             throw std::runtime_error("Failed to decode JSON field '" + field_.name + "'");
         }
         T value = static_cast<T>(intermediateValue);
-        if (fixed_) { vIntermediate_.SetArrayElement<true>(field_, elementIndex_, value); }
-        else { vIntermediate_.SetArrayElement<false>(field_, elementIndex_, value); }
+        vIntermediate_.SetArrayElement(field_, elementIndex_, value);
     }
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)> SimpleJsonMapEntry()
+    static std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, MessageDatabase&)> SimpleJsonMapEntry()
     {
         return [](CompositeField& vIntermediate_, const BaseField& pstMessageDataType_, simdjson::dom::element clJsonField_,
-                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_);
+                  const size_t elementIndex_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+            PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_, elementIndex_);
         };
     }
 
