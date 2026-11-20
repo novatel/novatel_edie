@@ -96,8 +96,7 @@ class MessageDecoderBase
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
     // The token passed to each entry is a view into the message and is not NUL-terminated.
-    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, MessageDatabase&)>>
-        asciiFieldMap;
+    std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, std::string_view, size_t, MessageDatabase&)>> asciiFieldMap;
     std::unordered_map<uint32_t, std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, MessageDatabase&)>>
         jsonFieldMap;
 
@@ -152,9 +151,7 @@ class MessageDecoderBase
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
         return [](CompositeField& vIntermediate_, const BaseField& pstField_, std::string_view token_, const size_t elementIndex_,
-                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            ParseAndEmplace<T, R>(vIntermediate_, pstField_, token_, elementIndex_);
-        };
+                  [[maybe_unused]] MessageDatabase& pclMsgDb_) { ParseAndEmplace<T, R>(vIntermediate_, pstField_, token_, elementIndex_); };
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -184,10 +181,9 @@ class MessageDecoderBase
     template <typename T>
     static std::function<void(CompositeField&, const BaseField&, simdjson::dom::element, size_t, MessageDatabase&)> SimpleJsonMapEntry()
     {
-        return [](CompositeField& vIntermediate_, const BaseField& pstMessageDataType_, simdjson::dom::element clJsonField_,
-                  const size_t elementIndex_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_, elementIndex_);
-        };
+        return
+            [](CompositeField& vIntermediate_, const BaseField& pstMessageDataType_, simdjson::dom::element clJsonField_, const size_t elementIndex_,
+               [[maybe_unused]] MessageDatabase& pclMsgDb_) { PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_, elementIndex_); };
     }
 
     // -------------------------------------------------------------------------------------------------------
