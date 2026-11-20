@@ -1185,6 +1185,33 @@ TEST(MessageDecoderContainerTypesTest, IteratedRecordsProvideFieldInfoForBothSto
     }
 }
 
+// The same one-record array, stored as CompositeFields and as raw bytes
+class BothStorageFieldArrayTest : public ::testing::Test
+{
+  protected:
+    std::shared_ptr<BaseField> valueField = std::make_shared<BaseField>("value", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
+    FieldInfo::ConstPtr fieldInfo = BuildFieldInfo({valueField});
+    std::vector<FieldArray> arrays;
+
+    void SetUp() override
+    {
+        CompositeField record(fieldInfo);
+        record.SetFieldValue(*valueField, 7U);
+        const auto& bytes = record.GetFixedFields();
+        arrays.emplace_back(std::vector<CompositeField>{record}, fieldInfo);
+        arrays.emplace_back(std::vector<std::byte>(bytes.data(), bytes.data() + bytes.size()), fieldInfo);
+    }
+};
+
+TEST_F(BothStorageFieldArrayTest, ReplaceRecordWithItselfKeepsTheRecord)
+{
+    for (auto& array : arrays)
+    {
+        (void)array[0].ReplaceRecord(*array.begin());
+        EXPECT_EQ(array[0].GetFieldValue<uint32_t>(*valueField), 7U);
+    }
+}
+
 TEST(MessageDecoderContainerTypesTest, FixedStorageIteratorBuildsExpectedMessageBodyPerField)
 {
     auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);

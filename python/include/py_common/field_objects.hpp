@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 
 #include "novatel_edie/decoders/common/message_decoder.hpp"
@@ -85,15 +86,13 @@ class PyBitField
 //============================================================================
 struct PyField
 {
-    explicit PyField() : storage(std::make_unique<CompositeField>()), fieldsPtr(std::get<OwnedFields>(storage).get()), myFieldIndex(0) {}
+    explicit PyField() : storage(std::make_unique<CompositeField>()), myFieldIndex(0) {}
 
     // Standalone subfield constructor
     explicit PyField(CompositeField message_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_, py_common::PyMessageDatabase::ConstPtr parentDb_)
         : storage(std::make_unique<CompositeField>(std::move(message_))), fieldDef(std::static_pointer_cast<const BaseField>(fieldDef_)),
           fieldInfo(fieldDef_ ? fieldDef_->fieldInfo : nullptr), parentDb(std::move(parentDb_))
     {
-        auto& ptr = std::get<OwnedFields>(storage);
-        fieldsPtr = ptr.get();
         fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(std::static_pointer_cast<const BaseField>(fieldDef_).get()) : nullptr;
         cachedArrays_.resize(fieldInfo ? fieldInfo->messageOrderedFields.size() : 0);
     };
@@ -103,9 +102,7 @@ struct PyField
                      py_common::PyMessageDatabase::ConstPtr parentDb_)
         : storage(std::make_unique<CompositeField>(std::move(message_))), parentDb(std::move(parentDb_))
     {
-        auto& ptr = std::get<OwnedFields>(storage);
-        fieldsPtr = ptr.get();
-        fieldInfo = fieldsPtr ? fieldsPtr->GetFieldInfo() : nullptr;
+        fieldInfo = owned_fields().GetFieldInfo();
         fieldNameMap_ = msgDef_ ? parentDb->GetMessageFieldNameMap(msgDef_, crc_) : nullptr;
         cachedArrays_.resize(fieldInfo ? fieldInfo->messageOrderedFields.size() : 0);
     };
@@ -185,7 +182,18 @@ struct PyField
     nb::object getattr(nb::str field_name) const;
 
   protected:
-    CompositeField* GetCompositeField() const;
+    // Call fn_ with this field's values as a const CompositeField&: the one it owns, or its record in the parent FieldArray.
+    template <typename Fn> decltype(auto) with_fields(Fn&& fn_) const
+    {
+        if (const auto* owned = std::get_if<OwnedFields>(&storage)) { return fn_(std::as_const(**owned)); }
+        const FieldArray::const_iterator record{&parent_array(), myFieldIndex}; // Outlives fn_, which may use its flat-record view
+        return fn_(*record);
+    }
+    // The FieldArray this field is an element of, when it doesn't own its values.
+    FieldArray& parent_array() const;
+
+    // A copy of this field's values that owns its data.
+    CompositeField copy_fields() const;
 
     nb::object convert_field(const BaseField& field) const;
     nb::object resolve_entry(const FieldLookupEntry& entry) const;
@@ -197,12 +205,7 @@ struct PyField
 
     // Take ownership of `fields` as this field's backing storage. Used to detach a
     // field from a parent array it was previously borrowing from.
-    void take_ownership(CompositeField&& cf_)
-    {
-        auto owned = std::make_unique<CompositeField>(std::move(cf_));
-        fieldsPtr = owned.get();
-        storage = std::move(owned);
-    }
+    void take_ownership(CompositeField&& cf_) { storage = std::make_unique<CompositeField>(std::move(cf_)); }
 
     // Pointer to the live cached FieldArray wrapper for subfield `index`, or nullptr
     // when none is cached there or the cached wrapper has already been collected.
@@ -222,7 +225,6 @@ struct PyField
     FieldStorage storage;
     BaseField::ConstPtr fieldDef;
     FieldInfo::ConstPtr fieldInfo;
-    CompositeField* fieldsPtr;
     size_t myFieldIndex; // Index of this field in the parent message's field vector, or 0 if no parent PyFieldArray.
     const FieldNameMap* fieldNameMap_{nullptr};
     mutable nb::dict cached_values_;
@@ -256,7 +258,7 @@ class PyFieldArray
 
     explicit PyFieldArray(FieldArray& data_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
                           py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parent_)
-                : storage(std::move(parent_)), dataPtr(&data_), length(data_.size()), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
+        : storage(std::move(parent_)), dataPtr(&data_), length(data_.size()), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
     {
         cache.resize(length);
     };

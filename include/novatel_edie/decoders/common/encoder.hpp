@@ -617,7 +617,7 @@ template <typename Derived> class EncoderBase
                 }
 
                 const auto& subfieldDefs = fieldArrayDef->fieldInfo->messageOrderedFields;
-                for (const auto& record : std::get<FieldArray>(clCompField_.GetVarFields()[fieldDefRef.index]))
+                for (const auto& record : clCompField_.GetFieldValue<FieldArray>(fieldDefRef))
                 {
                     if constexpr (Abbreviated)
                     {
@@ -630,14 +630,14 @@ template <typename Derived> class EncoderBase
                 break;
             }
             case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
-                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::get<std::string>(clCompField_.GetVarFields()[fieldDefRef.index]), '"') ||
+                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', clCompField_.GetFieldValue<std::string>(fieldDefRef), '"') ||
                     !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                 {
                     return false;
                 }
                 break;
             case FIELD_TYPE::RESPONSE_STR:
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string>(clCompField_.GetVarFields()[fieldDefRef.index])) ||
+                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, clCompField_.GetFieldValue<std::string>(fieldDefRef)) ||
                     !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                 {
                     return false;
@@ -741,7 +741,7 @@ template <typename Derived> class EncoderBase
                 }
                 else
                 {
-                    for (const auto& record : std::get<FieldArray>(clCompField_.GetVarFields()[fieldDefRef.index]))
+                    for (const auto& record : clCompField_.GetFieldValue<FieldArray>(fieldDefRef))
                     {
                         if (!EncodeJsonBody(record, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_) ||
                             !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
@@ -756,8 +756,7 @@ template <typename Derived> class EncoderBase
             }
             case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
             case FIELD_TYPE::STRING: {
-                const auto value = clCompField_.GetVarFields()[fieldDefRef.index];
-                const auto& str = std::get<std::string>(value);
+                const auto& str = clCompField_.GetFieldValue<std::string>(fieldDefRef);
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDefRef.name), R"(": ")", str, "\",")) { return false; }
                 break;
             }
