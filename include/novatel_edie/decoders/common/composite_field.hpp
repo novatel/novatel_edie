@@ -400,8 +400,7 @@ class FixedFieldRegion
         assert(!IsView() && "SetFieldElement() is not permitted on a non-owning FixedFieldRegion view");
         const size_t offset = baseIndex_ + field_.index + (elementIndex_ * sizeof(T));
         // One combined branch keeps this cheap on the decoders' per-element path
-        if (!IsFixedElementSize<T>(field_) || (elementIndex_ != 0 && elementIndex_ >= FixedElementCount(field_)) ||
-            !FitsInRegion(offset, sizeof(T)))
+        if (!IsFixedElementSize<T>(field_) || (elementIndex_ != 0 && elementIndex_ >= FixedElementCount(field_)) || !FitsInRegion(offset, sizeof(T)))
         {
             throw std::runtime_error("SetFieldValue(): value does not match the field's size, or element index is out of range");
         }
@@ -422,6 +421,7 @@ class FixedFieldRegion
     template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
     void SetFieldValue(const BaseField& field_, const T& value_, size_t baseIndex_ = 0)
     {
+        assert(!IsView() && "SetFieldValue() is not permitted on a non-owning FixedFieldRegion view");
         const bool isArray = field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY;
         if constexpr (is_specialization_of_v<T, TypedBuffer> || is_specialization_of_v<T, std::vector> || std::is_same_v<T, std::string>)
         {
@@ -431,7 +431,6 @@ class FixedFieldRegion
             {
                 throw std::runtime_error("SetFieldValue(): element size does not match the field's data type");
             }
-            assert(!IsView() && "SetFieldValue() is not permitted on a non-owning FixedFieldRegion view");
             const size_t start = baseIndex_ + field_.index;
             const size_t capacity = FixedElementCount(field_) * sizeof(ElementT);
             const size_t bytes = value_.size() * sizeof(ElementT);
@@ -495,16 +494,16 @@ template <typename T> [[nodiscard]] inline T LoadFixedField(const FixedFieldRegi
 #endif
             return T{region_.data() + field_.index, FixedElementCount(field_)};
         }
-        else { throw std::runtime_error("GetFieldValue<T>(): T must be TypedBuffer<E> for FIXED_LENGTH_ARRAY"); }
+        else { throw std::runtime_error("LoadFixedField<T>(): T must be TypedBuffer<E> for FIXED_LENGTH_ARRAY"); }
     case FIELD_TYPE::RESPONSE_ID: [[fallthrough]];
     case FIELD_TYPE::ENUM: [[fallthrough]];
     case FIELD_TYPE::SIMPLE:
         if constexpr (is_specialization_of_v<T, TypedBuffer>)
         {
-            throw std::runtime_error("GetFieldValue<T>(): T must not be TypedBuffer<E> for SIMPLE or ENUM fields");
+            throw std::runtime_error("LoadFixedField<T>(): T must not be TypedBuffer<E> for SIMPLE or ENUM fields");
         }
         else { return LoadScalarField<T>(region_, field_); }
-    default: throw std::runtime_error("GetFieldValue<T>(): unsupported field type for GetFieldValue in FixedFieldRegion");
+    default: throw std::runtime_error("LoadFixedField<T>(): unsupported field type for LoadFixedField");
     }
 }
 
@@ -516,8 +515,7 @@ template <typename T> [[nodiscard]] inline T LoadFixedField(const FixedFieldRegi
 //! \param[in] elemIndex_ The array element index.
 //! \param[in] field_ The array field definition.
 // ---------------------------------------------------------------------------
-template <typename T>
-[[nodiscard]] inline T LoadFixedFieldElement(const FixedFieldRegion& region_, size_t elemIndex_, const BaseField& field_)
+template <typename T> [[nodiscard]] inline T LoadFixedFieldElement(const FixedFieldRegion& region_, size_t elemIndex_, const BaseField& field_)
 {
     static_assert(std::is_trivially_copyable_v<T>, "LoadFixedFieldElement only supports trivially copyable types");
     if (elemIndex_ >= FixedElementCount(field_)) { throw std::runtime_error("GetFieldValue<T>(): index out of bounds for fixed-length array field"); }
@@ -996,8 +994,8 @@ class CompositeField
     //!
     //! \note This function is needed because decoder ASCII/JSON field map functions are
     //!     called for both standalone fields and individual array elements. SetFieldValue
-    //!     should only be used to set the value of a complete field, as it cannot set
-    //!     individual elements of a variable-length array.
+    //!     can only be used to set the value of a complete field, not individual elements
+    //!     of an array.
     //!
     //! A VARIABLE_LENGTH_ARRAY must already hold a vector with room for the element.
     //!
