@@ -942,7 +942,7 @@ TEST_F(VariableLengthFieldTest, FieldArrayRecordReturnsReferenceIntoArrayStorage
     FieldArray records({body}, fieldInfo);
     const auto& text = records[0].GetFieldValue<std::string>(*textField);
     EXPECT_EQ(text, "xyz");
-    EXPECT_EQ(&text, &records.GetFieldValue<std::string>(*textField, 0));
+    EXPECT_EQ(&text, &records.begin()->GetFieldValue<std::string>(*textField));
 }
 
 TEST_F(VariableLengthFieldTest, SetFieldValueRejectsMismatchedArrayElementType)
@@ -1155,7 +1155,7 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayRowIndexOutOfRangeThrowsForBoth
     for (const auto& array : arrays)
     {
         EXPECT_THROW((void)array[2].GetFieldValue<uint32_t>(*valueField), std::out_of_range);
-        EXPECT_THROW((void)array.GetFieldValueByName<uint32_t>("value", 2), std::out_of_range);
+        EXPECT_THROW((void)array[2].GetFieldValueByName<uint32_t>("value"), std::out_of_range);
     }
 }
 
@@ -1295,8 +1295,8 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsFlatBackedFieldArra
     const auto& wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     ASSERT_EQ(wrapped.size(), 2U);
     EXPECT_EQ(wrapped.GetFieldInfo(), nestedFieldInfo);
-    EXPECT_EQ(wrapped.GetFieldValue<uint32_t>(*nestedU32, 0), 11U);
-    EXPECT_EQ(wrapped.GetFieldValue<int16_t>(*nestedI16, 1), static_cast<int16_t>(9));
+    EXPECT_EQ(wrapped[0].GetFieldValue<uint32_t>(*nestedU32), 11U);
+    EXPECT_EQ(wrapped[1].GetFieldValue<int16_t>(*nestedI16), static_cast<int16_t>(9));
 
     auto it = wrapped.begin();
     const auto row0 = *it;
@@ -1369,8 +1369,8 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperReadsCompositeBackedFiel
     const auto& wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
     ASSERT_EQ(wrapped.size(), 2U);
     EXPECT_EQ(wrapped.GetFieldInfo(), nestedFieldInfo);
-    EXPECT_EQ(wrapped.GetFieldValue<uint32_t>(*nestedU32, 0), 10U);
-    EXPECT_EQ(wrapped.GetFieldValue<std::string>(*nestedStr, 1), "twenty");
+    EXPECT_EQ(wrapped[0].GetFieldValue<uint32_t>(*nestedU32), 10U);
+    EXPECT_EQ(wrapped[1].GetFieldValue<std::string>(*nestedStr), "twenty");
 
     const FieldArray::FieldArrayRecord firstRow = wrapped[0];
     EXPECT_EQ(firstRow.GetFieldValue<uint32_t>(*nestedU32), 10U);
@@ -1487,7 +1487,7 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageRecordViewGetFieldValueByName
     const uint32_t replacement = 30U;
     wrapped[1].SetFieldValue(*f0, replacement);
     EXPECT_EQ(row.GetFieldValueByName<uint32_t>("u32"), replacement);
-    EXPECT_THROW((void)FieldArray{}[0].GetFieldValueByName<uint32_t>("u32"), std::runtime_error);
+    EXPECT_THROW((void)FieldArray{}[0].GetFieldValueByName<uint32_t>("u32"), std::out_of_range);
 }
 
 TEST(MessageDecoderContainerTypesTest, CompositeFieldSetFieldValueFixedLengthArray)

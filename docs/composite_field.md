@@ -33,7 +33,7 @@ A `CompositeField` stores the decoded contents of a message. It holds:
 
 ### Reading fields
 
-- `CompositeField::GetFieldValue` and `FieldArray::GetFieldValue` can be used to get the value of most fields by their definition
+- `CompositeField::GetFieldValue` can be used to get the value of most fields by their definition, and `fieldArray[i].GetFieldValue` the fields of one `FieldArray` record
 - `CompositeField::GetFieldValueVariant` wraps a field's value in a variant for programming convenience
 - Iterating a `FieldArray` yields each record as a `CompositeField`, whichever way the records are stored
 

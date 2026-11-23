@@ -268,7 +268,7 @@ inline size_t FixedElementCount(const BaseField& field_)
 {
     if (field_.type != FIELD_TYPE::FIXED_LENGTH_ARRAY) { return 1; }
     const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-    if (arrayField == nullptr) { throw std::runtime_error("SetFieldValue(): missing fixed array metadata"); }
+    if (arrayField == nullptr) { throw std::runtime_error("FixedElementCount(): missing fixed array metadata"); }
     return arrayField->arrayLength;
 }
 
@@ -277,6 +277,11 @@ template <typename T> inline bool IsFixedElementSize(const BaseField& field_)
 {
     return sizeof(T) == field_.dataType.length || (sizeof(T) == 1 && field_.dataType.name == DATA_TYPE::BOOL);
 }
+
+//! Whether a T can be stored in fixed fields: a scalar, or the elements of a FIXED_LENGTH_ARRAY.
+template <typename T>
+inline constexpr bool is_fixed_field_value_v =
+    (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>) || std::is_same_v<T, std::string> || is_specialization_of_v<T, std::vector>;
 
 // ---------------------------------------------------------------------------
 //! \class FixedFieldRegion
@@ -454,16 +459,15 @@ class FixedFieldRegion
 //! \tparam T The value type (trivially copyable, never a TypedBuffer<E>).
 //! \param[in] region_ The byte storage to read from.
 //! \param[in] field_ The field definition describing offset.
-//! \param[in] baseIndex_ Optional base byte offset (e.g. flat-array row start).
 // ---------------------------------------------------------------------------
-template <typename T> [[nodiscard]] inline T LoadScalarField(const FixedFieldRegion& region_, const BaseField& field_, size_t baseIndex_ = 0)
+template <typename T> [[nodiscard]] inline T LoadScalarField(const FixedFieldRegion& region_, const BaseField& field_)
 {
     static_assert(std::is_trivially_copyable_v<T> && !is_specialization_of_v<T, TypedBuffer>,
                   "LoadScalarField only supports trivially copyable types");
 #ifndef NDEBUG
     AssertFixedFieldType<T>(field_);
 #endif
-    return region_.Load<T>(baseIndex_ + field_.index);
+    return region_.Load<T>(field_.index);
 }
 
 // ---------------------------------------------------------------------------
@@ -476,9 +480,8 @@ template <typename T> [[nodiscard]] inline T LoadScalarField(const FixedFieldReg
 //! \tparam T The value type (trivially copyable, or a TypedBuffer<E>).
 //! \param[in] region_ The byte storage to read from.
 //! \param[in] field_ The field definition describing type and offset.
-//! \param[in] baseIndex_ Optional base byte offset (e.g. flat-array row start).
 // ---------------------------------------------------------------------------
-template <typename T> [[nodiscard]] inline T LoadFixedField(const FixedFieldRegion& region_, const BaseField& field_, size_t baseIndex_ = 0)
+template <typename T> [[nodiscard]] inline T LoadFixedField(const FixedFieldRegion& region_, const BaseField& field_)
 {
     static_assert(std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>,
                   "LoadFixedField only supports trivially copyable types or TypedBuffer specializations");
@@ -487,12 +490,10 @@ template <typename T> [[nodiscard]] inline T LoadFixedField(const FixedFieldRegi
     case FIELD_TYPE::FIXED_LENGTH_ARRAY:
         if constexpr (is_specialization_of_v<T, TypedBuffer>)
         {
-            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-            if (arrayField == nullptr) { throw std::runtime_error("GetFieldValue<T>(): missing fixed array metadata"); }
 #ifndef NDEBUG
             AssertFixedFieldType<T>(field_);
 #endif
-            return T{region_.data() + baseIndex_ + field_.index, arrayField->arrayLength};
+            return T{region_.data() + field_.index, FixedElementCount(field_)};
         }
         else { throw std::runtime_error("GetFieldValue<T>(): T must be TypedBuffer<E> for FIXED_LENGTH_ARRAY"); }
     case FIELD_TYPE::RESPONSE_ID: [[fallthrough]];
@@ -502,50 +503,38 @@ template <typename T> [[nodiscard]] inline T LoadFixedField(const FixedFieldRegi
         {
             throw std::runtime_error("GetFieldValue<T>(): T must not be TypedBuffer<E> for SIMPLE or ENUM fields");
         }
-        else { return LoadScalarField<T>(region_, field_, baseIndex_); }
+        else { return LoadScalarField<T>(region_, field_); }
     default: throw std::runtime_error("GetFieldValue<T>(): unsupported field type for GetFieldValue in FixedFieldRegion");
     }
 }
 
 // ---------------------------------------------------------------------------
-//! \brief Load a single element of a fixed-length array field from raw storage.
+//! \brief Load a single element of a FIXED_LENGTH_ARRAY field from raw storage.
 //!
 //! \tparam T The element value type (trivially copyable).
 //! \param[in] region_ The byte storage to read from.
 //! \param[in] elemIndex_ The array element index.
 //! \param[in] field_ The array field definition.
-//! \param[in] baseIndex_ Optional base byte offset (e.g. flat-array row start).
 // ---------------------------------------------------------------------------
 template <typename T>
-[[nodiscard]] inline T LoadFixedFieldElement(const FixedFieldRegion& region_, size_t elemIndex_, const BaseField& field_, size_t baseIndex_ = 0)
+[[nodiscard]] inline T LoadFixedFieldElement(const FixedFieldRegion& region_, size_t elemIndex_, const BaseField& field_)
 {
     static_assert(std::is_trivially_copyable_v<T>, "LoadFixedFieldElement only supports trivially copyable types");
-    if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
+    if (elemIndex_ >= FixedElementCount(field_)) { throw std::runtime_error("GetFieldValue<T>(): index out of bounds for fixed-length array field"); }
+    if constexpr (std::is_same_v<T, bool>)
     {
-        const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-        if (arrayField == nullptr) { throw std::runtime_error("GetFieldValue<T>(): missing fixed array metadata"); }
-        if (elemIndex_ >= arrayField->arrayLength)
-        {
-            throw std::runtime_error("GetFieldValue<T>(): index out of bounds for fixed-length array field");
-        }
-        if constexpr (std::is_same_v<T, bool>)
-        {
 #ifndef NDEBUG
-            AssertFixedFieldType<uint8_t>(field_);
+        AssertFixedFieldType<bool>(field_);
 #endif
-            return static_cast<bool>(region_.Load<uint8_t>(baseIndex_ + field_.index + elemIndex_));
-        }
-        else
-        {
-#ifndef NDEBUG
-            AssertFixedFieldType<T>(field_);
-#endif
-            return region_.Load<T>(baseIndex_ + field_.index + (elemIndex_ * sizeof(T)));
-        }
+        return static_cast<bool>(region_.Load<uint8_t>(field_.index + elemIndex_));
     }
-
-    if (elemIndex_ == 0) { return LoadFixedField<T>(region_, field_, baseIndex_); }
-    throw std::runtime_error("GetFieldValue<T>(): field must be an array type or element index must be zero");
+    else
+    {
+#ifndef NDEBUG
+        AssertFixedFieldType<T>(field_);
+#endif
+        return region_.Load<T>(field_.index + (elemIndex_ * sizeof(T)));
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -559,24 +548,27 @@ template <typename T>
 class FieldArray
 {
   public:
-    template <bool Mutable> struct FieldArrayRecord
+    struct const_iterator; // Defined after CompositeField, which it stores
+
+    template <bool Mutable> class FieldArrayRecord
     {
         using FieldArrayPointer = std::conditional_t<Mutable, FieldArray*, const FieldArray*>;
 
         FieldArrayPointer fieldArray;
         size_t index;
 
+        //! An iterator at this record, which must exist. *it is the record as a CompositeField; for flat
+        //! storage that is a view inside the iterator, so the iterator must outlive its use.
+        [[nodiscard]] const_iterator Iterator() const;
+
+      public:
         FieldArrayRecord(FieldArrayPointer fieldArray_, size_t index_) : fieldArray(fieldArray_), index(index_) {}
 
-        template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const
-        {
-            return fieldArray->template GetFieldValue<T>(field_, index, elementIndex_);
-        }
+        //! \see CompositeField::GetFieldValue
+        template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const;
 
-        template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const
-        {
-            return fieldArray->template GetFieldValueByName<T>(name_, index, elementIndex_);
-        }
+        //! \see CompositeField::GetFieldValueByName
+        template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const;
 
         template <typename T, bool Enabled = Mutable, std::enable_if_t<Enabled && Mutable, int> = 0>
         void SetFieldValue(const BaseField& fieldDef_, T&& value_) const
@@ -613,35 +605,9 @@ class FieldArray
 
     [[nodiscard]] const FieldInfo::ConstPtr& GetFieldInfo() const { return fieldInfo; }
 
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field value by its definition.
-    //!
-    //! \param[in] field_ The definition of the field to retrieve.
-    //! \param[in] index_ The index of the row in the field array.
-    //! \param[in] elementIndex_ The index of the element within the field to
-    //!     retrieve. Ignored if field is not FIXED/VARIABLE_LENGTH_ARRAY.
-    //! \return The field value as T.
-    // ---------------------------------------------------------------------------
-    template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_ = 0) const;
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field value by its name.
-    //! \see FieldArray::GetFieldValue
-    // ---------------------------------------------------------------------------
-    template <typename T>
-    [[nodiscard]] FieldValueResult<T> GetFieldValueByName(const std::string& name_, size_t index_, size_t elementIndex_ = 0) const
-    {
-        if (fieldInfo == nullptr) { throw std::runtime_error("FieldArray::GetFieldValueByName(): field info is not set"); }
-        const auto field = fieldInfo->GetFieldDefByName(name_);
-        if (field == nullptr) { throw std::runtime_error("FieldArray::GetFieldValueByName(): field not found: " + name_); }
-        return GetFieldValue<T>(*field, index_, elementIndex_);
-    }
-
     [[nodiscard]] FieldArrayRecord<true> operator[](size_t index_) { return FieldArrayRecord<true>(this, index_); }
 
     [[nodiscard]] FieldArrayRecord<false> operator[](size_t index_) const { return FieldArrayRecord<false>(this, index_); }
-
-    struct const_iterator; // Defined after CompositeField, which it stores
 
     [[nodiscard]] const_iterator begin() const;
     [[nodiscard]] const_iterator end() const;
@@ -671,23 +637,18 @@ using FieldValueVariant =
                  std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>,
                  std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::string, FieldArray>;
 
-//! Shared implementation for the LoadVariant overloads: select the concrete element type from the
-//! schema via SimpleTypeVisitor and let the caller-supplied loader build the variant payload.
-template <typename Field, typename Loader> inline FieldValueVariant LoadVariantImpl(const Field& fd_, Loader&& loader_)
-{
-    FieldValueVariant result;
-    SimpleTypeVisitor(fd_, [&](auto&& arg) { result = loader_(std::decay_t<decltype(arg)>{}); });
-    return result;
-}
-
+//! Load a fixed field as a variant: a TypedBuffer view for a FIXED_LENGTH_ARRAY, otherwise a scalar.
 inline FieldValueVariant LoadVariant(const BaseField& fd_, const std::byte* fieldPtr_)
 {
-    return LoadVariantImpl(fd_, [&](auto tag) { return LoadValueFromBuffer<decltype(tag)>(fieldPtr_); });
-}
-
-inline FieldValueVariant LoadVariant(const ArrayField& fd_, const std::byte* fieldPtr_)
-{
-    return LoadVariantImpl(fd_, [&](auto tag) { return TypedBuffer<decltype(tag)>{fieldPtr_, fd_.arrayLength}; });
+    const bool isArray = fd_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY;
+    const size_t count = FixedElementCount(fd_);
+    FieldValueVariant result;
+    SimpleTypeVisitor(fd_, [&](auto tag_) {
+        using T = decltype(tag_);
+        if (isArray) { result = TypedBuffer<T>{fieldPtr_, count}; }
+        else { result = LoadValueFromBuffer<T>(fieldPtr_); }
+    });
+    return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -737,17 +698,6 @@ class CompositeField
     CompositeField(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_) {}
 
     // ---------------------------------------------------------------------------
-    //! \brief Construct a CompositeField with pre-constructed fixed and variable regions.
-    //!
-    //! \param[in] fixedFields_ The FixedFieldRegion containing the fixed-length fields.
-    //! \param[in] varFields_ The vector of FieldValueVariant containing the variable-length fields.
-    // ---------------------------------------------------------------------------
-    CompositeField(FixedFieldRegion&& fixedFields_, std::vector<FieldValueVariant>&& varFields_)
-        : fixedFields(std::move(fixedFields_)), varFields(std::move(varFields_))
-    {
-    }
-
-    // ---------------------------------------------------------------------------
     //! \brief Create a read-only CompositeField that borrows an external fixed-field
     //!     byte slice without copying it.
     //!
@@ -762,7 +712,8 @@ class CompositeField
     // ---------------------------------------------------------------------------
     [[nodiscard]] static CompositeField ViewFixedFields(const std::byte* data_, size_t size_, FieldInfo::ConstPtr fieldInfo_)
     {
-        CompositeField view(FixedFieldRegion::View(data_, size_), {});
+        CompositeField view;
+        view.fixedFields = FixedFieldRegion::View(data_, size_);
         view.fieldInfo = std::move(fieldInfo_);
         return view;
     }
@@ -897,27 +848,8 @@ class CompositeField
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: return varFields.at(field_.index);
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-            if (arrayField == nullptr) { throw std::runtime_error("GetFieldValueVariant(): missing fixed array metadata"); }
-            return LoadVariant(*arrayField, fixedFields.data() + field_.index);
-        }
         default: return LoadVariant(field_, fixedFields.data() + field_.index);
         }
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get an array field value by definition. Avoids the dynamic cast in
-    //!     GetFieldValue(const BaseField&).
-    //!
-    //! \param[in] field_ The definition of the ArrayField to retrieve.
-    //! \return A FieldValueVariant containing the field value.
-    //! \see GetFieldValue(const BaseField&) for non-array fields.
-    // ---------------------------------------------------------------------------
-    FieldValueVariant GetFieldValueVariant(const ArrayField& field_) const
-    {
-        if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return LoadVariant(field_, fixedFields.data() + field_.index); }
-        return GetFieldValueVariant(static_cast<const BaseField&>(field_));
     }
 
     // ---------------------------------------------------------------------------
@@ -940,11 +872,7 @@ class CompositeField
     {
         switch (field_.type)
         {
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-            if (arrayField == nullptr) { throw std::runtime_error("GetFieldSize(): missing fixed array metadata"); }
-            return static_cast<size_t>(arrayField->arrayLength);
-        }
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: return FixedElementCount(field_);
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
@@ -1026,14 +954,6 @@ class CompositeField
                       "SetFieldValue does not support std::vector<bool>. Use std::vector<uint8_t> instead.");
         switch (fieldDef_.type)
         {
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY:
-            if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, TypedBuffer> ||
-                          is_specialization_of_v<ValueT, std::vector>)
-            {
-                fixedFields.SetFieldValue(fieldDef_, value_);
-            }
-            else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIXED_LENGTH_ARRAY"); }
-            break;
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
             if constexpr (std::is_same_v<ValueT, std::string> || is_specialization_of_v<ValueT, std::vector> ||
                           is_specialization_of_v<ValueT, TypedBuffer>)
@@ -1065,9 +985,9 @@ class CompositeField
             if constexpr (std::is_same_v<ValueT, FieldArray>) { varFields.at(fieldDef_.index) = std::forward<T>(value_); }
             else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for FIELD_ARRAY"); }
             break;
-        default:
-            if constexpr (std::is_trivially_copyable_v<ValueT> && !std::is_pointer_v<ValueT>) { fixedFields.SetFieldValue(fieldDef_, value_); }
-            else { throw std::runtime_error("SetFieldValue<T>(): type T must be trivially copyable for SIMPLE fields"); }
+        default: // Fixed fields, including FIXED_LENGTH_ARRAY; fixedFields checks that the value suits the field
+            if constexpr (is_fixed_field_value_v<ValueT>) { fixedFields.SetFieldValue(fieldDef_, value_); }
+            else { throw std::runtime_error("SetFieldValue<T>(): incorrect type given for a fixed field"); }
         }
     }
 
@@ -1219,25 +1139,6 @@ class CompositeField
     }
 };
 
-template <typename T> inline FieldValueResult<T> FieldArray::GetFieldValue(const BaseField& field_, size_t index_, size_t elementIndex_) const
-{
-    if (const auto* fields = std::get_if<FixedFieldRegion>(&storage))
-    {
-        if constexpr (std::is_trivially_copyable_v<T> || is_specialization_of_v<T, TypedBuffer>)
-        {
-            const size_t rowOffset = index_ * fieldInfo->fixedFieldBytes;
-            if (rowOffset >= fields->size()) { throw std::out_of_range("FieldArray::GetFieldValue(): index out of range"); }
-            if constexpr (!is_specialization_of_v<T, TypedBuffer>)
-            {
-                if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return LoadFixedFieldElement<T>(*fields, elementIndex_, field_, rowOffset); }
-            }
-            return LoadFixedField<T>(*fields, field_, rowOffset);
-        }
-        else { throw std::runtime_error("FieldArray::GetFieldValue<T>(): type T must be trivially copyable or TypedBuffer specialization"); }
-    }
-    return std::get<CompositeFieldArray>(storage).at(index_).GetFieldValue<T>(field_, elementIndex_);
-}
-
 inline size_t FieldArray::size() const
 {
     if (const auto* fields = std::get_if<FixedFieldRegion>(&storage)) { return fields->size() / fieldInfo->fixedFieldBytes; }
@@ -1284,16 +1185,32 @@ struct FieldArray::const_iterator
 inline FieldArray::const_iterator FieldArray::begin() const { return {this, 0}; }
 inline FieldArray::const_iterator FieldArray::end() const { return {this, size()}; }
 
+template <bool Mutable> FieldArray::const_iterator FieldArray::FieldArrayRecord<Mutable>::Iterator() const
+{
+    if (index >= fieldArray->size()) { throw std::out_of_range("FieldArray: record index out of range"); }
+    return {fieldArray, index};
+}
+
+template <bool Mutable>
+template <typename T>
+FieldValueResult<T> FieldArray::FieldArrayRecord<Mutable>::GetFieldValue(const BaseField& field_, size_t elementIndex_) const
+{
+    return Iterator()->template GetFieldValue<T>(field_, elementIndex_);
+}
+
+template <bool Mutable>
+template <typename T>
+FieldValueResult<T> FieldArray::FieldArrayRecord<Mutable>::GetFieldValueByName(const std::string& name_, size_t elementIndex_) const
+{
+    return Iterator()->template GetFieldValueByName<T>(name_, elementIndex_);
+}
+
 // Defined here because it iterates FieldArray records
 inline size_t CompositeField::GetFieldByteSize(const BaseField& field_) const
 {
     switch (field_.type)
     {
-    case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-        const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-        if (arrayField == nullptr) { throw std::runtime_error("GetFieldByteSize(): missing fixed array metadata"); }
-        return static_cast<size_t>(arrayField->arrayLength) * field_.dataType.length;
-    }
+    case FIELD_TYPE::FIXED_LENGTH_ARRAY: return FixedElementCount(field_) * field_.dataType.length;
     case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
     case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
     case FIELD_TYPE::STRING: [[fallthrough]];
@@ -1340,8 +1257,7 @@ template <typename T> void FieldArray::SetFieldValue(const BaseField& fieldDef_,
     if (fieldDef_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY || fieldDef_.type == FIELD_TYPE::SIMPLE || fieldDef_.type == FIELD_TYPE::ENUM ||
         fieldDef_.type == FIELD_TYPE::RESPONSE_ID)
     {
-        if constexpr ((std::is_trivially_copyable_v<ValueT> && !std::is_pointer_v<ValueT>) || std::is_same_v<ValueT, std::string> ||
-                      is_specialization_of_v<ValueT, std::vector>)
+        if constexpr (is_fixed_field_value_v<ValueT>)
         {
             if (index_ >= size()) { throw std::runtime_error("SetFieldValue(): record index out of range"); }
             std::get<FixedFieldRegion>(storage).SetFieldValue(fieldDef_, value_, index_ * fieldInfo->fixedFieldBytes);

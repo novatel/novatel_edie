@@ -365,7 +365,7 @@ while (eStatus != STATUS::STREAM_EMPTY)
     eStatus = clFileParser.ReadIntermediate(stMessageData, stHeader, stMessage, stMetaData);
     if (eStatus == STATUS::SUCCESS)
     {
-        for (const auto obs : stMessage.GetFieldValue<FieldArray>(*pstObsDef))
+        for (const auto& obs : stMessage.GetFieldValue<FieldArray>(*pstObsDef))
         {
             const auto cno = obs.GetFieldValue<float>(*pstCnoDef);
             // Process cno.
@@ -385,7 +385,7 @@ CompositeField ReadMessage(); // Returns a decoded message by value
 
 const FieldArray& obsArr = ReadMessage().GetFieldValueByName<FieldArray>("obs");
 // The temporary CompositeField returned by ReadMessage() is destroyed at the end of the line above
-obsArr.GetFieldValueByName<float>("C_No", 0); // BAD - undefined behaviour!
+obsArr[0].GetFieldValueByName<float>("C_No"); // BAD - undefined behaviour!
 ```
 
 > To avoid this, make sure the `CompositeField` stays alive while its data is being accessed. For example:
@@ -393,7 +393,7 @@ obsArr.GetFieldValueByName<float>("C_No", 0); // BAD - undefined behaviour!
 ```cpp
 const CompositeField stMessage = ReadMessage();
 const FieldArray& obsArr = stMessage.GetFieldValueByName<FieldArray>("obs");
-obsArr.GetFieldValueByName<float>("C_No", 0); // GOOD - stMessage is still alive
+obsArr[0].GetFieldValueByName<float>("C_No"); // GOOD - stMessage is still alive
 ```
 
 > [!TIP]
@@ -404,7 +404,7 @@ obsArr.GetFieldValueByName<float>("C_No", 0); // GOOD - stMessage is still alive
 > Don't loop directly over a field of a temporary message: in C++17 the message is destroyed before the loop body runs.
 >
 > ```cpp
-> for (const auto obs : ReadMessage().GetFieldValue<FieldArray>(*pstObsDef)) {} // BAD - undefined behaviour!
+> for (const auto& obs : ReadMessage().GetFieldValue<FieldArray>(*pstObsDef)) {} // BAD - undefined behaviour!
 > ```
 
 #### Copy to generated struct (specialized use cases)
