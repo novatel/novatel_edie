@@ -123,6 +123,37 @@
             }
         },
         {
+            "_id": "3cbe824c376fd21f210b61e9a2f84750b9331583",
+            "name": "MessageId",
+            "masks": {
+                "message_id": {
+                    "start": 0,
+                    "end": 16,
+                    "enumID": null
+                },
+                "sibling_id": {
+                    "start": 16,
+                    "end": 21,
+                    "enumID": null
+                },
+                "format": {
+                    "start": 21,
+                    "end": 23,
+                    "enumID": "14a029253f44ce72931cad5a49bfa117a00b11d2"
+                },
+                "is_response": {
+                    "start": 23,
+                    "end": 24,
+                    "enumID": null
+                },
+                "reserved": {
+                    "start": 24,
+                    "end": 32,
+                    "enumID": null
+                }
+            }
+        },
+        {
             "_id": "6d6b9b1413772dcd748dcbcb4d59c0a78bd77a76",
             "name": "SignalMask",
             "masks": {
@@ -8411,6 +8442,32 @@
                 }
             ],
             "name": "MassStorageDevice"
+        },
+        {
+            "_id": "14a029253f44ce72931cad5a49bfa117a00b11d2",
+            "enumerators": [
+                {
+                    "description": "Binary",
+                    "name": "BINARY",
+                    "value": 0
+                },
+                {
+                    "description": "ASCII",
+                    "name": "ASCII",
+                    "value": 1
+                },
+                {
+                    "description": "Abbreviated ASCII, NMEA",
+                    "name": "ABBREVIATED_ASCII",
+                    "value": 2
+                },
+                {
+                    "description": "Reserved",
+                    "name": "RESERVED",
+                    "value": 3
+                }
+            ],
+            "name": "MessageFormat"
         },
         {
             "_id": "1ab11fde7aa365865c5a64c375929db16f06b8b2",
@@ -66897,7 +66954,7 @@
                         "name": "message_id",
                         "conversionString": "%m",
                         "defaultValue": null,
-                        "bitmaskID": null,
+                        "bitmaskID": "3cbe824c376fd21f210b61e9a2f84750b9331583",
                         "type": "SIMPLE"
                     },
                     {
@@ -67054,7 +67111,7 @@
                                 "name": "message_id",
                                 "conversionString": "%m",
                                 "defaultValue": null,
-                                "bitmaskID": null,
+                                "bitmaskID": "3cbe824c376fd21f210b61e9a2f84750b9331583",
                                 "type": "SIMPLE"
                             },
                             {
@@ -83894,7 +83951,7 @@
                         "name": "message_id",
                         "conversionString": "%m",
                         "defaultValue": null,
-                        "bitmaskID": null,
+                        "bitmaskID": "3cbe824c376fd21f210b61e9a2f84750b9331583",
                         "type": "SIMPLE"
                     },
                     {
@@ -117561,7 +117618,7 @@
                         "name": "message_id",
                         "conversionString": "%m",
                         "defaultValue": null,
-                        "bitmaskID": null,
+                        "bitmaskID": "3cbe824c376fd21f210b61e9a2f84750b9331583",
                         "type": "SIMPLE"
                     }
                 ]
@@ -120859,7 +120916,7 @@
         "subset": "all",
         "version": "3.0.0",
         "messageFamily": "OEM",
-        "date": "2026-10-29",
-        "guid": "a26b4b3f-e95b-48c4-8e90-1ea00c4fc26b"
+        "date": "2026-11-17",
+        "guid": "adc23b81-0867-41d3-8344-6bf547899b19"
     }
 }

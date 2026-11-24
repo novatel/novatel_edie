@@ -50,6 +50,23 @@ def test_decode_log_payload(command_decoder):
     assert command.message_id & 0xFFFF == 241
     assert command.log_port_address == enums.PortAddress.COM1
 
+@pytest.mark.parametrize("command, exp_message_id, exp_sibling_id, exp_format", [
+    pytest.param(b"LOG COM1 BESTPOSB ONCE", 42, 0, enums.MessageFormat.BINARY, id="LOG binary"),
+    pytest.param(b"LOG COM1 BESTPOSA ONCE", 42, 0, enums.MessageFormat.ASCII, id="LOG ASCII"),
+    pytest.param(b"LOG COM1 BESTPOS ONCE", 42, 0, enums.MessageFormat.ABBREVIATED_ASCII, id="LOG abbreviated ASCII"),
+    pytest.param(b"LOG COM1 BESTPOSA_1 ONCE", 42, 1, enums.MessageFormat.ASCII, id="LOG secondary antenna"),
+    pytest.param(b"UNLOG COM1 BESTPOSB", 42, 0, enums.MessageFormat.BINARY, id="UNLOG binary"),
+])
+def test_decode_message_id_subfields(command_decoder, command, exp_message_id, exp_sibling_id, exp_format):
+    # Act
+    message_id = command_decoder.decode(command).message_id
+    # Assert
+    assert isinstance(message_id, messages.MessageId)
+    assert message_id.message_id == exp_message_id
+    assert message_id.sibling_id == exp_sibling_id
+    assert message_id.format == exp_format
+    assert message_id.is_response == 0
+
 def test_decode_to_ascii(command_decoder):
     command = command_decoder.decode(b"ETHCONFIG ETHA MDI")
     assert b";ETHA,AUTO,AUTO,MDI,AUTO*" in command.to_ascii().message
