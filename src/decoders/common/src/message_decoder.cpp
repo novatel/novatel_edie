@@ -821,31 +821,16 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
                     // %P fields are all UCHAR, so they decode like %Z
                     if (field->conversionHash == CalculateBlockCrc32("Z") || field->conversionHash == CalculateBlockCrc32("P"))
                     {
-                        if (fixed)
+                        if (fixed && array.size() > uiArraySize) { return STATUS::MALFORMED_INPUT; }
+                        std::vector<uint8_t> vDecodedValues;
+                        vDecodedValues.reserve(fixed ? uiArraySize : array.size());
+                        for (simdjson::dom::element it : array)
                         {
-                            if (array.size() > uiArraySize) { return STATUS::MALFORMED_INPUT; }
-                            std::vector<uint8_t> vDecodedValues(uiArraySize, 0);
-                            size_t i = 0;
-                            for (simdjson::dom::element it : array)
-                            {
-                                uint64_t value;
-                                if (it.get(value) != simdjson::SUCCESS) { return STATUS::MALFORMED_INPUT; }
-                                vDecodedValues[i++] = static_cast<uint8_t>(value);
-                            }
-                            if (!vDecodedValues.empty()) { clCompField_.SetFieldValue(*field, vDecodedValues); }
+                            uint64_t value;
+                            if (it.get(value) != simdjson::SUCCESS) { return STATUS::MALFORMED_INPUT; }
+                            vDecodedValues.emplace_back(static_cast<uint8_t>(value));
                         }
-                        else
-                        {
-                            std::vector<uint8_t> vDecodedValues;
-                            vDecodedValues.reserve(array.size());
-                            for (simdjson::dom::element it : array)
-                            {
-                                uint64_t value;
-                                if (it.get(value) != simdjson::SUCCESS) { return STATUS::MALFORMED_INPUT; }
-                                vDecodedValues.emplace_back(static_cast<uint8_t>(value));
-                            }
-                            clCompField_.SetFieldValue(*field, std::move(vDecodedValues));
-                        }
+                        clCompField_.SetFieldValue(*field, std::move(vDecodedValues));
                     }
                     else { return STATUS::MALFORMED_INPUT; }
                 }
