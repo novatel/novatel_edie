@@ -546,7 +546,7 @@ template <typename T> [[nodiscard]] inline T LoadFixedFieldElement(const FixedFi
 class FieldArray
 {
   public:
-    struct const_iterator; // Defined after CompositeField, which it stores
+    struct const_iterator;
 
     template <bool Mutable> class FieldArrayRecord
     {
@@ -555,12 +555,11 @@ class FieldArray
         FieldArrayPointer fieldArray;
         size_t index;
 
-        //! An iterator at this record, which must exist. *it is the record as a CompositeField; for flat
-        //! storage that is a view inside the iterator, so the iterator must outlive its use.
-        [[nodiscard]] const_iterator Iterator() const;
-
       public:
         FieldArrayRecord(FieldArrayPointer fieldArray_, size_t index_) : fieldArray(fieldArray_), index(index_) {}
+
+        //! Call fn_ with a const CompositeField& valid only for the duration of the call.
+        template <typename Fn> decltype(auto) WithFields(Fn&& fn_) const;
 
         //! \see CompositeField::GetFieldValue
         template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValue(const BaseField& field_, size_t elementIndex_ = 0) const;
@@ -1078,7 +1077,7 @@ class CompositeField
                         else
                         {
                             size_t written = 0;
-                            for (const auto& record : value)
+                            for (const auto& record : std::get<FieldArray::CompositeFieldArray>(value.storage))
                             {
                                 const std::optional<size_t> count = handler_(record, buffer_ + written, capacity_ - written);
                                 if (!count || *count > capacity_ - written) { return 0; }
@@ -1143,64 +1142,62 @@ inline size_t FieldArray::size() const
     return std::get<CompositeFieldArray>(storage).size();
 }
 
-//! Iterates records as CompositeFields. For flat storage, *it is a view stashed in the
-//! iterator, so it is only valid while that iterator is alive (copy it to keep it longer).
+//! Iterates by-value record handles that borrow from the underlying FieldArray.
 struct FieldArray::const_iterator
 {
-    using value_type = CompositeField;
-    using reference = const CompositeField&;
-    using pointer = const CompositeField*;
+    using value_type = FieldArrayRecord<false>;
+    using reference = value_type;
+    struct pointer
+    {
+        value_type record;
+        const value_type* operator->() const { return &record; }
+    };
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 
     const FieldArray* fieldArray;
     size_t index;
-    mutable CompositeField view; // Rebuilt on each dereference of a flat record
-
     const_iterator(const FieldArray* fieldArray_, size_t index_) : fieldArray(fieldArray_), index(index_) {}
 
-    reference operator*() const
-    {
-        const auto* fields = std::get_if<FixedFieldRegion>(&fieldArray->storage);
-        if (fields == nullptr) { return std::get<CompositeFieldArray>(fieldArray->storage)[index]; }
-        const size_t recordBytes = fieldArray->fieldInfo->fixedFieldBytes;
-        view = CompositeField::ViewFixedFields(fields->data() + (index * recordBytes), recordBytes, fieldArray->fieldInfo);
-        return view;
-    }
-    pointer operator->() const { return &**this; }
+    reference operator*() const { return (*fieldArray)[index]; }
+    pointer operator->() const { return {**this}; }
 
     const_iterator& operator++()
     {
         ++index;
         return *this;
     }
-    const_iterator operator++(int) { return {fieldArray, index++}; } // Avoids copying the stashed view
+    const_iterator operator++(int) { return {fieldArray, index++}; }
 
-    bool operator==(const const_iterator& other) const { return index == other.index; }
-    bool operator!=(const const_iterator& other) const { return index != other.index; }
+    bool operator==(const const_iterator& other) const { return fieldArray == other.fieldArray && index == other.index; }
+    bool operator!=(const const_iterator& other) const { return !(*this == other); }
 };
 
 inline FieldArray::const_iterator FieldArray::begin() const { return {this, 0}; }
 inline FieldArray::const_iterator FieldArray::end() const { return {this, size()}; }
 
-template <bool Mutable> FieldArray::const_iterator FieldArray::FieldArrayRecord<Mutable>::Iterator() const
+template <bool Mutable> template <typename Fn> decltype(auto) FieldArray::FieldArrayRecord<Mutable>::WithFields(Fn&& fn_) const
 {
     if (index >= fieldArray->size()) { throw std::out_of_range("FieldArray: record index out of range"); }
-    return {fieldArray, index};
+    if (const auto* records = std::get_if<CompositeFieldArray>(&fieldArray->storage)) { return std::forward<Fn>(fn_)((*records)[index]); }
+    const auto& bytes = std::get<FixedFieldRegion>(fieldArray->storage);
+    const size_t recordBytes = fieldArray->fieldInfo->fixedFieldBytes;
+    const auto view = CompositeField::ViewFixedFields(bytes.data() + index * recordBytes, recordBytes, fieldArray->fieldInfo);
+    return std::forward<Fn>(fn_)(view);
 }
 
 template <bool Mutable>
 template <typename T>
 FieldValueResult<T> FieldArray::FieldArrayRecord<Mutable>::GetFieldValue(const BaseField& field_, size_t elementIndex_) const
 {
-    return Iterator()->template GetFieldValue<T>(field_, elementIndex_);
+    return WithFields([&](const CompositeField& fields) -> FieldValueResult<T> { return fields.GetFieldValue<T>(field_, elementIndex_); });
 }
 
 template <bool Mutable>
 template <typename T>
 FieldValueResult<T> FieldArray::FieldArrayRecord<Mutable>::GetFieldValueByName(const std::string& name_, size_t elementIndex_) const
 {
-    return Iterator()->template GetFieldValueByName<T>(name_, elementIndex_);
+    return WithFields([&](const CompositeField& fields) -> FieldValueResult<T> { return fields.GetFieldValueByName<T>(name_, elementIndex_); });
 }
 
 // Defined here because it iterates FieldArray records
@@ -1227,7 +1224,12 @@ inline size_t CompositeField::GetFieldByteSize(const BaseField& field_) const
                     size_t byteSize = 0;
                     for (const auto& record : value)
                     {
-                        for (const auto& field : fieldArrayField->fieldInfo->messageOrderedFields) { byteSize += record.GetFieldByteSize(*field); }
+                        record.WithFields([&](const CompositeField& fields) {
+                            for (const auto& field : fieldArrayField->fieldInfo->messageOrderedFields)
+                            {
+                                byteSize += fields.GetFieldByteSize(*field);
+                            }
+                        });
                     }
                     return byteSize;
                 }

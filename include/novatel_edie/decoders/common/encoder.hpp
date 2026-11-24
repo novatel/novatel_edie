@@ -623,7 +623,10 @@ template <typename Derived> class EncoderBase
                     {
                         if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
                     }
-                    if (!EncodeAsciiBody<Abbreviated>(record, subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1)) { return false; }
+                    const bool encoded = record.WithFields([&](const CompositeField& fields) {
+                        return EncodeAsciiBody<Abbreviated>(fields, subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1);
+                    });
+                    if (!encoded) { return false; }
                 }
 
                 newIndentLine = true;
@@ -743,11 +746,10 @@ template <typename Derived> class EncoderBase
                 {
                     for (const auto& record : clCompField_.GetFieldValue<FieldArray>(fieldDefRef))
                     {
-                        if (!EncodeJsonBody(record, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_) ||
-                            !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
-                        {
-                            return false;
-                        }
+                        const bool encoded = record.WithFields([&](const CompositeField& fields) {
+                            return EncodeJsonBody(fields, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_);
+                        });
+                        if (!encoded || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
                     }
                     *(*ppcOutBuf_ - 1) = ']';
                     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }

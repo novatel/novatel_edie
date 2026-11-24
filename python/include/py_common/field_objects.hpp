@@ -185,9 +185,8 @@ struct PyField
     // Call fn_ with this field's values as a const CompositeField&: the one it owns, or its record in the parent FieldArray.
     template <typename Fn> decltype(auto) with_fields(Fn&& fn_) const
     {
-        if (const auto* owned = std::get_if<OwnedFields>(&storage)) { return fn_(std::as_const(**owned)); }
-        const FieldArray::const_iterator record{&parent_array(), myFieldIndex}; // Outlives fn_, which may use its flat-record view
-        return fn_(*record);
+        if (const auto* owned = std::get_if<OwnedFields>(&storage)) { return std::forward<Fn>(fn_)(std::as_const(**owned)); }
+        return parent_array()[myFieldIndex].WithFields(std::forward<Fn>(fn_));
     }
     // The FieldArray this field is an element of, when it doesn't own its values.
     FieldArray& parent_array() const;

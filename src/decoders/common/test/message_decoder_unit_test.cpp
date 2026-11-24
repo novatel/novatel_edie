@@ -1120,7 +1120,8 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayIteratorOperationsForBothStorag
     {
         auto current = array.begin();
         const auto copy = current;
-        const auto firstRecord = *current;
+        const auto& firstRecord = *array.begin();
+        static_assert(!std::is_reference_v<decltype(*array.begin())>);
         EXPECT_EQ(current, copy);
         EXPECT_EQ(current++, copy);
         EXPECT_NE(current, copy);
@@ -1207,7 +1208,7 @@ TEST_F(BothStorageFieldArrayTest, ReplaceRecordWithItselfKeepsTheRecord)
 {
     for (auto& array : arrays)
     {
-        (void)array[0].ReplaceRecord(*array.begin());
+        (void)array[0].ReplaceRecord((*array.begin()).WithFields([](const CompositeField& fields) { return fields; }));
         EXPECT_EQ(array[0].GetFieldValue<uint32_t>(*valueField), 7U);
     }
 }
@@ -1253,7 +1254,7 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageIteratorFind)
     fieldArray.SetFieldValue<int16_t>(*f1, static_cast<int16_t>(15), 2 * fieldInfo->fixedFieldBytes);
 
     FieldArray wrapped(std::vector<std::byte>(fieldArray.data(), fieldArray.data() + fieldArray.size()), fieldInfo);
-    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.template GetFieldValue<uint32_t>(*f0) == 22U;
     });
     ASSERT_NE(it, wrapped.end());
@@ -1261,12 +1262,12 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageIteratorFind)
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*f0), 22U);
     EXPECT_EQ((*it).GetFieldValue<int16_t>(*f1), static_cast<int16_t>(9));
 
-    const auto missing = std::find_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
+    const auto missing = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.template GetFieldValue<uint32_t>(*f0) == 99U;
     });
     EXPECT_EQ(missing, wrapped.end());
 
-    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.template GetFieldValue<int16_t>(*f1) > 0;
     }), 2);
 }
@@ -1334,14 +1335,14 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayFlatBackedIteratorFind)
     body.SetFieldValue(*fieldArrayField, std::move(stored));
 
     const auto& wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
-    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.template GetFieldValue<uint32_t>(*nestedU32) == 22U;
     });
     ASSERT_NE(it, wrapped.end());
     EXPECT_EQ(std::distance(wrapped.begin(), it), 1);
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 22U);
     EXPECT_EQ((*it).GetFieldValue<int16_t>(*nestedI16), static_cast<int16_t>(9));
-    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.template GetFieldValue<int16_t>(*nestedI16) > 0;
     }), 1);
 }
@@ -1411,14 +1412,14 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayCompositeBackedIteratorFind)
     body.SetFieldValue(*fieldArrayField, FieldArray({row0, row1}, nestedFieldInfo));
 
     const auto& wrapped = body.GetFieldValue<FieldArray>(*fieldArrayField);
-    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
+    const auto it = std::find_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.template GetFieldValue<uint32_t>(*nestedU32) == 20U;
     });
     ASSERT_NE(it, wrapped.end());
     EXPECT_EQ(std::distance(wrapped.begin(), it), 1);
     EXPECT_EQ((*it).GetFieldValue<uint32_t>(*nestedU32), 20U);
     EXPECT_EQ((*it).GetFieldValue<std::string>(*nestedStr), "twenty");
-    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const CompositeField& row) {
+    EXPECT_EQ(std::count_if(wrapped.begin(), wrapped.end(), [&](const auto& row) {
         return row.template GetFieldValue<uint32_t>(*nestedU32) > 0U;
     }), 2);
 }
