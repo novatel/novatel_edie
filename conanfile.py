@@ -178,6 +178,7 @@ class NovatelEdieConan(ConanFile):
         copy(self, "*", os.path.join(self.build_folder, "third_party_licenses"),
              os.path.join(self.package_folder, "licenses", "third_party"))
         rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
+        rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
         """Provides information to consumers."""

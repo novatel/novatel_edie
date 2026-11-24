@@ -1,0 +1,13 @@
+prefix=@PKG_CONFIG_PREFIX@
+exec_prefix=${prefix}
+libdir=@PKG_CONFIG_LIBDIR@
+includedir=@PKG_CONFIG_INCLUDEDIR@
+datadir=@PKG_CONFIG_DATADIR@
+
+Name: novatel_edie
+Description: NovAtel EDIE - Encode Decode Interface Engine
+URL: https://github.com/novatel/novatel_edie
+Version: @PROJECT_VERSION@
+Requires: fmt spdlog simdjson
+Libs: -L${libdir} @PKG_CONFIG_LIBS@
+Cflags: -I${includedir}@PKG_CONFIG_EXTRA_CFLAGS@
