@@ -568,7 +568,7 @@ class FieldArray
         template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValueByName(const std::string& name_, size_t elementIndex_ = 0) const;
 
         //! \see CompositeField::GetFieldValueVariant
-        template <typename T> [[nodiscard]] FieldValueResult<T> GetFieldValueVariant(const BaseField& field_) const;
+        [[nodiscard]] decltype(auto) GetFieldValueVariant(const BaseField& field_) const;
 
         template <typename T, bool Enabled = Mutable, std::enable_if_t<Enabled && Mutable, int> = 0>
         void SetFieldValue(const BaseField& fieldDef_, T&& value_) const
@@ -1203,9 +1203,7 @@ FieldValueResult<T> FieldArray::FieldArrayRecord<Mutable>::GetFieldValueByName(c
     return WithFields([&](const CompositeField& fields) -> FieldValueResult<T> { return fields.GetFieldValueByName<T>(name_, elementIndex_); });
 }
 
-template <bool Mutable>
-template <typename T>
-FieldValueResult<T> FieldArray::FieldArrayRecord<Mutable>::GetFieldValueVariant(const BaseField& field_) const
+template <bool Mutable> decltype(auto) FieldArray::FieldArrayRecord<Mutable>::GetFieldValueVariant(const BaseField& field_) const
 {
     return WithFields([&](const CompositeField& fields) -> FieldValueVariant { return fields.GetFieldValueVariant(field_); });
 }

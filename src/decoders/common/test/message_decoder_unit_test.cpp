@@ -1441,7 +1441,7 @@ TEST(MessageDecoderContainerTypesTest, FieldArrayWrapperPreservesSchemaForEmptyC
     EXPECT_EQ(wrapped.GetFieldInfo(), nestedFieldInfo);
 }
 
-TEST(MessageDecoderContainerTypesTest, CompositeFieldGetFieldValueByName)
+TEST(MessageDecoderContainerTypesTest, CompositeFieldGetFieldValueByNameAndVariant)
 {
     auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
     auto f1 = std::make_shared<BaseField>("str", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN);
@@ -1455,9 +1455,12 @@ TEST(MessageDecoderContainerTypesTest, CompositeFieldGetFieldValueByName)
     EXPECT_EQ(stMessage.GetFieldValueByName<uint32_t>("u32"), 10);
     EXPECT_EQ(stMessage.GetFieldValueByName<std::string>("str"), "ten");
     EXPECT_THROW((void)stMessage.GetFieldValueByName<uint8_t>("error"), std::runtime_error);
+
+    EXPECT_EQ(std::get<uint32_t>(stMessage.GetFieldValueVariant(*f0)), 10);
+    EXPECT_EQ(std::get<std::string>(stMessage.GetFieldValueVariant(*f1)), "ten");
 }
 
-TEST(MessageDecoderContainerTypesTest, FixedStorageRecordViewGetFieldValueByName)
+TEST(MessageDecoderContainerTypesTest, FixedStorageRecordViewGetFieldValueByNameAndVariant)
 {
     auto f0 = std::make_shared<BaseField>("u32", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT);
     auto f1 = std::make_shared<ArrayField>("arr", FIELD_TYPE::FIXED_LENGTH_ARRAY, "%s", DATA_TYPE::UCHAR, 7);
@@ -1473,21 +1476,25 @@ TEST(MessageDecoderContainerTypesTest, FixedStorageRecordViewGetFieldValueByName
     auto tenStr = std::string("ten");
     auto twentyStr = std::string("twenty");
     EXPECT_EQ(wrapped[0].GetFieldValueByName<uint32_t>("u32"), 10);
+    EXPECT_EQ(std::get<uint32_t>(wrapped[0].GetFieldValueVariant(*f0)), 10);
     const auto arr1 = wrapped[0].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
     for (size_t i = 0; i < tenStr.size(); i++) { EXPECT_EQ(arr1[i], static_cast<uint8_t>(tenStr[i])); }
     EXPECT_EQ(wrapped[1].GetFieldValueByName<uint32_t>("u32"), 20);
+    EXPECT_EQ(std::get<uint32_t>(wrapped[1].GetFieldValueVariant(*f0)), 20);
     const auto arr2 = wrapped[1].GetFieldValueByName<TypedBuffer<uint8_t>>("arr");
     for (size_t i = 0; i < twentyStr.size(); i++) { EXPECT_EQ(arr2[i], static_cast<uint8_t>(twentyStr[i])); }
 
     const FieldArray::FieldArrayRecord row = wrapped[1];
     EXPECT_EQ(row.GetFieldValue<uint8_t>(*f1, 2), static_cast<uint8_t>('e'));
     EXPECT_EQ(row.GetFieldValueByName<uint8_t>("arr", 2), static_cast<uint8_t>('e'));
+    EXPECT_EQ(std::get<TypedBuffer<uint8_t>>(row.GetFieldValueVariant(*f1))[2], static_cast<uint8_t>('e'));
     EXPECT_THROW((void)row.GetFieldValue<uint8_t>(*f1, 7), std::runtime_error);
     EXPECT_THROW((void)row.GetFieldValueByName<uint32_t>("missing"), std::runtime_error);
     EXPECT_THROW((void)row.GetFieldValue<std::string>(*f0), std::runtime_error);
     const uint32_t replacement = 30U;
     wrapped[1].SetFieldValue(*f0, replacement);
     EXPECT_EQ(row.GetFieldValueByName<uint32_t>("u32"), replacement);
+    EXPECT_EQ(std::get<uint32_t>(row.GetFieldValueVariant(*f0)), replacement);
     EXPECT_THROW((void)FieldArray{}[0].GetFieldValueByName<uint32_t>("u32"), std::out_of_range);
 }
 
