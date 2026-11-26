@@ -31,22 +31,16 @@ template <typename T> T attr_cast(nb::handle value)
 }
 } // namespace
 
-PYCOMMON_EXPORT CompositeField* PyField::GetCompositeField() const
+PYCOMMON_EXPORT FieldArray& PyField::parent_array() const
 {
-    if (std::holds_alternative<OwnedFields>(storage)) { return std::get<OwnedFields>(storage).get(); }
+    // A field that doesn't own its values is always an element of a PyFieldArray
+    return *nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage))->dataPtr;
+}
 
-    if (!std::holds_alternative<nb::object>(storage)) { return nullptr; }
-    nb::handle owner = std::get<nb::object>(storage);
-    if (!nb::isinstance<PyFieldArray>(owner)) { return nullptr; }
-
-    auto* parentField = nb::inst_ptr<PyFieldArray>(owner);
-    if (std::holds_alternative<CompositeFieldArray>(*parentField->dataPtr))
-    {
-        auto& nested = std::get<CompositeFieldArray>(*parentField->dataPtr);
-        if (myFieldIndex < nested.size()) { return &nested[myFieldIndex]; }
-    }
-
-    return nullptr;
+// Copying a flat record's view copies its bytes, so the result owns its data
+PYCOMMON_EXPORT CompositeField PyField::copy_fields() const
+{
+    return with_fields([](const CompositeField& fields_) { return fields_; });
 }
 
 PYCOMMON_EXPORT nb::object PyField::py_new(nb::handle cls, nb::kwargs kwargs)
@@ -75,14 +69,7 @@ PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry)
     if (entry.index >= orderedFields.size()) { throw std::runtime_error("PyField::resolve_entry(): field lookup index out of range"); }
 
     const auto& field = *orderedFields[entry.index];
-    if (entry.is_length)
-    {
-        if (auto* mb = GetCompositeField()) { return nb::cast(mb->GetFieldSize(field)); }
-
-        const auto* arrayDef = dynamic_cast<const ArrayField*>(&field); // array elements in flat field arrays must be fixed-length arrays
-        if (arrayDef == nullptr) { throw std::runtime_error("PyField::resolve_entry(): invalid fixed array metadata"); }
-        return nb::cast(static_cast<size_t>(arrayDef->arrayLength));
-    }
+    if (entry.is_length) { return nb::cast(with_fields([&](const CompositeField& fields_) { return fields_.GetFieldSize(field); })); }
 
     return convert_field(field);
 }
@@ -113,35 +100,20 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
         auto arrayDef = std::dynamic_pointer_cast<const FieldArrayField>(*it);
         if (arrayDef == nullptr) { throw std::runtime_error("PyField::convert_field(): missing field array metadata"); }
 
-        const CompositeField* cf = GetCompositeField();
-        if (cf == nullptr) { throw std::runtime_error("PyField::convert_field(): missing message body for FIELD_ARRAY access"); }
-        const auto& varFields = cf->GetVarFields();
-        if (field.index >= varFields.size()) { throw std::runtime_error("PyField::convert_field(): field index out of range"); }
+        // The wrapper modifies the array in place, and the field that holds it is never const
+        auto& fieldArray = const_cast<FieldArray&>(
+            with_fields([&](const CompositeField& fields_) -> const FieldArray& { return fields_.GetFieldValue<FieldArray>(field); }));
 
         // Construct a new PyFieldArray in place
         nb::object pyArr = nb::inst_alloc(nb::type<PyFieldArray>());
-        auto* varField = const_cast<FieldValueVariant*>(&varFields[field.index]);
-        new (nb::inst_ptr<PyFieldArray>(pyArr)) PyFieldArray(*varField, arrayDef, parentDb, nb::cast(this, nb::rv_policy::none));
+        new (nb::inst_ptr<PyFieldArray>(pyArr)) PyFieldArray(fieldArray, arrayDef, parentDb, nb::cast(this, nb::rv_policy::none));
         nb::inst_mark_ready(pyArr);
 
         cachedArrays_[fieldIdx] = nb::weakref(pyArr);
         return pyArr;
     }
 
-    FieldValueVariant fieldValue;
-    if (const auto* cf = GetCompositeField()) { fieldValue = cf->GetFieldValueVariant(field); }
-    else if (std::holds_alternative<nb::object>(storage) && nb::isinstance<PyFieldArray>(std::get<nb::object>(storage)))
-    {
-        auto parentFieldArray = nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage));
-        // If field has no containing CompositeField, then it must be in a FlatFieldArray
-        auto& fa = std::get<FlatFieldArray>(*parentFieldArray->dataPtr);
-        SimpleTypeVisitor(field, [&](auto&& arg) {
-            using ValueT = std::decay_t<decltype(arg)>;
-            if (field.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { fieldValue = fa.GetFieldValue<TypedBuffer<ValueT>>(field, myFieldIndex); }
-            else { fieldValue = fa.GetFieldValue<ValueT>(field, myFieldIndex); }
-        });
-    }
-    else { throw std::runtime_error("PyField::convert_field(): unsupported storage type for field access"); }
+    const FieldValueVariant fieldValue = with_fields([&](const CompositeField& fields_) { return fields_.GetFieldValueVariant(field); });
 
     if (field.type == FIELD_TYPE::ENUM)
     {
@@ -205,7 +177,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
     return std::visit(
         [&](auto&& value) -> nb::object {
             using T = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<T, std::vector<std::byte>> || std::is_same_v<T, std::vector<CompositeField>>)
+            if constexpr (std::is_same_v<T, std::vector<std::byte>> || std::is_same_v<T, FieldArray>)
             {
                 throw std::runtime_error("PyField::convert_field(): field array types should be handled through PyFieldArray");
             }
@@ -369,42 +341,18 @@ PYCOMMON_EXPORT void PyFieldArray::setitem(ssize_t signedIndex, nb::object value
     // fieldDef will be set here because array has been verified to be at least one element in length
     if (fieldVal->fieldDef != fieldDef) { throw nb::type_error("Field does not match the type of the FieldArray!"); }
 
-    CompositeField* source = fieldVal->GetCompositeField();
-    if (source == nullptr) { throw nb::type_error("Field does not have accessible CompositeField storage."); }
-
-    std::visit(
-        [&](auto&& arrayData) {
-            using T = std::decay_t<decltype(arrayData)>;
-            if constexpr (std::is_same_v<T, CompositeFieldArray> || std::is_same_v<T, FlatFieldArray>)
-            {
-                if (index >= arrayData.size()) { throw nb::index_error(); }
-
-                if constexpr (std::is_same_v<T, CompositeFieldArray>)
-                {
-                    // Let the old element wrapper (if still alive) take ownership of its prior data.
-                    if (PyField* existingFieldVal = cached_element(index)) { existingFieldVal->take_ownership(std::move(arrayData[index])); }
-                    arrayData[index] = *source;
-                }
-                else
-                {
-                    if (source->GetVarFields().size() > 0) { throw nb::type_error("FlatFieldArray elements cannot contain variable-length fields."); }
-                    // Copy existing data out of flat byte region into a new CompositeField for the old element wrapper (if still alive) to take
-                    // ownership of.
-                    if (PyField* existingFieldVal = cached_element(index))
-                    {
-                        auto existingMb = CompositeField(fieldDef->fieldInfo->fixedFieldBytes, 0);
-                        existingMb.SetFieldValue<true>(0, arrayData.data() + (index * fieldDef->fieldInfo->fixedFieldBytes),
-                                                       fieldDef->fieldInfo->fixedFieldBytes);
-                        existingFieldVal->take_ownership(std::move(existingMb));
-                    }
-                    // Copy fixed CompositeField data into the existing FlatFieldArray field
-                    arrayData.SetFieldValue(index, 0, source->GetFixedFields().data(), source->GetFixedFields().size());
-                }
-                cache[index].reset();
-            }
-            else { throw nb::type_error("FieldArray contains unsupported storage type."); }
-        },
-        *dataPtr);
+    CompositeField previous;
+    try
+    {
+        previous = (*dataPtr)[index].ReplaceRecord(fieldVal->copy_fields());
+    }
+    catch (const std::runtime_error& e)
+    {
+        throw nb::type_error(e.what()); // The record doesn't fit how this array stores its records
+    }
+    // Let the old element wrapper (if still alive) take ownership of its prior data.
+    if (PyField* existingFieldVal = cached_element(index)) { existingFieldVal->take_ownership(std::move(previous)); }
+    cache[index].reset();
 }
 
 PYCOMMON_EXPORT size_t PyFieldArray::len() const { return length; }
@@ -416,7 +364,7 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
         // No elements to infer fieldDef/parentDb from, but we must still own an (empty)
         // backing vector so `data` is valid — it is dereferenced unconditionally when
         // this array is assigned to a field. fieldDef is filled in later by setattr.
-        take_ownership(CompositeFieldArray{});
+        take_ownership(FieldArray{});
         return;
     }
 
@@ -431,39 +379,29 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
     fieldDef = std::move(fieldArrayDef);
     parentDb = candidate->parentDb;
     cache.resize(values.size());
-    // Always use CompositeFieldArray for simplicity. Probably not worth the extra complexity to use FlatFieldArray here.
-    CompositeFieldArray owned;
+    // Always store CompositeField records for simplicity. Probably not worth the extra complexity to store contiguous bytes here.
+    std::vector<CompositeField> owned;
     owned.reserve(values.size());
     for (auto it = values.begin(); it != values.end(); it++)
     {
         PyField* itVal = nb::inst_ptr<PyField>(nb::handle(*it));
 
         // Copy value (minor part of constructor overhead - not worth optimizing)
-        owned.emplace_back(CompositeField(*itVal->fieldsPtr));
+        owned.emplace_back(itVal->copy_fields());
     }
-    take_ownership(std::move(owned));
+    take_ownership(FieldArray(std::move(owned), fieldDef->fieldInfo));
 }
 
-template <bool Fixed, typename T> void PyField::set_field_value(size_t ind_, T* val_, size_t n_)
+template <typename T> void PyField::set_field_value(const BaseField& field_, T&& value_)
 {
-    if (auto* mb = GetCompositeField()) { mb->SetFieldValue<Fixed>(ind_, val_, n_); }
-    else if (std::holds_alternative<nb::object>(storage) && nb::isinstance<PyFieldArray>(std::get<nb::object>(storage)))
-    {
-        if constexpr (!Fixed) { throw std::runtime_error("set_field_value(): Variable-length arrays are not valid in this context."); }
-        else
-        {
-            auto parentFieldArray = nb::inst_ptr<PyFieldArray>(std::get<nb::object>(storage));
-            std::get<FlatFieldArray>(*parentFieldArray->dataPtr).SetFieldValue(myFieldIndex, ind_, val_, n_);
-        }
-    }
-    else { throw std::runtime_error("set_field_value(): unsupported storage type for field access"); }
+    if (const auto* owned = std::get_if<OwnedFields>(&storage)) { (*owned)->SetFieldValue(field_, std::forward<T>(value_)); }
+    else { parent_array()[myFieldIndex].SetFieldValue(field_, std::forward<T>(value_)); }
 }
 
-template <bool Fixed> void PyField::set_regular_array(const ArrayField::ConstPtr& arrFieldDef_, nb::handle value_)
+void PyField::set_regular_array(const ArrayField::ConstPtr& arrFieldDef_, nb::handle value_)
 {
     if (arrFieldDef_ == nullptr) { throw nb::type_error("Array field metadata is missing."); }
 
-    size_t i = 0;
     if (nb::isinstance<nb::str>(value_) || nb::isinstance<nb::bytes>(value_))
     {
         if (arrFieldDef_->isCsv) { throw nb::type_error("String value is not valid for a non-string array."); }
@@ -471,35 +409,30 @@ template <bool Fixed> void PyField::set_regular_array(const ArrayField::ConstPtr
         if (nb::isinstance<nb::str>(value_)) { strVal = nb::cast<nb::str>(value_).c_str(); }
         else { strVal = nb::cast<nb::bytes>(value_).c_str(); }
         if (strVal.size() > arrFieldDef_->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
-        set_field_value<Fixed>(arrFieldDef_->index, reinterpret_cast<const unsigned char*>(strVal.data()), strVal.size());
-        i = strVal.size();
+        SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
+            // Store the characters as the field's own one-byte element type
+            using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
+            if constexpr (sizeof(ValueT) != 1) { throw nb::type_error("String value is not valid for an array of multi-byte elements."); }
+            else
+            {
+                std::vector<ValueT> values(arrFieldDef_->type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? arrFieldDef_->arrayLength : strVal.size());
+                std::copy(strVal.begin(), strVal.end(), values.begin());
+                set_field_value(*arrFieldDef_, std::move(values));
+            }
+        });
     }
     else if (nb::isinstance<nb::list>(value_))
     {
         auto listVal = nb::cast<nb::list>(value_);
         if (listVal.size() > arrFieldDef_->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
-        if (listVal.size() > 0)
-        {
-            SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
-                using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
-                std::vector<ValueT> temp(listVal.size());
-                for (; i < listVal.size(); i++) { temp[i] = attr_cast<ValueT>(listVal[i]); }
-                set_field_value<Fixed>(arrFieldDef_->index, temp.data(), temp.size());
-            });
-        }
+        SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
+            using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
+            std::vector<ValueT> values(arrFieldDef_->type == FIELD_TYPE::FIXED_LENGTH_ARRAY ? arrFieldDef_->arrayLength : listVal.size());
+            for (size_t index = 0; index < listVal.size(); ++index) { values[index] = attr_cast<ValueT>(listVal[index]); }
+            set_field_value(*arrFieldDef_, std::move(values));
+        });
     }
     else { throw nb::attribute_error("Value cannot be converted to a fixed length array."); }
-    if constexpr (Fixed)
-    {
-        if (arrFieldDef_->arrayLength > i)
-        {
-            SimpleTypeVisitor(*arrFieldDef_, [&](auto&& arg) {
-                using ValueT = std::conditional_t<std::is_same_v<std::decay_t<decltype(arg)>, bool>, uint8_t, std::decay_t<decltype(arg)>>;
-                std::vector<ValueT> temp(arrFieldDef_->arrayLength - i);
-                set_field_value<true>(arrFieldDef_->index + (i * sizeof(ValueT)), temp.data(), temp.size());
-            });
-        }
-    }
 }
 
 PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
@@ -522,21 +455,16 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
         case FIELD_TYPE::SIMPLE:
             SimpleTypeVisitor(*entryField, [&](auto&& arg) {
                 auto v = attr_cast<std::decay_t<decltype(arg)>>(value);
-                set_field_value<true>(entryField->index, &v);
+                set_field_value(*entryField, v);
             });
             break;
         case FIELD_TYPE::STRING:
-            if (auto* mb = GetCompositeField()) { mb->SetFieldValue<false>(entryField->index, attr_cast<std::string>(value)); }
-            else { throw nb::attribute_error("STRING types not allowed in fixed-length fields."); }
+            set_field_value(*entryField, attr_cast<std::string>(value));
             break;
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            set_regular_array<true>(std::dynamic_pointer_cast<const ArrayField>(entryField), value);
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            set_regular_array(std::dynamic_pointer_cast<const ArrayField>(entryField), value);
             break;
-        }
-        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            set_regular_array<false>(std::dynamic_pointer_cast<const ArrayField>(entryField), value);
-            break;
-        }
         case FIELD_TYPE::FIELD_ARRAY: {
             nb::object owned_array_obj;
             nb::handle array_handle = value;
@@ -555,20 +483,21 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
             auto fieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(entryField);
             if (fieldArrayDef == nullptr) { throw nb::type_error("FIELD_ARRAY assignment requires field-array metadata."); }
 
-            if (fieldArrayVal->fieldDef == nullptr) { fieldArrayVal->fieldDef = fieldArrayDef; }
+            if (fieldArrayVal->fieldDef == nullptr)
+            {
+                // Empty array built from a list: adopt this field's definition
+                fieldArrayVal->fieldDef = fieldArrayDef;
+                *fieldArrayVal->dataPtr = FieldArray(std::vector<CompositeField>{}, fieldArrayDef->fieldInfo);
+            }
             if (fieldArrayVal->fieldDef != fieldArrayDef) { throw nb::type_error("FieldArray contains elements of the wrong type!"); }
-            auto* cf = GetCompositeField();
-            // Note: cf should never be nullptr here as FIELD_ARRAY cannot appear in FlatFieldArray
-            if (cf == nullptr) { throw nb::type_error("FIELD_ARRAY assignment requires a CompositeField to be present."); }
-            // Transfer data ownership to the existing array wrapper, if still alive
-            if (PyFieldArray* curArray = cached_array(entry.index)) { curArray->take_ownership(cf->GetFieldValueVariant(*entryField)); }
+            // Transfer data ownership to the existing array wrapper, if still alive (copied, since the new value may be this array)
+            if (PyFieldArray* curArray = cached_array(entry.index))
+            {
+                curArray->take_ownership(with_fields([&](const CompositeField& fields_) { return fields_.GetFieldValue<FieldArray>(*entryField); }));
+            }
 
             // Copy value (minor part of constructor overhead - not worth optimizing).
-            if (std::holds_alternative<FlatFieldArray>(*fieldArrayVal->dataPtr))
-            {
-                cf->SetFieldValue(*entryField, std::get<FlatFieldArray>(*fieldArrayVal->dataPtr));
-            }
-            else { cf->SetFieldValue(*entryField, std::get<CompositeFieldArray>(*fieldArrayVal->dataPtr)); }
+            set_field_value(*entryField, *fieldArrayVal->dataPtr);
             cachedArrays_[entry.index].reset();
             break;
         }

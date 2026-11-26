@@ -206,6 +206,11 @@ class TestFieldArray:
         assert points[0].x == 0
         assert points[0].y == 1
 
+    def test_field_array_setelem_self(self, point_type: type):
+        points = FieldArray([point_type(x=-5, y=5)])
+        points[0] = points[0]
+        assert (points[0].x, points[0].y) == (-5, 5)
+
     def test_empty_field_array(self, point_message_type: type):
         # Act
         points = FieldArray([])

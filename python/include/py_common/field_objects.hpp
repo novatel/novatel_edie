@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 
 #include "novatel_edie/decoders/common/message_decoder.hpp"
@@ -22,7 +23,7 @@ using ssize_t = std::make_signed_t<size_t>;
 // parent (held alive by an nb::object reference).
 using OwnedFields = std::unique_ptr<CompositeField>;
 using FieldStorage = std::variant<OwnedFields, nb::object>;
-using OwnedFieldArrayData = std::unique_ptr<FieldValueVariant>;
+using OwnedFieldArrayData = std::unique_ptr<FieldArray>;
 
 class PyFieldArray;
 
@@ -85,15 +86,13 @@ class PyBitField
 //============================================================================
 struct PyField
 {
-    explicit PyField() : storage(std::make_unique<CompositeField>()), fieldsPtr(std::get<OwnedFields>(storage).get()), myFieldIndex(0) {}
+    explicit PyField() : storage(std::make_unique<CompositeField>()), myFieldIndex(0) {}
 
     // Standalone subfield constructor
     explicit PyField(CompositeField message_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_, py_common::PyMessageDatabase::ConstPtr parentDb_)
         : storage(std::make_unique<CompositeField>(std::move(message_))), fieldDef(std::static_pointer_cast<const BaseField>(fieldDef_)),
           fieldInfo(fieldDef_ ? fieldDef_->fieldInfo : nullptr), parentDb(std::move(parentDb_))
     {
-        auto& ptr = std::get<OwnedFields>(storage);
-        fieldsPtr = ptr.get();
         fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(std::static_pointer_cast<const BaseField>(fieldDef_).get()) : nullptr;
         cachedArrays_.resize(fieldInfo ? fieldInfo->messageOrderedFields.size() : 0);
     };
@@ -103,9 +102,7 @@ struct PyField
                      py_common::PyMessageDatabase::ConstPtr parentDb_)
         : storage(std::make_unique<CompositeField>(std::move(message_))), parentDb(std::move(parentDb_))
     {
-        auto& ptr = std::get<OwnedFields>(storage);
-        fieldsPtr = ptr.get();
-        fieldInfo = fieldsPtr ? fieldsPtr->GetFieldInfo() : nullptr;
+        fieldInfo = owned_fields().GetFieldInfo();
         fieldNameMap_ = msgDef_ ? parentDb->GetMessageFieldNameMap(msgDef_, crc_) : nullptr;
         cachedArrays_.resize(fieldInfo ? fieldInfo->messageOrderedFields.size() : 0);
     };
@@ -185,7 +182,17 @@ struct PyField
     nb::object getattr(nb::str field_name) const;
 
   protected:
-    CompositeField* GetCompositeField() const;
+    // Call fn_ with this field's values as a const CompositeField&: the one it owns, or its record in the parent FieldArray.
+    template <typename Fn> decltype(auto) with_fields(Fn&& fn_) const
+    {
+        if (const auto* owned = std::get_if<OwnedFields>(&storage)) { return std::forward<Fn>(fn_)(std::as_const(**owned)); }
+        return parent_array()[myFieldIndex].WithFields(std::forward<Fn>(fn_));
+    }
+    // The FieldArray this field is an element of, when it doesn't own its values.
+    FieldArray& parent_array() const;
+
+    // A copy of this field's values that owns its data.
+    CompositeField copy_fields() const;
 
     nb::object convert_field(const BaseField& field) const;
     nb::object resolve_entry(const FieldLookupEntry& entry) const;
@@ -197,12 +204,7 @@ struct PyField
 
     // Take ownership of `fields` as this field's backing storage. Used to detach a
     // field from a parent array it was previously borrowing from.
-    void take_ownership(CompositeField&& cf_)
-    {
-        auto owned = std::make_unique<CompositeField>(std::move(cf_));
-        fieldsPtr = owned.get();
-        storage = std::move(owned);
-    }
+    void take_ownership(CompositeField&& cf_) { storage = std::make_unique<CompositeField>(std::move(cf_)); }
 
     // Pointer to the live cached FieldArray wrapper for subfield `index`, or nullptr
     // when none is cached there or the cached wrapper has already been collected.
@@ -213,8 +215,8 @@ struct PyField
     static nb::object unwrap_for_list(nb::object value);
     static nb::object unwrap_for_dict(nb::object value);
 
-    template <bool Fixed, typename T> void set_field_value(size_t ind_, T* val_, size_t n_ = 1);
-    template <bool Fixed> void set_regular_array(const std::shared_ptr<const ArrayField>& arrFieldDef_, nb::handle value_);
+    template <typename T> void set_field_value(const BaseField& field_, T&& value_);
+    void set_regular_array(const std::shared_ptr<const ArrayField>& arrFieldDef_, nb::handle value_);
 
     friend class PyFieldArray;
 
@@ -222,7 +224,6 @@ struct PyField
     FieldStorage storage;
     BaseField::ConstPtr fieldDef;
     FieldInfo::ConstPtr fieldInfo;
-    CompositeField* fieldsPtr;
     size_t myFieldIndex; // Index of this field in the parent message's field vector, or 0 if no parent PyFieldArray.
     const FieldNameMap* fieldNameMap_{nullptr};
     mutable nb::dict cached_values_;
@@ -254,17 +255,10 @@ class PyFieldArray
   public:
     explicit PyFieldArray(nb::list values);
 
-    explicit PyFieldArray(FieldValueVariant& data_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
+    explicit PyFieldArray(FieldArray& data_, ::novatel::edie::FieldArrayField::ConstPtr fieldDef_,
                           py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parent_)
-        : storage(std::move(parent_)), dataPtr(&data_), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
+        : storage(std::move(parent_)), dataPtr(&data_), length(data_.size()), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
     {
-        length = std::visit(
-            [](auto& v) -> size_t {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>) { return v.size(); }
-                else { throw std::runtime_error("PyFieldArray: data_ is not a FlatFieldArray or CompositeFieldArray"); }
-            },
-            data_);
         cache.resize(length);
     };
 
@@ -286,17 +280,11 @@ class PyFieldArray
     // Take ownership of `fields` as this array's backing storage, repointing `data`
     // at the newly-owned vector. Used to seed a freshly-constructed array or to
     // detach an array from a parent it was previously borrowing from.
-    void take_ownership(FieldValueVariant&& fields)
+    void take_ownership(FieldArray fields)
     {
-        auto owned = std::make_unique<FieldValueVariant>(std::move(fields));
+        auto owned = std::make_unique<FieldArray>(std::move(fields));
         dataPtr = owned.get();
-        length = std::visit(
-            [](auto& v) -> size_t {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, FlatFieldArray> || std::is_same_v<T, CompositeFieldArray>) { return v.size(); }
-                else { throw std::runtime_error("take_ownership: data_ is not a FlatFieldArray or CompositeFieldArray"); }
-            },
-            *dataPtr);
+        length = dataPtr->size();
         storage = std::move(owned);
     }
 
@@ -308,7 +296,7 @@ class PyFieldArray
     std::variant<OwnedFieldArrayData, nb::object> storage;
 
     // Data access
-    FieldValueVariant* dataPtr;
+    FieldArray* dataPtr;
     size_t length;
     mutable std::vector<std::optional<nb::weakref>> cache;
 

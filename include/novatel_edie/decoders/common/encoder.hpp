@@ -34,8 +34,8 @@
 #include <optional>
 
 #include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/decoders/common/composite_field.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
-#include "novatel_edie/decoders/common/message_decoder.hpp"
 
 namespace novatel::edie {
 
@@ -352,7 +352,7 @@ template <typename Derived> class EncoderBase
                         using ValueType = std::decay_t<decltype(fieldVector)>;
                         size_t maxBytes = 0;
                         size_t count = 0;
-                        if constexpr (std::is_same_v<ValueType, FlatFieldArray> || std::is_same_v<ValueType, CompositeFieldArray>)
+                        if constexpr (std::is_same_v<ValueType, FieldArray>)
                         {
                             fieldArrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
                             if (!fieldArrayFieldDef)
@@ -368,7 +368,7 @@ template <typename Derived> class EncoderBase
                             count = fieldVector.size();
                         }
 
-                        if constexpr (is_specialization_of_v<ValueType, std::vector> || std::is_same_v<ValueType, FlatFieldArray>)
+                        if constexpr (is_specialization_of_v<ValueType, std::vector> || std::is_same_v<ValueType, FieldArray>)
                         {
                             // Write array length
                             if (arrayFieldDef->arrayLengthRef.empty())
@@ -392,23 +392,28 @@ template <typename Derived> class EncoderBase
 
                         const unsigned char* startPos = *ppucOutBuf_;
 
-                        // Variable-length FIELD_ARRAY
-                        if constexpr (std::is_same_v<ValueType, CompositeFieldArray>)
+                        if constexpr (std::is_same_v<ValueType, FieldArray>)
                         {
-                            for (const auto& element : fieldVector)
+                            if (count > 0)
                             {
-                                if (!EncodeBinaryBody<Flatten>(element, fieldArrayFieldDef->fieldInfo->messageOrderedFields, ppucOutBuf_,
-                                                               uiBytesLeft_))
+                                bool encoded = false;
+                                const auto encodeRecord = [&](const CompositeField& record, std::byte* buffer,
+                                                              size_t capacity) -> std::optional<size_t> {
+                                    auto* output = reinterpret_cast<unsigned char*>(buffer);
+                                    auto bytesLeft = static_cast<uint32_t>(capacity);
+                                    encoded =
+                                        EncodeBinaryBody<Flatten>(record, fieldArrayFieldDef->fieldInfo->messageOrderedFields, &output, bytesLeft);
+                                    if (!encoded) { return std::nullopt; }
+                                    return capacity - bytesLeft;
+                                };
+                                if (!stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_, encodeRecord) && !encoded)
                                 {
                                     return false;
                                 }
                             }
                         }
-                        // VARIABLE_LENGTH_ARRAY, STRING, and flat FIELD_ARRAY
-                        else
-                        {
-                            if (count > 0 && !stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_)) { return false; }
-                        }
+                        // VARIABLE_LENGTH_ARRAY and STRING
+                        else if (count > 0 && !stInterMessage_.WriteFieldToBuffer(fieldDefRef, ppucOutBuf_, uiBytesLeft_)) { return false; }
 
                         // For a flattened version of the log, fill in the remaining fields with 0x00.
                         if constexpr (Flatten)
@@ -611,56 +616,31 @@ template <typename Derived> class EncoderBase
                     }
                 }
 
-                auto encoded = std::visit(
-                    [&](auto&& fa) -> bool {
-                        using FieldArrayType = std::decay_t<decltype(fa)>;
-                        const auto& subfieldDefs = fieldArrayDef->fieldInfo->messageOrderedFields;
-                        if constexpr (std::is_same_v<FieldArrayType, FlatFieldArray> || std::is_same_v<FieldArrayType, CompositeFieldArray>)
-                        {
-                            for (size_t i = 0; i < count; i++)
-                            {
-                                if constexpr (Abbreviated)
-                                {
-                                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
-                                }
-                                if constexpr (std::is_same_v<FieldArrayType, CompositeFieldArray>)
-                                {
-                                    if (!EncodeAsciiBody<Abbreviated>(fa[i], subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1))
-                                    {
-                                        return false;
-                                    }
-                                }
-                                else if constexpr (std::is_same_v<FieldArrayType, FlatFieldArray>)
-                                {
-                                    const auto fixedFieldBytes = fieldArrayDef->fieldInfo->fixedFieldBytes;
-                                    const auto* elementStart = fa.data() + (i * fixedFieldBytes);
-                                    // Borrow the row's bytes in place instead of copying them into a
-                                    // temporary CompositeField: the parent flat array owns the storage and
-                                    // outlives this sub-encode.
-                                    const CompositeField mb = CompositeField::ViewFixedFields(elementStart, fixedFieldBytes);
-                                    if (!EncodeAsciiBody<Abbreviated>(mb, subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1)) { return false; }
-                                }
-                                else { throw std::runtime_error("Unexpected field array type in EncodeAsciiBody"); }
-                            }
-                        }
-                        else { throw std::runtime_error("Unexpected field array type in EncodeAsciiBody"); }
-                        return true;
-                    },
-                    clCompField_.GetVarFields()[fieldDefRef.index]);
-                if (!encoded) { return false; }
+                const auto& subfieldDefs = fieldArrayDef->fieldInfo->messageOrderedFields;
+                for (const auto& record : clCompField_.GetFieldValue<FieldArray>(fieldDefRef))
+                {
+                    if constexpr (Abbreviated)
+                    {
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
+                    }
+                    const bool encoded = record.WithFields([&](const CompositeField& fields) {
+                        return EncodeAsciiBody<Abbreviated>(fields, subfieldDefs, ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1);
+                    });
+                    if (!encoded) { return false; }
+                }
 
                 newIndentLine = true;
                 break;
             }
             case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
-                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::get<std::string>(clCompField_.GetVarFields()[fieldDefRef.index]), '"') ||
+                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', clCompField_.GetFieldValue<std::string>(fieldDefRef), '"') ||
                     !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                 {
                     return false;
                 }
                 break;
             case FIELD_TYPE::RESPONSE_STR:
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string>(clCompField_.GetVarFields()[fieldDefRef.index])) ||
+                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, clCompField_.GetFieldValue<std::string>(fieldDefRef)) ||
                     !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                 {
                     return false;
@@ -764,39 +744,13 @@ template <typename Derived> class EncoderBase
                 }
                 else
                 {
-                    auto encoded = std::visit(
-                        [&](auto&& fa) -> bool {
-                            using FieldArrayType = std::decay_t<decltype(fa)>;
-                            for (size_t i = 0; i < count; i++)
-                            {
-                                if constexpr (std::is_same_v<FieldArrayType, CompositeFieldArray>)
-                                {
-                                    if (!EncodeJsonBody(fa[i], arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
-                                    {
-                                        return false;
-                                    }
-                                }
-                                else if constexpr (std::is_same_v<FieldArrayType, FlatFieldArray>)
-                                {
-                                    const auto fixedFieldBytes = arrayFieldDef->fieldInfo->fixedFieldBytes;
-                                    const auto* elementStart = fa.data() + (i * fixedFieldBytes);
-                                    // Borrow the row's bytes in place instead of copying them into a
-                                    // temporary CompositeField: the parent flat array owns the storage and
-                                    // outlives this sub-encode.
-                                    const CompositeField mb = CompositeField::ViewFixedFields(elementStart, fixedFieldBytes);
-                                    if (!EncodeJsonBody(mb, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
-                                    {
-                                        return false;
-                                    }
-                                }
-                                else { throw std::runtime_error("Unexpected field array type in EncodeJsonBody"); }
-
-                                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
-                            }
-                            return true;
-                        },
-                        clCompField_.GetVarFields()[fieldDefRef.index]);
-                    if (!encoded) { return false; }
+                    for (const auto& record : clCompField_.GetFieldValue<FieldArray>(fieldDefRef))
+                    {
+                        const bool encoded = record.WithFields([&](const CompositeField& fields) {
+                            return EncodeJsonBody(fields, arrayFieldDef->fieldInfo->messageOrderedFields, ppcOutBuf_, uiBytesLeft_);
+                        });
+                        if (!encoded || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
+                    }
                     *(*ppcOutBuf_ - 1) = ']';
                     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
                 }
@@ -804,8 +758,7 @@ template <typename Derived> class EncoderBase
             }
             case FIELD_TYPE::RESPONSE_STR: [[fallthrough]];
             case FIELD_TYPE::STRING: {
-                const auto value = clCompField_.GetVarFields()[fieldDefRef.index];
-                const auto& str = std::get<std::string>(value);
+                const auto& str = clCompField_.GetFieldValue<std::string>(fieldDefRef);
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDefRef.name), R"(": ")", str, "\",")) { return false; }
                 break;
             }

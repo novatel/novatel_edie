@@ -239,6 +239,18 @@ class TestStandardArray:
             # Assert
             assert getattr(m, spec.name) == value
 
+    @pytest.mark.parametrize('spec', _spec_params(ALL_FIELDS))
+    @pytest.mark.parametrize('value', STRING_VALUES)
+    def test_array_replacement_clears_previous_value(self, message_type: type, spec: ArrayFieldSpec, value: List[int]):
+        message = message_type(**{spec.name: [66] * spec.array_length})
+        setattr(message, spec.name, value)
+        expected = value
+        if spec in STRING_FIELDS:
+            expected = _to_str(value)
+        elif spec.field_type == FIELD_TYPE.FIXED_LENGTH_ARRAY:
+            expected = value + [0] * (spec.array_length - len(value))
+        assert getattr(message, spec.name) == expected
+
     class TestValidation:
         """Validation rejections specific to standard arrays."""
 

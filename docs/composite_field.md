@@ -27,17 +27,21 @@ A `CompositeField` stores the decoded contents of a message. It holds:
 
 #### Field arrays
 
-- Stored as `FlatFieldArray` if every field has fixed size
-- Stored as `CompositeFieldArray = std::vector<CompositeField>` otherwise
+- Stored as a `FieldArray`, which holds one of:
+  - `FixedFieldRegion` containing contiguous records if every field has fixed size
+  - `std::vector<CompositeField>` otherwise
 
 ### Reading fields
 
-- `CompositeField::GetFieldValue` and `FlatFieldArray::GetFieldValue` can be used to get the value of most fields by their definition
-- `CompositeField::GetFieldValueVariant` wraps a field's value in a variant for programming convenience
+- `CompositeField::GetFieldValue/fieldArray[i].GetFieldValue` can be used to get the value of a field by its definition.
+- `CompositeField::GetFieldValueByName/fieldArray[i].GetFieldValueByName` can be used to get the value of a field by its name.
+- `CompositeField::GetFieldValueVariant/fieldArray[i].GetFieldValueVariant` wraps a field's value in a variant for programming convenience (this *copies* the value of the field into a newly-constructed variant)
+- Iterating a `FieldArray` yields a record handle by value, with the same accessors as `fieldArray[i]`.
 
 ### Writing fields
 
-- `CompositeField::SetFieldValue` can be used to set the value of most fields by their definition
+- `CompositeField::SetFieldValue` and `FieldArray` record views set a whole field by definition
+- `CompositeField::SetFixedData` copies raw bytes to the start of the fixed region for whole-message decoding
 - `CompositeField::SetArrayElement` can be used to set the values of individual elements of FIXED_LENGTH_ARRAYs/VARIABLE_LENGTH_ARRAYs
 - Use `CompositeField::GetFixedFields`/`CompositeField::GetVarFields` to obtain references to the fixed/variable regions, respectively
 
